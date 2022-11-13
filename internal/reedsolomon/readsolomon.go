@@ -82,7 +82,7 @@ func New17() Coder {
 	return &coder17{}
 }
 
-type coder17 [17 + 9]element
+type coder17 [18]element
 
 // ⁰¹²³⁴⁵⁶⁷⁸⁹
 
@@ -96,31 +96,30 @@ func (c *coder17) Write(p []byte) (int, error) {
 func (c coder17) Code() []byte {
 	log.Println(c)
 	for i := 0; i < 9; i++ {
-		x := c[i]
-		c[i+0].AddMulExp(c[i+0], x, 0)
-		c[i+1].AddMulExp(c[i+1], x, 43)
-		c[i+2].AddMulExp(c[i+2], x, 139)
-		c[i+3].AddMulExp(c[i+3], x, 206)
-		c[i+4].AddMulExp(c[i+4], x, 78)
-		c[i+5].AddMulExp(c[i+5], x, 43)
-		c[i+6].AddMulExp(c[i+6], x, 239)
-		c[i+7].AddMulExp(c[i+7], x, 123)
-		c[i+8].AddMulExp(c[i+8], x, 206)
-		c[i+9].AddMulExp(c[i+9], x, 214)
-		c[i+10].AddMulExp(c[i+10], x, 147)
-		c[i+11].AddMulExp(c[i+11], x, 24)
-		c[i+12].AddMulExp(c[i+12], x, 99)
-		c[i+13].AddMulExp(c[i+13], x, 150)
-		c[i+14].AddMulExp(c[i+14], x, 39)
-		c[i+15].AddMulExp(c[i+15], x, 243)
-		c[i+16].AddMulExp(c[i+16], x, 163)
-		c[i+17].AddMulExp(c[i+17], x, 136)
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 43)
+		c[1].AddMulExp(c[2], x, 139)
+		c[2].AddMulExp(c[3], x, 206)
+		c[3].AddMulExp(c[4], x, 78)
+		c[4].AddMulExp(c[5], x, 43)
+		c[5].AddMulExp(c[6], x, 239)
+		c[6].AddMulExp(c[7], x, 123)
+		c[7].AddMulExp(c[8], x, 206)
+		c[8].AddMulExp(c[9], x, 214)
+		c[9].AddMulExp(c[10], x, 147)
+		c[10].AddMulExp(c[11], x, 24)
+		c[11].AddMulExp(c[12], x, 99)
+		c[12].AddMulExp(c[13], x, 150)
+		c[13].AddMulExp(c[14], x, 39)
+		c[14].AddMulExp(c[15], x, 243)
+		c[15].AddMulExp(c[16], x, 163)
+		c[16].AddMulExp(c[17], x, 136)
 		log.Println(c)
 	}
 
 	var buf [17]byte
 	for i := range buf {
-		buf[i] = byte(c[i+9])
+		buf[i] = byte(c[i])
 	}
 	return buf[:]
 }
