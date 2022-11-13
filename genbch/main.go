@@ -62,15 +62,13 @@ type parameter struct {
 }
 
 func (p parameter) generate(a uint) uint {
-	mask := uint(1) << (p.in + p.check - 1)
-	sub := p.g << (p.in - 1)
-	ret := a << p.check
-	for i := uint(0); i < p.in; i++ {
-		if ret&mask != 0 {
-			ret ^= sub
-		}
-		mask >>= 1
-		sub >>= 1
+	ret := uint(0)
+	b := a
+	for i := uint(0); i < p.in+p.check; i++ {
+		b <<= 1
+		ret = ret<<1 + (b>>p.in)&1
+		c := (ret >> p.check) & 1 // carry
+		ret ^= c * p.g
 	}
 	return (a<<p.check + ret) ^ p.mask
 }
