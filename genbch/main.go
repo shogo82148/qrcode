@@ -36,7 +36,11 @@ func main() {
 		g:     1<<12 + 1<<11 + 1<<10 + 1<<9 + 1<<8 + 1<<5 + 1<<2 + 1,
 	}
 	fmt.Fprintln(&buf, "var encodedVersion = [...]uint{")
-	for i := 7; i <= 40; i++ {
+	for i := 0; i <= 40; i++ {
+		if i < 7 {
+			fmt.Fprintf(&buf, "0x%05x, // %d\n", 0, i)
+			continue
+		}
 		fmt.Fprintf(&buf, "0x%05x, // %d\n", p.generate(uint(i)), i)
 	}
 	fmt.Fprintln(&buf, "}")
@@ -45,7 +49,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := os.WriteFile("bch_gen.go", out, 0o744); err != nil {
+	if err := os.WriteFile("bch_gen.go", out, 0o644); err != nil {
 		log.Fatal(err)
 	}
 }
