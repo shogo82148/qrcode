@@ -27,8 +27,12 @@ func mul(x, y element) element {
 	return expTable[zz]
 }
 
-// AddMul sets v = x + y * z
-func (v *element) AddMul(x, y, z element) {
-	yz := mul(y, z)
-	*v = add(x, yz)
+// AddMul sets v = x + y * a^z
+func (v *element) AddMulExp(x, y element, z int) {
+	if y == zero {
+		*v = x
+		return
+	}
+	yz := (logTable[y] + z) % 255
+	*v = add(x, expTable[yz])
 }
