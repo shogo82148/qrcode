@@ -9,7 +9,7 @@ import (
 // 附属書1
 // シンボルの符号化例
 func TestCoder10(t *testing.T) {
-	w := new10()
+	w := New(10)
 	w.Write([]byte{
 		0b0001_0000, 0b0010_0000, 0b0000_1100, 0b0101_0110,
 		0b0110_0001, 0b1000_0000,
@@ -35,7 +35,7 @@ func TestCoder10(t *testing.T) {
 // 附属書1
 // シンボルの符号化例
 func TestCoder5(t *testing.T) {
-	w := new5()
+	w := New(5)
 	w.Write([]byte{
 		0b0100_0000, 0b0001_1000, 0b1010_1100, 0b1100_0011,
 		0b0000_0000,
