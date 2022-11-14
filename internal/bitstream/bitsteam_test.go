@@ -54,3 +54,50 @@ func TestWriteBit(t *testing.T) {
 		t.Errorf("got %x, want %x", got, want)
 	}
 }
+
+func TestWriteBits(t *testing.T) {
+	type seq struct {
+		bits byte
+		n    int
+	}
+	tests := []struct {
+		in   []seq
+		want []byte
+	}{
+		{
+			in: []seq{
+				{0b1, 1},
+				{0b000, 3},
+				{0b1111, 4},
+			},
+			want: []byte{0b1000_1111},
+		},
+		{
+			in: []seq{
+				{0b111, 3},
+			},
+			want: []byte{0b1110_0000},
+		},
+		{
+			in: []seq{
+				{0b0000, 4},
+				{0b1000_1110, 8},
+				{0b1111, 4},
+			},
+			want: []byte{0b0000_1000, 0b1110_1111},
+		},
+	}
+
+	for _, tt := range tests {
+		var buf Buffer
+		for _, in := range tt.in {
+			if err := buf.WriteBitsLSB(in.bits, in.n); err != nil {
+				t.Fatal(err)
+			}
+		}
+		got := buf.Bytes()
+		if !bytes.Equal(got, tt.want) {
+			t.Errorf("got %x, want %x", got, tt.want)
+		}
+	}
+}
