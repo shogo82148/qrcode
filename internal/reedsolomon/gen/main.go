@@ -25,17 +25,6 @@ func add(x, y element) element {
 	return x ^ y
 }
 
-// mul returns x * y.
-func mul(x, y element) element {
-	if x == zero || y == zero {
-		return zero
-	}
-	xx := logTable[x]
-	yy := logTable[y]
-	zz := (xx + yy) % 255
-	return expTable[zz]
-}
-
 // AddMul sets v = x + y * a^z
 func (v *element) AddMulExp(x, y element, z int) {
 	if y == zero {
@@ -107,7 +96,12 @@ func precomputeCoefficients(buf *bytes.Buffer) {
 		fmt.Fprintf(buf, "type coder%d [%d]element\n", i, i)
 		fmt.Fprintf(buf, "func (c *coder%d) Write(p []byte) (int, error) {\n", i)
 		fmt.Fprintf(buf, "for _, b := range p {\n")
-		fmt.Fprintf(buf, "x := c[0]\n")
+		fmt.Fprintf(buf, "if c[0] == 0 {\n")
+		fmt.Fprintf(buf, "copy(c[0:], c[1:])\n")
+		fmt.Fprintf(buf, "c[%d] = element(b)\n", i-1)
+		fmt.Fprintf(buf, "continue\n")
+		fmt.Fprintf(buf, "}\n")
+		fmt.Fprintf(buf, "x := logTable[c[0]]\n")
 		for j, a := range coef[1:i] {
 			fmt.Fprintf(buf, "c[%d].AddMulExp(c[%d], x, %d)\n", j, j+1, logTable[a])
 		}

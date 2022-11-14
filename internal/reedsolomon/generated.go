@@ -46,7 +46,12 @@ type coder2 [2]element
 
 func (c *coder2) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[1] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 25)
 		c[1].AddMulExp(element(b), x, 1)
 	}
@@ -65,7 +70,12 @@ type coder3 [3]element
 
 func (c *coder3) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[2] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 198)
 		c[1].AddMulExp(c[2], x, 199)
 		c[2].AddMulExp(element(b), x, 3)
@@ -85,7 +95,12 @@ type coder4 [4]element
 
 func (c *coder4) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[3] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 75)
 		c[1].AddMulExp(c[2], x, 249)
 		c[2].AddMulExp(c[3], x, 78)
@@ -106,7 +121,12 @@ type coder5 [5]element
 
 func (c *coder5) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[4] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 113)
 		c[1].AddMulExp(c[2], x, 164)
 		c[2].AddMulExp(c[3], x, 166)
@@ -128,7 +148,12 @@ type coder6 [6]element
 
 func (c *coder6) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[5] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 166)
 		c[1].AddMulExp(c[2], x, 0)
 		c[2].AddMulExp(c[3], x, 134)
@@ -151,7 +176,12 @@ type coder7 [7]element
 
 func (c *coder7) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[6] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 87)
 		c[1].AddMulExp(c[2], x, 229)
 		c[2].AddMulExp(c[3], x, 146)
@@ -175,7 +205,12 @@ type coder8 [8]element
 
 func (c *coder8) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[7] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 175)
 		c[1].AddMulExp(c[2], x, 238)
 		c[2].AddMulExp(c[3], x, 208)
@@ -200,7 +235,12 @@ type coder9 [9]element
 
 func (c *coder9) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[8] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 95)
 		c[1].AddMulExp(c[2], x, 246)
 		c[2].AddMulExp(c[3], x, 137)
@@ -226,7 +266,12 @@ type coder10 [10]element
 
 func (c *coder10) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[9] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 251)
 		c[1].AddMulExp(c[2], x, 67)
 		c[2].AddMulExp(c[3], x, 46)
@@ -253,7 +298,12 @@ type coder11 [11]element
 
 func (c *coder11) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[10] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 220)
 		c[1].AddMulExp(c[2], x, 192)
 		c[2].AddMulExp(c[3], x, 91)
@@ -281,7 +331,12 @@ type coder12 [12]element
 
 func (c *coder12) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[11] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 102)
 		c[1].AddMulExp(c[2], x, 43)
 		c[2].AddMulExp(c[3], x, 98)
@@ -310,7 +365,12 @@ type coder13 [13]element
 
 func (c *coder13) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[12] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 74)
 		c[1].AddMulExp(c[2], x, 152)
 		c[2].AddMulExp(c[3], x, 176)
@@ -340,7 +400,12 @@ type coder14 [14]element
 
 func (c *coder14) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[13] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 199)
 		c[1].AddMulExp(c[2], x, 249)
 		c[2].AddMulExp(c[3], x, 155)
@@ -371,7 +436,12 @@ type coder15 [15]element
 
 func (c *coder15) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[14] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 8)
 		c[1].AddMulExp(c[2], x, 183)
 		c[2].AddMulExp(c[3], x, 61)
@@ -403,7 +473,12 @@ type coder16 [16]element
 
 func (c *coder16) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[15] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 120)
 		c[1].AddMulExp(c[2], x, 104)
 		c[2].AddMulExp(c[3], x, 107)
@@ -436,7 +511,12 @@ type coder17 [17]element
 
 func (c *coder17) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[16] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 43)
 		c[1].AddMulExp(c[2], x, 139)
 		c[2].AddMulExp(c[3], x, 206)
@@ -470,7 +550,12 @@ type coder18 [18]element
 
 func (c *coder18) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[17] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 215)
 		c[1].AddMulExp(c[2], x, 234)
 		c[2].AddMulExp(c[3], x, 158)
@@ -505,7 +590,12 @@ type coder19 [19]element
 
 func (c *coder19) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[18] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 67)
 		c[1].AddMulExp(c[2], x, 3)
 		c[2].AddMulExp(c[3], x, 105)
@@ -541,7 +631,12 @@ type coder20 [20]element
 
 func (c *coder20) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[19] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 17)
 		c[1].AddMulExp(c[2], x, 60)
 		c[2].AddMulExp(c[3], x, 79)
@@ -578,7 +673,12 @@ type coder21 [21]element
 
 func (c *coder21) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[20] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 240)
 		c[1].AddMulExp(c[2], x, 233)
 		c[2].AddMulExp(c[3], x, 104)
@@ -616,7 +716,12 @@ type coder22 [22]element
 
 func (c *coder22) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[21] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 210)
 		c[1].AddMulExp(c[2], x, 171)
 		c[2].AddMulExp(c[3], x, 247)
@@ -655,7 +760,12 @@ type coder23 [23]element
 
 func (c *coder23) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[22] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 171)
 		c[1].AddMulExp(c[2], x, 102)
 		c[2].AddMulExp(c[3], x, 146)
@@ -695,7 +805,12 @@ type coder24 [24]element
 
 func (c *coder24) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[23] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 229)
 		c[1].AddMulExp(c[2], x, 121)
 		c[2].AddMulExp(c[3], x, 135)
@@ -736,7 +851,12 @@ type coder25 [25]element
 
 func (c *coder25) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[24] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 231)
 		c[1].AddMulExp(c[2], x, 181)
 		c[2].AddMulExp(c[3], x, 156)
@@ -778,7 +898,12 @@ type coder26 [26]element
 
 func (c *coder26) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[25] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 173)
 		c[1].AddMulExp(c[2], x, 125)
 		c[2].AddMulExp(c[3], x, 158)
@@ -821,7 +946,12 @@ type coder27 [27]element
 
 func (c *coder27) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[26] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 79)
 		c[1].AddMulExp(c[2], x, 228)
 		c[2].AddMulExp(c[3], x, 8)
@@ -865,7 +995,12 @@ type coder28 [28]element
 
 func (c *coder28) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[27] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 168)
 		c[1].AddMulExp(c[2], x, 223)
 		c[2].AddMulExp(c[3], x, 200)
@@ -910,7 +1045,12 @@ type coder29 [29]element
 
 func (c *coder29) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[28] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 156)
 		c[1].AddMulExp(c[2], x, 45)
 		c[2].AddMulExp(c[3], x, 183)
@@ -956,7 +1096,12 @@ type coder30 [30]element
 
 func (c *coder30) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[29] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 41)
 		c[1].AddMulExp(c[2], x, 173)
 		c[2].AddMulExp(c[3], x, 145)
@@ -1003,7 +1148,12 @@ type coder31 [31]element
 
 func (c *coder31) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[30] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 20)
 		c[1].AddMulExp(c[2], x, 37)
 		c[2].AddMulExp(c[3], x, 252)
@@ -1051,7 +1201,12 @@ type coder32 [32]element
 
 func (c *coder32) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[31] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 10)
 		c[1].AddMulExp(c[2], x, 6)
 		c[2].AddMulExp(c[3], x, 106)
@@ -1100,7 +1255,12 @@ type coder33 [33]element
 
 func (c *coder33) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[32] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 245)
 		c[1].AddMulExp(c[2], x, 231)
 		c[2].AddMulExp(c[3], x, 55)
@@ -1150,7 +1310,12 @@ type coder34 [34]element
 
 func (c *coder34) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[33] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 111)
 		c[1].AddMulExp(c[2], x, 77)
 		c[2].AddMulExp(c[3], x, 146)
@@ -1201,7 +1366,12 @@ type coder35 [35]element
 
 func (c *coder35) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[34] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 7)
 		c[1].AddMulExp(c[2], x, 94)
 		c[2].AddMulExp(c[3], x, 143)
@@ -1253,7 +1423,12 @@ type coder36 [36]element
 
 func (c *coder36) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[35] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 200)
 		c[1].AddMulExp(c[2], x, 183)
 		c[2].AddMulExp(c[3], x, 98)
@@ -1306,7 +1481,12 @@ type coder37 [37]element
 
 func (c *coder37) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[36] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 154)
 		c[1].AddMulExp(c[2], x, 75)
 		c[2].AddMulExp(c[3], x, 141)
@@ -1360,7 +1540,12 @@ type coder38 [38]element
 
 func (c *coder38) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[37] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 159)
 		c[1].AddMulExp(c[2], x, 34)
 		c[2].AddMulExp(c[3], x, 38)
@@ -1415,7 +1600,12 @@ type coder39 [39]element
 
 func (c *coder39) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[38] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 81)
 		c[1].AddMulExp(c[2], x, 216)
 		c[2].AddMulExp(c[3], x, 174)
@@ -1471,7 +1661,12 @@ type coder40 [40]element
 
 func (c *coder40) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[39] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 59)
 		c[1].AddMulExp(c[2], x, 116)
 		c[2].AddMulExp(c[3], x, 79)
@@ -1528,7 +1723,12 @@ type coder41 [41]element
 
 func (c *coder41) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[40] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 132)
 		c[1].AddMulExp(c[2], x, 167)
 		c[2].AddMulExp(c[3], x, 52)
@@ -1586,7 +1786,12 @@ type coder42 [42]element
 
 func (c *coder42) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[41] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 250)
 		c[1].AddMulExp(c[2], x, 103)
 		c[2].AddMulExp(c[3], x, 221)
@@ -1645,7 +1850,12 @@ type coder43 [43]element
 
 func (c *coder43) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[42] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 96)
 		c[1].AddMulExp(c[2], x, 67)
 		c[2].AddMulExp(c[3], x, 3)
@@ -1705,7 +1915,12 @@ type coder44 [44]element
 
 func (c *coder44) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[43] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 190)
 		c[1].AddMulExp(c[2], x, 7)
 		c[2].AddMulExp(c[3], x, 61)
@@ -1766,7 +1981,12 @@ type coder45 [45]element
 
 func (c *coder45) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[44] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 6)
 		c[1].AddMulExp(c[2], x, 172)
 		c[2].AddMulExp(c[3], x, 72)
@@ -1828,7 +2048,12 @@ type coder46 [46]element
 
 func (c *coder46) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[45] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 112)
 		c[1].AddMulExp(c[2], x, 94)
 		c[2].AddMulExp(c[3], x, 88)
@@ -1891,7 +2116,12 @@ type coder47 [47]element
 
 func (c *coder47) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[46] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 76)
 		c[1].AddMulExp(c[2], x, 164)
 		c[2].AddMulExp(c[3], x, 229)
@@ -1955,7 +2185,12 @@ type coder48 [48]element
 
 func (c *coder48) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[47] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 228)
 		c[1].AddMulExp(c[2], x, 25)
 		c[2].AddMulExp(c[3], x, 196)
@@ -2020,7 +2255,12 @@ type coder49 [49]element
 
 func (c *coder49) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[48] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 172)
 		c[1].AddMulExp(c[2], x, 121)
 		c[2].AddMulExp(c[3], x, 1)
@@ -2086,7 +2326,12 @@ type coder50 [50]element
 
 func (c *coder50) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[49] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 232)
 		c[1].AddMulExp(c[2], x, 125)
 		c[2].AddMulExp(c[3], x, 157)
@@ -2153,7 +2398,12 @@ type coder51 [51]element
 
 func (c *coder51) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[50] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 213)
 		c[1].AddMulExp(c[2], x, 166)
 		c[2].AddMulExp(c[3], x, 142)
@@ -2221,7 +2471,12 @@ type coder52 [52]element
 
 func (c *coder52) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[51] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 116)
 		c[1].AddMulExp(c[2], x, 50)
 		c[2].AddMulExp(c[3], x, 86)
@@ -2290,7 +2545,12 @@ type coder53 [53]element
 
 func (c *coder53) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[52] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 122)
 		c[1].AddMulExp(c[2], x, 214)
 		c[2].AddMulExp(c[3], x, 231)
@@ -2360,7 +2620,12 @@ type coder54 [54]element
 
 func (c *coder54) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[53] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 183)
 		c[1].AddMulExp(c[2], x, 26)
 		c[2].AddMulExp(c[3], x, 201)
@@ -2431,7 +2696,12 @@ type coder55 [55]element
 
 func (c *coder55) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[54] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 38)
 		c[1].AddMulExp(c[2], x, 197)
 		c[2].AddMulExp(c[3], x, 123)
@@ -2503,7 +2773,12 @@ type coder56 [56]element
 
 func (c *coder56) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[55] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 106)
 		c[1].AddMulExp(c[2], x, 120)
 		c[2].AddMulExp(c[3], x, 107)
@@ -2576,7 +2851,12 @@ type coder57 [57]element
 
 func (c *coder57) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[56] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 58)
 		c[1].AddMulExp(c[2], x, 140)
 		c[2].AddMulExp(c[3], x, 237)
@@ -2650,7 +2930,12 @@ type coder58 [58]element
 
 func (c *coder58) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[57] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 82)
 		c[1].AddMulExp(c[2], x, 116)
 		c[2].AddMulExp(c[3], x, 26)
@@ -2725,7 +3010,12 @@ type coder59 [59]element
 
 func (c *coder59) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[58] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 57)
 		c[1].AddMulExp(c[2], x, 115)
 		c[2].AddMulExp(c[3], x, 232)
@@ -2801,7 +3091,12 @@ type coder60 [60]element
 
 func (c *coder60) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[59] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 107)
 		c[1].AddMulExp(c[2], x, 140)
 		c[2].AddMulExp(c[3], x, 26)
@@ -2878,7 +3173,12 @@ type coder61 [61]element
 
 func (c *coder61) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[60] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 161)
 		c[1].AddMulExp(c[2], x, 244)
 		c[2].AddMulExp(c[3], x, 105)
@@ -2956,7 +3256,12 @@ type coder62 [62]element
 
 func (c *coder62) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[61] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 65)
 		c[1].AddMulExp(c[2], x, 202)
 		c[2].AddMulExp(c[3], x, 113)
@@ -3035,7 +3340,12 @@ type coder63 [63]element
 
 func (c *coder63) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[62] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 30)
 		c[1].AddMulExp(c[2], x, 71)
 		c[2].AddMulExp(c[3], x, 36)
@@ -3115,7 +3425,12 @@ type coder64 [64]element
 
 func (c *coder64) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[63] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 45)
 		c[1].AddMulExp(c[2], x, 51)
 		c[2].AddMulExp(c[3], x, 175)
@@ -3196,7 +3511,12 @@ type coder65 [65]element
 
 func (c *coder65) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[64] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 137)
 		c[1].AddMulExp(c[2], x, 158)
 		c[2].AddMulExp(c[3], x, 247)
@@ -3278,7 +3598,12 @@ type coder66 [66]element
 
 func (c *coder66) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[65] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 5)
 		c[1].AddMulExp(c[2], x, 118)
 		c[2].AddMulExp(c[3], x, 222)
@@ -3361,7 +3686,12 @@ type coder67 [67]element
 
 func (c *coder67) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[66] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 191)
 		c[1].AddMulExp(c[2], x, 172)
 		c[2].AddMulExp(c[3], x, 113)
@@ -3445,7 +3775,12 @@ type coder68 [68]element
 
 func (c *coder68) Write(p []byte) (int, error) {
 	for _, b := range p {
-		x := c[0]
+		if c[0] == 0 {
+			copy(c[0:], c[1:])
+			c[67] = element(b)
+			continue
+		}
+		x := logTable[c[0]]
 		c[0].AddMulExp(c[1], x, 247)
 		c[1].AddMulExp(c[2], x, 159)
 		c[2].AddMulExp(c[3], x, 223)
