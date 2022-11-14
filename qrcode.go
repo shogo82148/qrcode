@@ -98,7 +98,11 @@ func Generate() image.Image {
 			continue
 		}
 		if !used.BinaryAt(x, y) {
-			img.SetBinary(x, y, buffer.ReadBit() != 0)
+			bit, err := buffer.ReadBit()
+			if err != nil {
+				break
+			}
+			img.SetBinary(x, y, bit != 0)
 		}
 		x--
 		if x < 0 {
@@ -106,7 +110,11 @@ func Generate() image.Image {
 		}
 
 		if !used.BinaryAt(x, y) {
-			img.SetBinary(x, y, buffer.ReadBit() != 0)
+			bit, err := buffer.ReadBit()
+			if err != nil {
+				break
+			}
+			img.SetBinary(x, y, bit != 0)
 		}
 		x, y = x+1, y+dy
 		if y < 0 || y >= w {
