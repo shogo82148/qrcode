@@ -2,6 +2,8 @@
 
 package reedsolomon
 
+import "hash"
+
 // expTable is pre-computed value of expTable[n] = a^n performed modulo x^8 + x^4 + x^3 + x^2 + 1.
 var expTable = [256]element{
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1d, 0x3a, 0x74, 0xe8, 0xcd, 0x87, 0x13, 0x26,
@@ -41,9 +43,89 @@ var logTable = [256]int{ // uint8 is enough, however it is int because avoid to 
 	0xcb, 0x59, 0x5f, 0xb0, 0x9c, 0xa9, 0xa0, 0x51, 0x0b, 0xf5, 0x16, 0xeb, 0x7a, 0x75, 0x2c, 0xd7,
 	0x4f, 0xae, 0xd5, 0xe9, 0xe6, 0xe7, 0xad, 0xe8, 0x74, 0xd6, 0xf4, 0xea, 0xa8, 0x50, 0x58, 0xaf,
 }
+var coders = [...]func() hash.Hash{
+	nil,
+	nil,
+	new2,
+	new3,
+	new4,
+	new5,
+	new6,
+	new7,
+	new8,
+	new9,
+	new10,
+	new11,
+	new12,
+	new13,
+	new14,
+	new15,
+	new16,
+	new17,
+	new18,
+	new19,
+	new20,
+	new21,
+	new22,
+	new23,
+	new24,
+	new25,
+	new26,
+	new27,
+	new28,
+	new29,
+	new30,
+	new31,
+	new32,
+	new33,
+	new34,
+	new35,
+	new36,
+	new37,
+	new38,
+	new39,
+	new40,
+	new41,
+	new42,
+	new43,
+	new44,
+	new45,
+	new46,
+	new47,
+	new48,
+	new49,
+	new50,
+	new51,
+	new52,
+	new53,
+	new54,
+	new55,
+	new56,
+	new57,
+	new58,
+	new59,
+	new60,
+	new61,
+	new62,
+	new63,
+	new64,
+	new65,
+	new66,
+	new67,
+	new68,
+}
 
 type coder2 [2]element
 
+func new2() hash.Hash { return &coder2{} }
+
+func (c *coder2) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder2) Size() int      { return len(c) }
+func (c *coder2) BlockSize() int { return len(c) }
 func (c *coder2) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -57,17 +139,30 @@ func (c *coder2) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder2) Code() []byte {
-	var buf [2]byte
-	c.Write(buf[:])
+func (c coder2) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:2]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder3 [3]element
 
+func new3() hash.Hash { return &coder3{} }
+
+func (c *coder3) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder3) Size() int      { return len(c) }
+func (c *coder3) BlockSize() int { return len(c) }
 func (c *coder3) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -82,17 +177,30 @@ func (c *coder3) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder3) Code() []byte {
-	var buf [3]byte
-	c.Write(buf[:])
+func (c coder3) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:3]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder4 [4]element
 
+func new4() hash.Hash { return &coder4{} }
+
+func (c *coder4) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder4) Size() int      { return len(c) }
+func (c *coder4) BlockSize() int { return len(c) }
 func (c *coder4) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -108,17 +216,30 @@ func (c *coder4) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder4) Code() []byte {
-	var buf [4]byte
-	c.Write(buf[:])
+func (c coder4) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:4]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder5 [5]element
 
+func new5() hash.Hash { return &coder5{} }
+
+func (c *coder5) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder5) Size() int      { return len(c) }
+func (c *coder5) BlockSize() int { return len(c) }
 func (c *coder5) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -135,17 +256,30 @@ func (c *coder5) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder5) Code() []byte {
-	var buf [5]byte
-	c.Write(buf[:])
+func (c coder5) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:5]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder6 [6]element
 
+func new6() hash.Hash { return &coder6{} }
+
+func (c *coder6) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder6) Size() int      { return len(c) }
+func (c *coder6) BlockSize() int { return len(c) }
 func (c *coder6) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -163,17 +297,30 @@ func (c *coder6) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder6) Code() []byte {
-	var buf [6]byte
-	c.Write(buf[:])
+func (c coder6) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:6]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder7 [7]element
 
+func new7() hash.Hash { return &coder7{} }
+
+func (c *coder7) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder7) Size() int      { return len(c) }
+func (c *coder7) BlockSize() int { return len(c) }
 func (c *coder7) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -192,17 +339,30 @@ func (c *coder7) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder7) Code() []byte {
-	var buf [7]byte
-	c.Write(buf[:])
+func (c coder7) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:7]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder8 [8]element
 
+func new8() hash.Hash { return &coder8{} }
+
+func (c *coder8) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder8) Size() int      { return len(c) }
+func (c *coder8) BlockSize() int { return len(c) }
 func (c *coder8) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -222,17 +382,30 @@ func (c *coder8) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder8) Code() []byte {
-	var buf [8]byte
-	c.Write(buf[:])
+func (c coder8) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:8]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder9 [9]element
 
+func new9() hash.Hash { return &coder9{} }
+
+func (c *coder9) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder9) Size() int      { return len(c) }
+func (c *coder9) BlockSize() int { return len(c) }
 func (c *coder9) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -253,17 +426,30 @@ func (c *coder9) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder9) Code() []byte {
-	var buf [9]byte
-	c.Write(buf[:])
+func (c coder9) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:9]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder10 [10]element
 
+func new10() hash.Hash { return &coder10{} }
+
+func (c *coder10) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder10) Size() int      { return len(c) }
+func (c *coder10) BlockSize() int { return len(c) }
 func (c *coder10) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -285,17 +471,30 @@ func (c *coder10) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder10) Code() []byte {
-	var buf [10]byte
-	c.Write(buf[:])
+func (c coder10) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:10]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder11 [11]element
 
+func new11() hash.Hash { return &coder11{} }
+
+func (c *coder11) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder11) Size() int      { return len(c) }
+func (c *coder11) BlockSize() int { return len(c) }
 func (c *coder11) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -318,17 +517,30 @@ func (c *coder11) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder11) Code() []byte {
-	var buf [11]byte
-	c.Write(buf[:])
+func (c coder11) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:11]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder12 [12]element
 
+func new12() hash.Hash { return &coder12{} }
+
+func (c *coder12) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder12) Size() int      { return len(c) }
+func (c *coder12) BlockSize() int { return len(c) }
 func (c *coder12) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -352,17 +564,30 @@ func (c *coder12) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder12) Code() []byte {
-	var buf [12]byte
-	c.Write(buf[:])
+func (c coder12) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:12]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder13 [13]element
 
+func new13() hash.Hash { return &coder13{} }
+
+func (c *coder13) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder13) Size() int      { return len(c) }
+func (c *coder13) BlockSize() int { return len(c) }
 func (c *coder13) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -387,17 +612,30 @@ func (c *coder13) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder13) Code() []byte {
-	var buf [13]byte
-	c.Write(buf[:])
+func (c coder13) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:13]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder14 [14]element
 
+func new14() hash.Hash { return &coder14{} }
+
+func (c *coder14) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder14) Size() int      { return len(c) }
+func (c *coder14) BlockSize() int { return len(c) }
 func (c *coder14) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -423,17 +661,30 @@ func (c *coder14) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder14) Code() []byte {
-	var buf [14]byte
-	c.Write(buf[:])
+func (c coder14) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:14]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder15 [15]element
 
+func new15() hash.Hash { return &coder15{} }
+
+func (c *coder15) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder15) Size() int      { return len(c) }
+func (c *coder15) BlockSize() int { return len(c) }
 func (c *coder15) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -460,17 +711,30 @@ func (c *coder15) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder15) Code() []byte {
-	var buf [15]byte
-	c.Write(buf[:])
+func (c coder15) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:15]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder16 [16]element
 
+func new16() hash.Hash { return &coder16{} }
+
+func (c *coder16) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder16) Size() int      { return len(c) }
+func (c *coder16) BlockSize() int { return len(c) }
 func (c *coder16) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -498,17 +762,30 @@ func (c *coder16) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder16) Code() []byte {
-	var buf [16]byte
-	c.Write(buf[:])
+func (c coder16) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:16]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder17 [17]element
 
+func new17() hash.Hash { return &coder17{} }
+
+func (c *coder17) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder17) Size() int      { return len(c) }
+func (c *coder17) BlockSize() int { return len(c) }
 func (c *coder17) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -537,17 +814,30 @@ func (c *coder17) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder17) Code() []byte {
-	var buf [17]byte
-	c.Write(buf[:])
+func (c coder17) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:17]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder18 [18]element
 
+func new18() hash.Hash { return &coder18{} }
+
+func (c *coder18) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder18) Size() int      { return len(c) }
+func (c *coder18) BlockSize() int { return len(c) }
 func (c *coder18) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -577,17 +867,30 @@ func (c *coder18) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder18) Code() []byte {
-	var buf [18]byte
-	c.Write(buf[:])
+func (c coder18) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:18]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder19 [19]element
 
+func new19() hash.Hash { return &coder19{} }
+
+func (c *coder19) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder19) Size() int      { return len(c) }
+func (c *coder19) BlockSize() int { return len(c) }
 func (c *coder19) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -618,17 +921,30 @@ func (c *coder19) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder19) Code() []byte {
-	var buf [19]byte
-	c.Write(buf[:])
+func (c coder19) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:19]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder20 [20]element
 
+func new20() hash.Hash { return &coder20{} }
+
+func (c *coder20) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder20) Size() int      { return len(c) }
+func (c *coder20) BlockSize() int { return len(c) }
 func (c *coder20) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -660,17 +976,30 @@ func (c *coder20) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder20) Code() []byte {
-	var buf [20]byte
-	c.Write(buf[:])
+func (c coder20) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:20]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder21 [21]element
 
+func new21() hash.Hash { return &coder21{} }
+
+func (c *coder21) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder21) Size() int      { return len(c) }
+func (c *coder21) BlockSize() int { return len(c) }
 func (c *coder21) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -703,17 +1032,30 @@ func (c *coder21) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder21) Code() []byte {
-	var buf [21]byte
-	c.Write(buf[:])
+func (c coder21) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:21]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder22 [22]element
 
+func new22() hash.Hash { return &coder22{} }
+
+func (c *coder22) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder22) Size() int      { return len(c) }
+func (c *coder22) BlockSize() int { return len(c) }
 func (c *coder22) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -747,17 +1089,30 @@ func (c *coder22) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder22) Code() []byte {
-	var buf [22]byte
-	c.Write(buf[:])
+func (c coder22) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:22]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder23 [23]element
 
+func new23() hash.Hash { return &coder23{} }
+
+func (c *coder23) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder23) Size() int      { return len(c) }
+func (c *coder23) BlockSize() int { return len(c) }
 func (c *coder23) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -792,17 +1147,30 @@ func (c *coder23) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder23) Code() []byte {
-	var buf [23]byte
-	c.Write(buf[:])
+func (c coder23) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:23]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder24 [24]element
 
+func new24() hash.Hash { return &coder24{} }
+
+func (c *coder24) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder24) Size() int      { return len(c) }
+func (c *coder24) BlockSize() int { return len(c) }
 func (c *coder24) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -838,17 +1206,30 @@ func (c *coder24) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder24) Code() []byte {
-	var buf [24]byte
-	c.Write(buf[:])
+func (c coder24) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:24]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder25 [25]element
 
+func new25() hash.Hash { return &coder25{} }
+
+func (c *coder25) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder25) Size() int      { return len(c) }
+func (c *coder25) BlockSize() int { return len(c) }
 func (c *coder25) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -885,17 +1266,30 @@ func (c *coder25) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder25) Code() []byte {
-	var buf [25]byte
-	c.Write(buf[:])
+func (c coder25) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:25]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder26 [26]element
 
+func new26() hash.Hash { return &coder26{} }
+
+func (c *coder26) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder26) Size() int      { return len(c) }
+func (c *coder26) BlockSize() int { return len(c) }
 func (c *coder26) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -933,17 +1327,30 @@ func (c *coder26) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder26) Code() []byte {
-	var buf [26]byte
-	c.Write(buf[:])
+func (c coder26) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:26]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder27 [27]element
 
+func new27() hash.Hash { return &coder27{} }
+
+func (c *coder27) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder27) Size() int      { return len(c) }
+func (c *coder27) BlockSize() int { return len(c) }
 func (c *coder27) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -982,17 +1389,30 @@ func (c *coder27) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder27) Code() []byte {
-	var buf [27]byte
-	c.Write(buf[:])
+func (c coder27) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:27]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder28 [28]element
 
+func new28() hash.Hash { return &coder28{} }
+
+func (c *coder28) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder28) Size() int      { return len(c) }
+func (c *coder28) BlockSize() int { return len(c) }
 func (c *coder28) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1032,17 +1452,30 @@ func (c *coder28) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder28) Code() []byte {
-	var buf [28]byte
-	c.Write(buf[:])
+func (c coder28) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:28]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder29 [29]element
 
+func new29() hash.Hash { return &coder29{} }
+
+func (c *coder29) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder29) Size() int      { return len(c) }
+func (c *coder29) BlockSize() int { return len(c) }
 func (c *coder29) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1083,17 +1516,30 @@ func (c *coder29) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder29) Code() []byte {
-	var buf [29]byte
-	c.Write(buf[:])
+func (c coder29) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:29]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder30 [30]element
 
+func new30() hash.Hash { return &coder30{} }
+
+func (c *coder30) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder30) Size() int      { return len(c) }
+func (c *coder30) BlockSize() int { return len(c) }
 func (c *coder30) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1135,17 +1581,30 @@ func (c *coder30) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder30) Code() []byte {
-	var buf [30]byte
-	c.Write(buf[:])
+func (c coder30) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:30]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder31 [31]element
 
+func new31() hash.Hash { return &coder31{} }
+
+func (c *coder31) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder31) Size() int      { return len(c) }
+func (c *coder31) BlockSize() int { return len(c) }
 func (c *coder31) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1188,17 +1647,30 @@ func (c *coder31) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder31) Code() []byte {
-	var buf [31]byte
-	c.Write(buf[:])
+func (c coder31) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:31]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder32 [32]element
 
+func new32() hash.Hash { return &coder32{} }
+
+func (c *coder32) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder32) Size() int      { return len(c) }
+func (c *coder32) BlockSize() int { return len(c) }
 func (c *coder32) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1242,17 +1714,30 @@ func (c *coder32) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder32) Code() []byte {
-	var buf [32]byte
-	c.Write(buf[:])
+func (c coder32) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:32]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder33 [33]element
 
+func new33() hash.Hash { return &coder33{} }
+
+func (c *coder33) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder33) Size() int      { return len(c) }
+func (c *coder33) BlockSize() int { return len(c) }
 func (c *coder33) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1297,17 +1782,30 @@ func (c *coder33) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder33) Code() []byte {
-	var buf [33]byte
-	c.Write(buf[:])
+func (c coder33) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:33]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder34 [34]element
 
+func new34() hash.Hash { return &coder34{} }
+
+func (c *coder34) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder34) Size() int      { return len(c) }
+func (c *coder34) BlockSize() int { return len(c) }
 func (c *coder34) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1353,17 +1851,30 @@ func (c *coder34) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder34) Code() []byte {
-	var buf [34]byte
-	c.Write(buf[:])
+func (c coder34) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:34]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder35 [35]element
 
+func new35() hash.Hash { return &coder35{} }
+
+func (c *coder35) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder35) Size() int      { return len(c) }
+func (c *coder35) BlockSize() int { return len(c) }
 func (c *coder35) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1410,17 +1921,30 @@ func (c *coder35) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder35) Code() []byte {
-	var buf [35]byte
-	c.Write(buf[:])
+func (c coder35) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:35]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder36 [36]element
 
+func new36() hash.Hash { return &coder36{} }
+
+func (c *coder36) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder36) Size() int      { return len(c) }
+func (c *coder36) BlockSize() int { return len(c) }
 func (c *coder36) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1468,17 +1992,30 @@ func (c *coder36) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder36) Code() []byte {
-	var buf [36]byte
-	c.Write(buf[:])
+func (c coder36) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:36]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder37 [37]element
 
+func new37() hash.Hash { return &coder37{} }
+
+func (c *coder37) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder37) Size() int      { return len(c) }
+func (c *coder37) BlockSize() int { return len(c) }
 func (c *coder37) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1527,17 +2064,30 @@ func (c *coder37) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder37) Code() []byte {
-	var buf [37]byte
-	c.Write(buf[:])
+func (c coder37) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:37]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder38 [38]element
 
+func new38() hash.Hash { return &coder38{} }
+
+func (c *coder38) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder38) Size() int      { return len(c) }
+func (c *coder38) BlockSize() int { return len(c) }
 func (c *coder38) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1587,17 +2137,30 @@ func (c *coder38) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder38) Code() []byte {
-	var buf [38]byte
-	c.Write(buf[:])
+func (c coder38) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:38]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder39 [39]element
 
+func new39() hash.Hash { return &coder39{} }
+
+func (c *coder39) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder39) Size() int      { return len(c) }
+func (c *coder39) BlockSize() int { return len(c) }
 func (c *coder39) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1648,17 +2211,30 @@ func (c *coder39) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder39) Code() []byte {
-	var buf [39]byte
-	c.Write(buf[:])
+func (c coder39) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:39]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder40 [40]element
 
+func new40() hash.Hash { return &coder40{} }
+
+func (c *coder40) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder40) Size() int      { return len(c) }
+func (c *coder40) BlockSize() int { return len(c) }
 func (c *coder40) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1710,17 +2286,30 @@ func (c *coder40) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder40) Code() []byte {
-	var buf [40]byte
-	c.Write(buf[:])
+func (c coder40) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:40]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder41 [41]element
 
+func new41() hash.Hash { return &coder41{} }
+
+func (c *coder41) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder41) Size() int      { return len(c) }
+func (c *coder41) BlockSize() int { return len(c) }
 func (c *coder41) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1773,17 +2362,30 @@ func (c *coder41) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder41) Code() []byte {
-	var buf [41]byte
-	c.Write(buf[:])
+func (c coder41) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:41]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder42 [42]element
 
+func new42() hash.Hash { return &coder42{} }
+
+func (c *coder42) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder42) Size() int      { return len(c) }
+func (c *coder42) BlockSize() int { return len(c) }
 func (c *coder42) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1837,17 +2439,30 @@ func (c *coder42) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder42) Code() []byte {
-	var buf [42]byte
-	c.Write(buf[:])
+func (c coder42) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:42]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder43 [43]element
 
+func new43() hash.Hash { return &coder43{} }
+
+func (c *coder43) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder43) Size() int      { return len(c) }
+func (c *coder43) BlockSize() int { return len(c) }
 func (c *coder43) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1902,17 +2517,30 @@ func (c *coder43) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder43) Code() []byte {
-	var buf [43]byte
-	c.Write(buf[:])
+func (c coder43) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:43]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder44 [44]element
 
+func new44() hash.Hash { return &coder44{} }
+
+func (c *coder44) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder44) Size() int      { return len(c) }
+func (c *coder44) BlockSize() int { return len(c) }
 func (c *coder44) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -1968,17 +2596,30 @@ func (c *coder44) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder44) Code() []byte {
-	var buf [44]byte
-	c.Write(buf[:])
+func (c coder44) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:44]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder45 [45]element
 
+func new45() hash.Hash { return &coder45{} }
+
+func (c *coder45) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder45) Size() int      { return len(c) }
+func (c *coder45) BlockSize() int { return len(c) }
 func (c *coder45) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2035,17 +2676,30 @@ func (c *coder45) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder45) Code() []byte {
-	var buf [45]byte
-	c.Write(buf[:])
+func (c coder45) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:45]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder46 [46]element
 
+func new46() hash.Hash { return &coder46{} }
+
+func (c *coder46) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder46) Size() int      { return len(c) }
+func (c *coder46) BlockSize() int { return len(c) }
 func (c *coder46) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2103,17 +2757,30 @@ func (c *coder46) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder46) Code() []byte {
-	var buf [46]byte
-	c.Write(buf[:])
+func (c coder46) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:46]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder47 [47]element
 
+func new47() hash.Hash { return &coder47{} }
+
+func (c *coder47) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder47) Size() int      { return len(c) }
+func (c *coder47) BlockSize() int { return len(c) }
 func (c *coder47) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2172,17 +2839,30 @@ func (c *coder47) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder47) Code() []byte {
-	var buf [47]byte
-	c.Write(buf[:])
+func (c coder47) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:47]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder48 [48]element
 
+func new48() hash.Hash { return &coder48{} }
+
+func (c *coder48) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder48) Size() int      { return len(c) }
+func (c *coder48) BlockSize() int { return len(c) }
 func (c *coder48) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2242,17 +2922,30 @@ func (c *coder48) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder48) Code() []byte {
-	var buf [48]byte
-	c.Write(buf[:])
+func (c coder48) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:48]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder49 [49]element
 
+func new49() hash.Hash { return &coder49{} }
+
+func (c *coder49) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder49) Size() int      { return len(c) }
+func (c *coder49) BlockSize() int { return len(c) }
 func (c *coder49) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2313,17 +3006,30 @@ func (c *coder49) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder49) Code() []byte {
-	var buf [49]byte
-	c.Write(buf[:])
+func (c coder49) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:49]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder50 [50]element
 
+func new50() hash.Hash { return &coder50{} }
+
+func (c *coder50) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder50) Size() int      { return len(c) }
+func (c *coder50) BlockSize() int { return len(c) }
 func (c *coder50) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2385,17 +3091,30 @@ func (c *coder50) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder50) Code() []byte {
-	var buf [50]byte
-	c.Write(buf[:])
+func (c coder50) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:50]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder51 [51]element
 
+func new51() hash.Hash { return &coder51{} }
+
+func (c *coder51) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder51) Size() int      { return len(c) }
+func (c *coder51) BlockSize() int { return len(c) }
 func (c *coder51) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2458,17 +3177,30 @@ func (c *coder51) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder51) Code() []byte {
-	var buf [51]byte
-	c.Write(buf[:])
+func (c coder51) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:51]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder52 [52]element
 
+func new52() hash.Hash { return &coder52{} }
+
+func (c *coder52) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder52) Size() int      { return len(c) }
+func (c *coder52) BlockSize() int { return len(c) }
 func (c *coder52) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2532,17 +3264,30 @@ func (c *coder52) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder52) Code() []byte {
-	var buf [52]byte
-	c.Write(buf[:])
+func (c coder52) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:52]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder53 [53]element
 
+func new53() hash.Hash { return &coder53{} }
+
+func (c *coder53) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder53) Size() int      { return len(c) }
+func (c *coder53) BlockSize() int { return len(c) }
 func (c *coder53) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2607,17 +3352,30 @@ func (c *coder53) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder53) Code() []byte {
-	var buf [53]byte
-	c.Write(buf[:])
+func (c coder53) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:53]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder54 [54]element
 
+func new54() hash.Hash { return &coder54{} }
+
+func (c *coder54) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder54) Size() int      { return len(c) }
+func (c *coder54) BlockSize() int { return len(c) }
 func (c *coder54) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2683,17 +3441,30 @@ func (c *coder54) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder54) Code() []byte {
-	var buf [54]byte
-	c.Write(buf[:])
+func (c coder54) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:54]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder55 [55]element
 
+func new55() hash.Hash { return &coder55{} }
+
+func (c *coder55) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder55) Size() int      { return len(c) }
+func (c *coder55) BlockSize() int { return len(c) }
 func (c *coder55) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2760,17 +3531,30 @@ func (c *coder55) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder55) Code() []byte {
-	var buf [55]byte
-	c.Write(buf[:])
+func (c coder55) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:55]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder56 [56]element
 
+func new56() hash.Hash { return &coder56{} }
+
+func (c *coder56) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder56) Size() int      { return len(c) }
+func (c *coder56) BlockSize() int { return len(c) }
 func (c *coder56) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2838,17 +3622,30 @@ func (c *coder56) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder56) Code() []byte {
-	var buf [56]byte
-	c.Write(buf[:])
+func (c coder56) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:56]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder57 [57]element
 
+func new57() hash.Hash { return &coder57{} }
+
+func (c *coder57) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder57) Size() int      { return len(c) }
+func (c *coder57) BlockSize() int { return len(c) }
 func (c *coder57) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2917,17 +3714,30 @@ func (c *coder57) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder57) Code() []byte {
-	var buf [57]byte
-	c.Write(buf[:])
+func (c coder57) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:57]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder58 [58]element
 
+func new58() hash.Hash { return &coder58{} }
+
+func (c *coder58) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder58) Size() int      { return len(c) }
+func (c *coder58) BlockSize() int { return len(c) }
 func (c *coder58) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -2997,17 +3807,30 @@ func (c *coder58) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder58) Code() []byte {
-	var buf [58]byte
-	c.Write(buf[:])
+func (c coder58) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:58]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder59 [59]element
 
+func new59() hash.Hash { return &coder59{} }
+
+func (c *coder59) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder59) Size() int      { return len(c) }
+func (c *coder59) BlockSize() int { return len(c) }
 func (c *coder59) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3078,17 +3901,30 @@ func (c *coder59) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder59) Code() []byte {
-	var buf [59]byte
-	c.Write(buf[:])
+func (c coder59) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:59]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder60 [60]element
 
+func new60() hash.Hash { return &coder60{} }
+
+func (c *coder60) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder60) Size() int      { return len(c) }
+func (c *coder60) BlockSize() int { return len(c) }
 func (c *coder60) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3160,17 +3996,30 @@ func (c *coder60) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder60) Code() []byte {
-	var buf [60]byte
-	c.Write(buf[:])
+func (c coder60) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:60]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder61 [61]element
 
+func new61() hash.Hash { return &coder61{} }
+
+func (c *coder61) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder61) Size() int      { return len(c) }
+func (c *coder61) BlockSize() int { return len(c) }
 func (c *coder61) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3243,17 +4092,30 @@ func (c *coder61) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder61) Code() []byte {
-	var buf [61]byte
-	c.Write(buf[:])
+func (c coder61) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:61]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder62 [62]element
 
+func new62() hash.Hash { return &coder62{} }
+
+func (c *coder62) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder62) Size() int      { return len(c) }
+func (c *coder62) BlockSize() int { return len(c) }
 func (c *coder62) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3327,17 +4189,30 @@ func (c *coder62) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder62) Code() []byte {
-	var buf [62]byte
-	c.Write(buf[:])
+func (c coder62) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:62]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder63 [63]element
 
+func new63() hash.Hash { return &coder63{} }
+
+func (c *coder63) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder63) Size() int      { return len(c) }
+func (c *coder63) BlockSize() int { return len(c) }
 func (c *coder63) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3412,17 +4287,30 @@ func (c *coder63) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder63) Code() []byte {
-	var buf [63]byte
-	c.Write(buf[:])
+func (c coder63) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:63]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder64 [64]element
 
+func new64() hash.Hash { return &coder64{} }
+
+func (c *coder64) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder64) Size() int      { return len(c) }
+func (c *coder64) BlockSize() int { return len(c) }
 func (c *coder64) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3498,17 +4386,30 @@ func (c *coder64) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder64) Code() []byte {
-	var buf [64]byte
-	c.Write(buf[:])
+func (c coder64) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:64]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder65 [65]element
 
+func new65() hash.Hash { return &coder65{} }
+
+func (c *coder65) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder65) Size() int      { return len(c) }
+func (c *coder65) BlockSize() int { return len(c) }
 func (c *coder65) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3585,17 +4486,30 @@ func (c *coder65) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder65) Code() []byte {
-	var buf [65]byte
-	c.Write(buf[:])
+func (c coder65) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:65]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder66 [66]element
 
+func new66() hash.Hash { return &coder66{} }
+
+func (c *coder66) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder66) Size() int      { return len(c) }
+func (c *coder66) BlockSize() int { return len(c) }
 func (c *coder66) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3673,17 +4587,30 @@ func (c *coder66) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder66) Code() []byte {
-	var buf [66]byte
-	c.Write(buf[:])
+func (c coder66) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:66]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder67 [67]element
 
+func new67() hash.Hash { return &coder67{} }
+
+func (c *coder67) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder67) Size() int      { return len(c) }
+func (c *coder67) BlockSize() int { return len(c) }
 func (c *coder67) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3762,17 +4689,30 @@ func (c *coder67) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder67) Code() []byte {
-	var buf [67]byte
-	c.Write(buf[:])
+func (c coder67) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:67]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }
 
 type coder68 [68]element
 
+func new68() hash.Hash { return &coder68{} }
+
+func (c *coder68) Reset() {
+	for i := range c {
+		c[i] = 0
+	}
+}
+func (c *coder68) Size() int      { return len(c) }
+func (c *coder68) BlockSize() int { return len(c) }
 func (c *coder68) Write(p []byte) (int, error) {
 	for _, b := range p {
 		if c[0] == 0 {
@@ -3852,11 +4792,15 @@ func (c *coder68) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
-func (c coder68) Code() []byte {
-	var buf [68]byte
-	c.Write(buf[:])
+func (c coder68) Sum(buf []byte) []byte {
+	c.Write(buf)
+	buf = buf[:68]
+	for i := range buf {
+		buf[i] = 0
+	}
+	c.Write(buf)
 	for i := range buf {
 		buf[i] = byte(c[i])
 	}
-	return buf[:]
+	return buf
 }

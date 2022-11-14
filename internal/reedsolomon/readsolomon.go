@@ -1,10 +1,15 @@
 package reedsolomon
 
-import (
-	"io"
-)
+import "hash"
 
-type Coder interface {
-	io.Writer
-	Code() []byte
+//go:generate go run gen/main.go
+
+func New(n int) hash.Hash {
+	if n < 2 {
+		panic("negative")
+	}
+	if n >= len(coders) {
+		panic("too large")
+	}
+	return coders[n]()
 }
