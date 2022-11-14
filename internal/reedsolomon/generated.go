@@ -2,6 +2,7 @@
 
 package reedsolomon
 
+// expTable is pre-computed value of expTable[n] = a^n performed modulo x^8 + x^4 + x^3 + x^2 + 1.
 var expTable = [256]element{
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1d, 0x3a, 0x74, 0xe8, 0xcd, 0x87, 0x13, 0x26,
 	0x4c, 0x98, 0x2d, 0x5a, 0xb4, 0x75, 0xea, 0xc9, 0x8f, 0x03, 0x06, 0x0c, 0x18, 0x30, 0x60, 0xc0,
@@ -21,7 +22,8 @@ var expTable = [256]element{
 	0x2c, 0x58, 0xb0, 0x7d, 0xfa, 0xe9, 0xcf, 0x83, 0x1b, 0x36, 0x6c, 0xd8, 0xad, 0x47, 0x8e, 0x01,
 }
 
-var logTable = [256]int{
+// expTable is pre-computed value of a^logTable[n] = n performed modulo x^8 + x^4 + x^3 + x^2 + 1.
+var logTable = [256]int{ // uint8 is enough, however it is int because avoid to overflow during calculation
 	0x00, 0x00, 0x01, 0x19, 0x02, 0x32, 0x1a, 0xc6, 0x03, 0xdf, 0x33, 0xee, 0x1b, 0x68, 0xc7, 0x4b,
 	0x04, 0x64, 0xe0, 0x0e, 0x34, 0x8d, 0xef, 0x81, 0x1c, 0xc1, 0x69, 0xf8, 0xc8, 0x08, 0x4c, 0x71,
 	0x05, 0x8a, 0x65, 0x2f, 0xe1, 0x24, 0x0f, 0x21, 0x35, 0x93, 0x8e, 0xda, 0xf0, 0x12, 0x82, 0x45,
@@ -38,4 +40,3488 @@ var logTable = [256]int{
 	0x6c, 0xa1, 0x3b, 0x52, 0x29, 0x9d, 0x55, 0xaa, 0xfb, 0x60, 0x86, 0xb1, 0xbb, 0xcc, 0x3e, 0x5a,
 	0xcb, 0x59, 0x5f, 0xb0, 0x9c, 0xa9, 0xa0, 0x51, 0x0b, 0xf5, 0x16, 0xeb, 0x7a, 0x75, 0x2c, 0xd7,
 	0x4f, 0xae, 0xd5, 0xe9, 0xe6, 0xe7, 0xad, 0xe8, 0x74, 0xd6, 0xf4, 0xea, 0xa8, 0x50, 0x58, 0xaf,
+}
+
+type coder2 [2]element
+
+func (c *coder2) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 25)
+		c[1].AddMulExp(element(b), x, 1)
+	}
+	return len(p), nil
+}
+func (c coder2) Code() []byte {
+	var buf [2]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder3 [3]element
+
+func (c *coder3) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 198)
+		c[1].AddMulExp(c[2], x, 199)
+		c[2].AddMulExp(element(b), x, 3)
+	}
+	return len(p), nil
+}
+func (c coder3) Code() []byte {
+	var buf [3]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder4 [4]element
+
+func (c *coder4) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 75)
+		c[1].AddMulExp(c[2], x, 249)
+		c[2].AddMulExp(c[3], x, 78)
+		c[3].AddMulExp(element(b), x, 6)
+	}
+	return len(p), nil
+}
+func (c coder4) Code() []byte {
+	var buf [4]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder5 [5]element
+
+func (c *coder5) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 113)
+		c[1].AddMulExp(c[2], x, 164)
+		c[2].AddMulExp(c[3], x, 166)
+		c[3].AddMulExp(c[4], x, 119)
+		c[4].AddMulExp(element(b), x, 10)
+	}
+	return len(p), nil
+}
+func (c coder5) Code() []byte {
+	var buf [5]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder6 [6]element
+
+func (c *coder6) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 166)
+		c[1].AddMulExp(c[2], x, 0)
+		c[2].AddMulExp(c[3], x, 134)
+		c[3].AddMulExp(c[4], x, 5)
+		c[4].AddMulExp(c[5], x, 176)
+		c[5].AddMulExp(element(b), x, 15)
+	}
+	return len(p), nil
+}
+func (c coder6) Code() []byte {
+	var buf [6]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder7 [7]element
+
+func (c *coder7) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 87)
+		c[1].AddMulExp(c[2], x, 229)
+		c[2].AddMulExp(c[3], x, 146)
+		c[3].AddMulExp(c[4], x, 149)
+		c[4].AddMulExp(c[5], x, 238)
+		c[5].AddMulExp(c[6], x, 102)
+		c[6].AddMulExp(element(b), x, 21)
+	}
+	return len(p), nil
+}
+func (c coder7) Code() []byte {
+	var buf [7]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder8 [8]element
+
+func (c *coder8) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 175)
+		c[1].AddMulExp(c[2], x, 238)
+		c[2].AddMulExp(c[3], x, 208)
+		c[3].AddMulExp(c[4], x, 249)
+		c[4].AddMulExp(c[5], x, 215)
+		c[5].AddMulExp(c[6], x, 252)
+		c[6].AddMulExp(c[7], x, 196)
+		c[7].AddMulExp(element(b), x, 28)
+	}
+	return len(p), nil
+}
+func (c coder8) Code() []byte {
+	var buf [8]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder9 [9]element
+
+func (c *coder9) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 95)
+		c[1].AddMulExp(c[2], x, 246)
+		c[2].AddMulExp(c[3], x, 137)
+		c[3].AddMulExp(c[4], x, 231)
+		c[4].AddMulExp(c[5], x, 235)
+		c[5].AddMulExp(c[6], x, 149)
+		c[6].AddMulExp(c[7], x, 11)
+		c[7].AddMulExp(c[8], x, 123)
+		c[8].AddMulExp(element(b), x, 36)
+	}
+	return len(p), nil
+}
+func (c coder9) Code() []byte {
+	var buf [9]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder10 [10]element
+
+func (c *coder10) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 251)
+		c[1].AddMulExp(c[2], x, 67)
+		c[2].AddMulExp(c[3], x, 46)
+		c[3].AddMulExp(c[4], x, 61)
+		c[4].AddMulExp(c[5], x, 118)
+		c[5].AddMulExp(c[6], x, 70)
+		c[6].AddMulExp(c[7], x, 64)
+		c[7].AddMulExp(c[8], x, 94)
+		c[8].AddMulExp(c[9], x, 32)
+		c[9].AddMulExp(element(b), x, 45)
+	}
+	return len(p), nil
+}
+func (c coder10) Code() []byte {
+	var buf [10]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder11 [11]element
+
+func (c *coder11) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 220)
+		c[1].AddMulExp(c[2], x, 192)
+		c[2].AddMulExp(c[3], x, 91)
+		c[3].AddMulExp(c[4], x, 194)
+		c[4].AddMulExp(c[5], x, 172)
+		c[5].AddMulExp(c[6], x, 177)
+		c[6].AddMulExp(c[7], x, 209)
+		c[7].AddMulExp(c[8], x, 116)
+		c[8].AddMulExp(c[9], x, 227)
+		c[9].AddMulExp(c[10], x, 10)
+		c[10].AddMulExp(element(b), x, 55)
+	}
+	return len(p), nil
+}
+func (c coder11) Code() []byte {
+	var buf [11]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder12 [12]element
+
+func (c *coder12) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 102)
+		c[1].AddMulExp(c[2], x, 43)
+		c[2].AddMulExp(c[3], x, 98)
+		c[3].AddMulExp(c[4], x, 121)
+		c[4].AddMulExp(c[5], x, 187)
+		c[5].AddMulExp(c[6], x, 113)
+		c[6].AddMulExp(c[7], x, 198)
+		c[7].AddMulExp(c[8], x, 143)
+		c[8].AddMulExp(c[9], x, 131)
+		c[9].AddMulExp(c[10], x, 87)
+		c[10].AddMulExp(c[11], x, 157)
+		c[11].AddMulExp(element(b), x, 66)
+	}
+	return len(p), nil
+}
+func (c coder12) Code() []byte {
+	var buf [12]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder13 [13]element
+
+func (c *coder13) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 74)
+		c[1].AddMulExp(c[2], x, 152)
+		c[2].AddMulExp(c[3], x, 176)
+		c[3].AddMulExp(c[4], x, 100)
+		c[4].AddMulExp(c[5], x, 86)
+		c[5].AddMulExp(c[6], x, 100)
+		c[6].AddMulExp(c[7], x, 106)
+		c[7].AddMulExp(c[8], x, 104)
+		c[8].AddMulExp(c[9], x, 130)
+		c[9].AddMulExp(c[10], x, 218)
+		c[10].AddMulExp(c[11], x, 206)
+		c[11].AddMulExp(c[12], x, 140)
+		c[12].AddMulExp(element(b), x, 78)
+	}
+	return len(p), nil
+}
+func (c coder13) Code() []byte {
+	var buf [13]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder14 [14]element
+
+func (c *coder14) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 199)
+		c[1].AddMulExp(c[2], x, 249)
+		c[2].AddMulExp(c[3], x, 155)
+		c[3].AddMulExp(c[4], x, 48)
+		c[4].AddMulExp(c[5], x, 190)
+		c[5].AddMulExp(c[6], x, 124)
+		c[6].AddMulExp(c[7], x, 218)
+		c[7].AddMulExp(c[8], x, 137)
+		c[8].AddMulExp(c[9], x, 216)
+		c[9].AddMulExp(c[10], x, 87)
+		c[10].AddMulExp(c[11], x, 207)
+		c[11].AddMulExp(c[12], x, 59)
+		c[12].AddMulExp(c[13], x, 22)
+		c[13].AddMulExp(element(b), x, 91)
+	}
+	return len(p), nil
+}
+func (c coder14) Code() []byte {
+	var buf [14]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder15 [15]element
+
+func (c *coder15) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 8)
+		c[1].AddMulExp(c[2], x, 183)
+		c[2].AddMulExp(c[3], x, 61)
+		c[3].AddMulExp(c[4], x, 91)
+		c[4].AddMulExp(c[5], x, 202)
+		c[5].AddMulExp(c[6], x, 37)
+		c[6].AddMulExp(c[7], x, 51)
+		c[7].AddMulExp(c[8], x, 58)
+		c[8].AddMulExp(c[9], x, 58)
+		c[9].AddMulExp(c[10], x, 237)
+		c[10].AddMulExp(c[11], x, 140)
+		c[11].AddMulExp(c[12], x, 124)
+		c[12].AddMulExp(c[13], x, 5)
+		c[13].AddMulExp(c[14], x, 99)
+		c[14].AddMulExp(element(b), x, 105)
+	}
+	return len(p), nil
+}
+func (c coder15) Code() []byte {
+	var buf [15]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder16 [16]element
+
+func (c *coder16) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 120)
+		c[1].AddMulExp(c[2], x, 104)
+		c[2].AddMulExp(c[3], x, 107)
+		c[3].AddMulExp(c[4], x, 109)
+		c[4].AddMulExp(c[5], x, 102)
+		c[5].AddMulExp(c[6], x, 161)
+		c[6].AddMulExp(c[7], x, 76)
+		c[7].AddMulExp(c[8], x, 3)
+		c[8].AddMulExp(c[9], x, 91)
+		c[9].AddMulExp(c[10], x, 191)
+		c[10].AddMulExp(c[11], x, 147)
+		c[11].AddMulExp(c[12], x, 169)
+		c[12].AddMulExp(c[13], x, 182)
+		c[13].AddMulExp(c[14], x, 194)
+		c[14].AddMulExp(c[15], x, 225)
+		c[15].AddMulExp(element(b), x, 120)
+	}
+	return len(p), nil
+}
+func (c coder16) Code() []byte {
+	var buf [16]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder17 [17]element
+
+func (c *coder17) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 43)
+		c[1].AddMulExp(c[2], x, 139)
+		c[2].AddMulExp(c[3], x, 206)
+		c[3].AddMulExp(c[4], x, 78)
+		c[4].AddMulExp(c[5], x, 43)
+		c[5].AddMulExp(c[6], x, 239)
+		c[6].AddMulExp(c[7], x, 123)
+		c[7].AddMulExp(c[8], x, 206)
+		c[8].AddMulExp(c[9], x, 214)
+		c[9].AddMulExp(c[10], x, 147)
+		c[10].AddMulExp(c[11], x, 24)
+		c[11].AddMulExp(c[12], x, 99)
+		c[12].AddMulExp(c[13], x, 150)
+		c[13].AddMulExp(c[14], x, 39)
+		c[14].AddMulExp(c[15], x, 243)
+		c[15].AddMulExp(c[16], x, 163)
+		c[16].AddMulExp(element(b), x, 136)
+	}
+	return len(p), nil
+}
+func (c coder17) Code() []byte {
+	var buf [17]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder18 [18]element
+
+func (c *coder18) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 215)
+		c[1].AddMulExp(c[2], x, 234)
+		c[2].AddMulExp(c[3], x, 158)
+		c[3].AddMulExp(c[4], x, 94)
+		c[4].AddMulExp(c[5], x, 184)
+		c[5].AddMulExp(c[6], x, 97)
+		c[6].AddMulExp(c[7], x, 118)
+		c[7].AddMulExp(c[8], x, 170)
+		c[8].AddMulExp(c[9], x, 79)
+		c[9].AddMulExp(c[10], x, 187)
+		c[10].AddMulExp(c[11], x, 152)
+		c[11].AddMulExp(c[12], x, 148)
+		c[12].AddMulExp(c[13], x, 252)
+		c[13].AddMulExp(c[14], x, 179)
+		c[14].AddMulExp(c[15], x, 5)
+		c[15].AddMulExp(c[16], x, 98)
+		c[16].AddMulExp(c[17], x, 96)
+		c[17].AddMulExp(element(b), x, 153)
+	}
+	return len(p), nil
+}
+func (c coder18) Code() []byte {
+	var buf [18]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder19 [19]element
+
+func (c *coder19) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 67)
+		c[1].AddMulExp(c[2], x, 3)
+		c[2].AddMulExp(c[3], x, 105)
+		c[3].AddMulExp(c[4], x, 153)
+		c[4].AddMulExp(c[5], x, 52)
+		c[5].AddMulExp(c[6], x, 90)
+		c[6].AddMulExp(c[7], x, 83)
+		c[7].AddMulExp(c[8], x, 17)
+		c[8].AddMulExp(c[9], x, 150)
+		c[9].AddMulExp(c[10], x, 159)
+		c[10].AddMulExp(c[11], x, 44)
+		c[11].AddMulExp(c[12], x, 128)
+		c[12].AddMulExp(c[13], x, 153)
+		c[13].AddMulExp(c[14], x, 133)
+		c[14].AddMulExp(c[15], x, 252)
+		c[15].AddMulExp(c[16], x, 222)
+		c[16].AddMulExp(c[17], x, 138)
+		c[17].AddMulExp(c[18], x, 220)
+		c[18].AddMulExp(element(b), x, 171)
+	}
+	return len(p), nil
+}
+func (c coder19) Code() []byte {
+	var buf [19]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder20 [20]element
+
+func (c *coder20) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 17)
+		c[1].AddMulExp(c[2], x, 60)
+		c[2].AddMulExp(c[3], x, 79)
+		c[3].AddMulExp(c[4], x, 50)
+		c[4].AddMulExp(c[5], x, 61)
+		c[5].AddMulExp(c[6], x, 163)
+		c[6].AddMulExp(c[7], x, 26)
+		c[7].AddMulExp(c[8], x, 187)
+		c[8].AddMulExp(c[9], x, 202)
+		c[9].AddMulExp(c[10], x, 180)
+		c[10].AddMulExp(c[11], x, 221)
+		c[11].AddMulExp(c[12], x, 225)
+		c[12].AddMulExp(c[13], x, 83)
+		c[13].AddMulExp(c[14], x, 239)
+		c[14].AddMulExp(c[15], x, 156)
+		c[15].AddMulExp(c[16], x, 164)
+		c[16].AddMulExp(c[17], x, 212)
+		c[17].AddMulExp(c[18], x, 212)
+		c[18].AddMulExp(c[19], x, 188)
+		c[19].AddMulExp(element(b), x, 190)
+	}
+	return len(p), nil
+}
+func (c coder20) Code() []byte {
+	var buf [20]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder21 [21]element
+
+func (c *coder21) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 240)
+		c[1].AddMulExp(c[2], x, 233)
+		c[2].AddMulExp(c[3], x, 104)
+		c[3].AddMulExp(c[4], x, 247)
+		c[4].AddMulExp(c[5], x, 181)
+		c[5].AddMulExp(c[6], x, 140)
+		c[6].AddMulExp(c[7], x, 67)
+		c[7].AddMulExp(c[8], x, 98)
+		c[8].AddMulExp(c[9], x, 85)
+		c[9].AddMulExp(c[10], x, 200)
+		c[10].AddMulExp(c[11], x, 210)
+		c[11].AddMulExp(c[12], x, 115)
+		c[12].AddMulExp(c[13], x, 148)
+		c[13].AddMulExp(c[14], x, 137)
+		c[14].AddMulExp(c[15], x, 230)
+		c[15].AddMulExp(c[16], x, 36)
+		c[16].AddMulExp(c[17], x, 122)
+		c[17].AddMulExp(c[18], x, 254)
+		c[18].AddMulExp(c[19], x, 148)
+		c[19].AddMulExp(c[20], x, 175)
+		c[20].AddMulExp(element(b), x, 210)
+	}
+	return len(p), nil
+}
+func (c coder21) Code() []byte {
+	var buf [21]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder22 [22]element
+
+func (c *coder22) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 210)
+		c[1].AddMulExp(c[2], x, 171)
+		c[2].AddMulExp(c[3], x, 247)
+		c[3].AddMulExp(c[4], x, 242)
+		c[4].AddMulExp(c[5], x, 93)
+		c[5].AddMulExp(c[6], x, 230)
+		c[6].AddMulExp(c[7], x, 14)
+		c[7].AddMulExp(c[8], x, 109)
+		c[8].AddMulExp(c[9], x, 221)
+		c[9].AddMulExp(c[10], x, 53)
+		c[10].AddMulExp(c[11], x, 200)
+		c[11].AddMulExp(c[12], x, 74)
+		c[12].AddMulExp(c[13], x, 8)
+		c[13].AddMulExp(c[14], x, 172)
+		c[14].AddMulExp(c[15], x, 98)
+		c[15].AddMulExp(c[16], x, 80)
+		c[16].AddMulExp(c[17], x, 219)
+		c[17].AddMulExp(c[18], x, 134)
+		c[18].AddMulExp(c[19], x, 160)
+		c[19].AddMulExp(c[20], x, 105)
+		c[20].AddMulExp(c[21], x, 165)
+		c[21].AddMulExp(element(b), x, 231)
+	}
+	return len(p), nil
+}
+func (c coder22) Code() []byte {
+	var buf [22]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder23 [23]element
+
+func (c *coder23) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 171)
+		c[1].AddMulExp(c[2], x, 102)
+		c[2].AddMulExp(c[3], x, 146)
+		c[3].AddMulExp(c[4], x, 91)
+		c[4].AddMulExp(c[5], x, 49)
+		c[5].AddMulExp(c[6], x, 103)
+		c[6].AddMulExp(c[7], x, 65)
+		c[7].AddMulExp(c[8], x, 17)
+		c[8].AddMulExp(c[9], x, 193)
+		c[9].AddMulExp(c[10], x, 150)
+		c[10].AddMulExp(c[11], x, 14)
+		c[11].AddMulExp(c[12], x, 25)
+		c[12].AddMulExp(c[13], x, 183)
+		c[13].AddMulExp(c[14], x, 248)
+		c[14].AddMulExp(c[15], x, 94)
+		c[15].AddMulExp(c[16], x, 164)
+		c[16].AddMulExp(c[17], x, 224)
+		c[17].AddMulExp(c[18], x, 192)
+		c[18].AddMulExp(c[19], x, 1)
+		c[19].AddMulExp(c[20], x, 78)
+		c[20].AddMulExp(c[21], x, 56)
+		c[21].AddMulExp(c[22], x, 147)
+		c[22].AddMulExp(element(b), x, 253)
+	}
+	return len(p), nil
+}
+func (c coder23) Code() []byte {
+	var buf [23]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder24 [24]element
+
+func (c *coder24) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 229)
+		c[1].AddMulExp(c[2], x, 121)
+		c[2].AddMulExp(c[3], x, 135)
+		c[3].AddMulExp(c[4], x, 48)
+		c[4].AddMulExp(c[5], x, 211)
+		c[5].AddMulExp(c[6], x, 117)
+		c[6].AddMulExp(c[7], x, 251)
+		c[7].AddMulExp(c[8], x, 126)
+		c[8].AddMulExp(c[9], x, 159)
+		c[9].AddMulExp(c[10], x, 180)
+		c[10].AddMulExp(c[11], x, 169)
+		c[11].AddMulExp(c[12], x, 152)
+		c[12].AddMulExp(c[13], x, 192)
+		c[13].AddMulExp(c[14], x, 226)
+		c[14].AddMulExp(c[15], x, 228)
+		c[15].AddMulExp(c[16], x, 218)
+		c[16].AddMulExp(c[17], x, 111)
+		c[17].AddMulExp(c[18], x, 0)
+		c[18].AddMulExp(c[19], x, 117)
+		c[19].AddMulExp(c[20], x, 232)
+		c[20].AddMulExp(c[21], x, 87)
+		c[21].AddMulExp(c[22], x, 96)
+		c[22].AddMulExp(c[23], x, 227)
+		c[23].AddMulExp(element(b), x, 21)
+	}
+	return len(p), nil
+}
+func (c coder24) Code() []byte {
+	var buf [24]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder25 [25]element
+
+func (c *coder25) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 231)
+		c[1].AddMulExp(c[2], x, 181)
+		c[2].AddMulExp(c[3], x, 156)
+		c[3].AddMulExp(c[4], x, 39)
+		c[4].AddMulExp(c[5], x, 170)
+		c[5].AddMulExp(c[6], x, 26)
+		c[6].AddMulExp(c[7], x, 12)
+		c[7].AddMulExp(c[8], x, 59)
+		c[8].AddMulExp(c[9], x, 15)
+		c[9].AddMulExp(c[10], x, 148)
+		c[10].AddMulExp(c[11], x, 201)
+		c[11].AddMulExp(c[12], x, 54)
+		c[12].AddMulExp(c[13], x, 66)
+		c[13].AddMulExp(c[14], x, 237)
+		c[14].AddMulExp(c[15], x, 208)
+		c[15].AddMulExp(c[16], x, 99)
+		c[16].AddMulExp(c[17], x, 167)
+		c[17].AddMulExp(c[18], x, 144)
+		c[18].AddMulExp(c[19], x, 182)
+		c[19].AddMulExp(c[20], x, 95)
+		c[20].AddMulExp(c[21], x, 243)
+		c[21].AddMulExp(c[22], x, 129)
+		c[22].AddMulExp(c[23], x, 178)
+		c[23].AddMulExp(c[24], x, 252)
+		c[24].AddMulExp(element(b), x, 45)
+	}
+	return len(p), nil
+}
+func (c coder25) Code() []byte {
+	var buf [25]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder26 [26]element
+
+func (c *coder26) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 173)
+		c[1].AddMulExp(c[2], x, 125)
+		c[2].AddMulExp(c[3], x, 158)
+		c[3].AddMulExp(c[4], x, 2)
+		c[4].AddMulExp(c[5], x, 103)
+		c[5].AddMulExp(c[6], x, 182)
+		c[6].AddMulExp(c[7], x, 118)
+		c[7].AddMulExp(c[8], x, 17)
+		c[8].AddMulExp(c[9], x, 145)
+		c[9].AddMulExp(c[10], x, 201)
+		c[10].AddMulExp(c[11], x, 111)
+		c[11].AddMulExp(c[12], x, 28)
+		c[12].AddMulExp(c[13], x, 165)
+		c[13].AddMulExp(c[14], x, 53)
+		c[14].AddMulExp(c[15], x, 161)
+		c[15].AddMulExp(c[16], x, 21)
+		c[16].AddMulExp(c[17], x, 245)
+		c[17].AddMulExp(c[18], x, 142)
+		c[18].AddMulExp(c[19], x, 13)
+		c[19].AddMulExp(c[20], x, 102)
+		c[20].AddMulExp(c[21], x, 48)
+		c[21].AddMulExp(c[22], x, 227)
+		c[22].AddMulExp(c[23], x, 153)
+		c[23].AddMulExp(c[24], x, 145)
+		c[24].AddMulExp(c[25], x, 218)
+		c[25].AddMulExp(element(b), x, 70)
+	}
+	return len(p), nil
+}
+func (c coder26) Code() []byte {
+	var buf [26]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder27 [27]element
+
+func (c *coder27) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 79)
+		c[1].AddMulExp(c[2], x, 228)
+		c[2].AddMulExp(c[3], x, 8)
+		c[3].AddMulExp(c[4], x, 165)
+		c[4].AddMulExp(c[5], x, 227)
+		c[5].AddMulExp(c[6], x, 21)
+		c[6].AddMulExp(c[7], x, 180)
+		c[7].AddMulExp(c[8], x, 29)
+		c[8].AddMulExp(c[9], x, 9)
+		c[9].AddMulExp(c[10], x, 237)
+		c[10].AddMulExp(c[11], x, 70)
+		c[11].AddMulExp(c[12], x, 99)
+		c[12].AddMulExp(c[13], x, 45)
+		c[13].AddMulExp(c[14], x, 58)
+		c[14].AddMulExp(c[15], x, 138)
+		c[15].AddMulExp(c[16], x, 135)
+		c[16].AddMulExp(c[17], x, 73)
+		c[17].AddMulExp(c[18], x, 126)
+		c[18].AddMulExp(c[19], x, 172)
+		c[19].AddMulExp(c[20], x, 94)
+		c[20].AddMulExp(c[21], x, 216)
+		c[21].AddMulExp(c[22], x, 193)
+		c[22].AddMulExp(c[23], x, 157)
+		c[23].AddMulExp(c[24], x, 26)
+		c[24].AddMulExp(c[25], x, 17)
+		c[25].AddMulExp(c[26], x, 149)
+		c[26].AddMulExp(element(b), x, 96)
+	}
+	return len(p), nil
+}
+func (c coder27) Code() []byte {
+	var buf [27]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder28 [28]element
+
+func (c *coder28) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 168)
+		c[1].AddMulExp(c[2], x, 223)
+		c[2].AddMulExp(c[3], x, 200)
+		c[3].AddMulExp(c[4], x, 104)
+		c[4].AddMulExp(c[5], x, 224)
+		c[5].AddMulExp(c[6], x, 234)
+		c[6].AddMulExp(c[7], x, 108)
+		c[7].AddMulExp(c[8], x, 180)
+		c[8].AddMulExp(c[9], x, 110)
+		c[9].AddMulExp(c[10], x, 190)
+		c[10].AddMulExp(c[11], x, 195)
+		c[11].AddMulExp(c[12], x, 147)
+		c[12].AddMulExp(c[13], x, 205)
+		c[13].AddMulExp(c[14], x, 27)
+		c[14].AddMulExp(c[15], x, 232)
+		c[15].AddMulExp(c[16], x, 201)
+		c[16].AddMulExp(c[17], x, 21)
+		c[17].AddMulExp(c[18], x, 43)
+		c[18].AddMulExp(c[19], x, 245)
+		c[19].AddMulExp(c[20], x, 87)
+		c[20].AddMulExp(c[21], x, 42)
+		c[21].AddMulExp(c[22], x, 195)
+		c[22].AddMulExp(c[23], x, 212)
+		c[23].AddMulExp(c[24], x, 119)
+		c[24].AddMulExp(c[25], x, 242)
+		c[25].AddMulExp(c[26], x, 37)
+		c[26].AddMulExp(c[27], x, 9)
+		c[27].AddMulExp(element(b), x, 123)
+	}
+	return len(p), nil
+}
+func (c coder28) Code() []byte {
+	var buf [28]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder29 [29]element
+
+func (c *coder29) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 156)
+		c[1].AddMulExp(c[2], x, 45)
+		c[2].AddMulExp(c[3], x, 183)
+		c[3].AddMulExp(c[4], x, 29)
+		c[4].AddMulExp(c[5], x, 151)
+		c[5].AddMulExp(c[6], x, 219)
+		c[6].AddMulExp(c[7], x, 54)
+		c[7].AddMulExp(c[8], x, 96)
+		c[8].AddMulExp(c[9], x, 249)
+		c[9].AddMulExp(c[10], x, 24)
+		c[10].AddMulExp(c[11], x, 136)
+		c[11].AddMulExp(c[12], x, 5)
+		c[12].AddMulExp(c[13], x, 241)
+		c[13].AddMulExp(c[14], x, 175)
+		c[14].AddMulExp(c[15], x, 189)
+		c[15].AddMulExp(c[16], x, 28)
+		c[16].AddMulExp(c[17], x, 75)
+		c[17].AddMulExp(c[18], x, 234)
+		c[18].AddMulExp(c[19], x, 150)
+		c[19].AddMulExp(c[20], x, 148)
+		c[20].AddMulExp(c[21], x, 23)
+		c[21].AddMulExp(c[22], x, 9)
+		c[22].AddMulExp(c[23], x, 202)
+		c[23].AddMulExp(c[24], x, 162)
+		c[24].AddMulExp(c[25], x, 68)
+		c[25].AddMulExp(c[26], x, 250)
+		c[26].AddMulExp(c[27], x, 140)
+		c[27].AddMulExp(c[28], x, 24)
+		c[28].AddMulExp(element(b), x, 151)
+	}
+	return len(p), nil
+}
+func (c coder29) Code() []byte {
+	var buf [29]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder30 [30]element
+
+func (c *coder30) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 41)
+		c[1].AddMulExp(c[2], x, 173)
+		c[2].AddMulExp(c[3], x, 145)
+		c[3].AddMulExp(c[4], x, 152)
+		c[4].AddMulExp(c[5], x, 216)
+		c[5].AddMulExp(c[6], x, 31)
+		c[6].AddMulExp(c[7], x, 179)
+		c[7].AddMulExp(c[8], x, 182)
+		c[8].AddMulExp(c[9], x, 50)
+		c[9].AddMulExp(c[10], x, 48)
+		c[10].AddMulExp(c[11], x, 110)
+		c[11].AddMulExp(c[12], x, 86)
+		c[12].AddMulExp(c[13], x, 239)
+		c[13].AddMulExp(c[14], x, 96)
+		c[14].AddMulExp(c[15], x, 222)
+		c[15].AddMulExp(c[16], x, 125)
+		c[16].AddMulExp(c[17], x, 42)
+		c[17].AddMulExp(c[18], x, 173)
+		c[18].AddMulExp(c[19], x, 226)
+		c[19].AddMulExp(c[20], x, 193)
+		c[20].AddMulExp(c[21], x, 224)
+		c[21].AddMulExp(c[22], x, 130)
+		c[22].AddMulExp(c[23], x, 156)
+		c[23].AddMulExp(c[24], x, 37)
+		c[24].AddMulExp(c[25], x, 251)
+		c[25].AddMulExp(c[26], x, 216)
+		c[26].AddMulExp(c[27], x, 238)
+		c[27].AddMulExp(c[28], x, 40)
+		c[28].AddMulExp(c[29], x, 192)
+		c[29].AddMulExp(element(b), x, 180)
+	}
+	return len(p), nil
+}
+func (c coder30) Code() []byte {
+	var buf [30]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder31 [31]element
+
+func (c *coder31) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 20)
+		c[1].AddMulExp(c[2], x, 37)
+		c[2].AddMulExp(c[3], x, 252)
+		c[3].AddMulExp(c[4], x, 93)
+		c[4].AddMulExp(c[5], x, 63)
+		c[5].AddMulExp(c[6], x, 75)
+		c[6].AddMulExp(c[7], x, 225)
+		c[7].AddMulExp(c[8], x, 31)
+		c[8].AddMulExp(c[9], x, 115)
+		c[9].AddMulExp(c[10], x, 83)
+		c[10].AddMulExp(c[11], x, 113)
+		c[11].AddMulExp(c[12], x, 39)
+		c[12].AddMulExp(c[13], x, 44)
+		c[13].AddMulExp(c[14], x, 73)
+		c[14].AddMulExp(c[15], x, 122)
+		c[15].AddMulExp(c[16], x, 137)
+		c[16].AddMulExp(c[17], x, 118)
+		c[17].AddMulExp(c[18], x, 119)
+		c[18].AddMulExp(c[19], x, 144)
+		c[19].AddMulExp(c[20], x, 248)
+		c[20].AddMulExp(c[21], x, 248)
+		c[21].AddMulExp(c[22], x, 55)
+		c[22].AddMulExp(c[23], x, 1)
+		c[23].AddMulExp(c[24], x, 225)
+		c[24].AddMulExp(c[25], x, 105)
+		c[25].AddMulExp(c[26], x, 123)
+		c[26].AddMulExp(c[27], x, 183)
+		c[27].AddMulExp(c[28], x, 117)
+		c[28].AddMulExp(c[29], x, 187)
+		c[29].AddMulExp(c[30], x, 200)
+		c[30].AddMulExp(element(b), x, 210)
+	}
+	return len(p), nil
+}
+func (c coder31) Code() []byte {
+	var buf [31]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder32 [32]element
+
+func (c *coder32) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 10)
+		c[1].AddMulExp(c[2], x, 6)
+		c[2].AddMulExp(c[3], x, 106)
+		c[3].AddMulExp(c[4], x, 190)
+		c[4].AddMulExp(c[5], x, 249)
+		c[5].AddMulExp(c[6], x, 167)
+		c[6].AddMulExp(c[7], x, 4)
+		c[7].AddMulExp(c[8], x, 67)
+		c[8].AddMulExp(c[9], x, 209)
+		c[9].AddMulExp(c[10], x, 138)
+		c[10].AddMulExp(c[11], x, 138)
+		c[11].AddMulExp(c[12], x, 32)
+		c[12].AddMulExp(c[13], x, 242)
+		c[13].AddMulExp(c[14], x, 123)
+		c[14].AddMulExp(c[15], x, 89)
+		c[15].AddMulExp(c[16], x, 27)
+		c[16].AddMulExp(c[17], x, 120)
+		c[17].AddMulExp(c[18], x, 185)
+		c[18].AddMulExp(c[19], x, 80)
+		c[19].AddMulExp(c[20], x, 156)
+		c[20].AddMulExp(c[21], x, 38)
+		c[21].AddMulExp(c[22], x, 69)
+		c[22].AddMulExp(c[23], x, 171)
+		c[23].AddMulExp(c[24], x, 60)
+		c[24].AddMulExp(c[25], x, 28)
+		c[25].AddMulExp(c[26], x, 222)
+		c[26].AddMulExp(c[27], x, 80)
+		c[27].AddMulExp(c[28], x, 52)
+		c[28].AddMulExp(c[29], x, 254)
+		c[29].AddMulExp(c[30], x, 185)
+		c[30].AddMulExp(c[31], x, 220)
+		c[31].AddMulExp(element(b), x, 241)
+	}
+	return len(p), nil
+}
+func (c coder32) Code() []byte {
+	var buf [32]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder33 [33]element
+
+func (c *coder33) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 245)
+		c[1].AddMulExp(c[2], x, 231)
+		c[2].AddMulExp(c[3], x, 55)
+		c[3].AddMulExp(c[4], x, 24)
+		c[4].AddMulExp(c[5], x, 71)
+		c[5].AddMulExp(c[6], x, 78)
+		c[6].AddMulExp(c[7], x, 76)
+		c[7].AddMulExp(c[8], x, 81)
+		c[8].AddMulExp(c[9], x, 225)
+		c[9].AddMulExp(c[10], x, 212)
+		c[10].AddMulExp(c[11], x, 173)
+		c[11].AddMulExp(c[12], x, 37)
+		c[12].AddMulExp(c[13], x, 215)
+		c[13].AddMulExp(c[14], x, 46)
+		c[14].AddMulExp(c[15], x, 119)
+		c[15].AddMulExp(c[16], x, 229)
+		c[16].AddMulExp(c[17], x, 245)
+		c[17].AddMulExp(c[18], x, 167)
+		c[18].AddMulExp(c[19], x, 126)
+		c[19].AddMulExp(c[20], x, 72)
+		c[20].AddMulExp(c[21], x, 181)
+		c[21].AddMulExp(c[22], x, 94)
+		c[22].AddMulExp(c[23], x, 165)
+		c[23].AddMulExp(c[24], x, 210)
+		c[24].AddMulExp(c[25], x, 98)
+		c[25].AddMulExp(c[26], x, 125)
+		c[26].AddMulExp(c[27], x, 159)
+		c[27].AddMulExp(c[28], x, 184)
+		c[28].AddMulExp(c[29], x, 169)
+		c[29].AddMulExp(c[30], x, 232)
+		c[30].AddMulExp(c[31], x, 185)
+		c[31].AddMulExp(c[32], x, 231)
+		c[32].AddMulExp(element(b), x, 18)
+	}
+	return len(p), nil
+}
+func (c coder33) Code() []byte {
+	var buf [33]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder34 [34]element
+
+func (c *coder34) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 111)
+		c[1].AddMulExp(c[2], x, 77)
+		c[2].AddMulExp(c[3], x, 146)
+		c[3].AddMulExp(c[4], x, 94)
+		c[4].AddMulExp(c[5], x, 26)
+		c[5].AddMulExp(c[6], x, 21)
+		c[6].AddMulExp(c[7], x, 108)
+		c[7].AddMulExp(c[8], x, 19)
+		c[8].AddMulExp(c[9], x, 105)
+		c[9].AddMulExp(c[10], x, 94)
+		c[10].AddMulExp(c[11], x, 113)
+		c[11].AddMulExp(c[12], x, 193)
+		c[12].AddMulExp(c[13], x, 86)
+		c[13].AddMulExp(c[14], x, 140)
+		c[14].AddMulExp(c[15], x, 163)
+		c[15].AddMulExp(c[16], x, 125)
+		c[16].AddMulExp(c[17], x, 58)
+		c[17].AddMulExp(c[18], x, 158)
+		c[18].AddMulExp(c[19], x, 229)
+		c[19].AddMulExp(c[20], x, 239)
+		c[20].AddMulExp(c[21], x, 218)
+		c[21].AddMulExp(c[22], x, 103)
+		c[22].AddMulExp(c[23], x, 56)
+		c[23].AddMulExp(c[24], x, 70)
+		c[24].AddMulExp(c[25], x, 114)
+		c[25].AddMulExp(c[26], x, 61)
+		c[26].AddMulExp(c[27], x, 183)
+		c[27].AddMulExp(c[28], x, 129)
+		c[28].AddMulExp(c[29], x, 167)
+		c[29].AddMulExp(c[30], x, 13)
+		c[30].AddMulExp(c[31], x, 98)
+		c[31].AddMulExp(c[32], x, 62)
+		c[32].AddMulExp(c[33], x, 129)
+		c[33].AddMulExp(element(b), x, 51)
+	}
+	return len(p), nil
+}
+func (c coder34) Code() []byte {
+	var buf [34]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder35 [35]element
+
+func (c *coder35) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 7)
+		c[1].AddMulExp(c[2], x, 94)
+		c[2].AddMulExp(c[3], x, 143)
+		c[3].AddMulExp(c[4], x, 81)
+		c[4].AddMulExp(c[5], x, 247)
+		c[5].AddMulExp(c[6], x, 127)
+		c[6].AddMulExp(c[7], x, 202)
+		c[7].AddMulExp(c[8], x, 202)
+		c[8].AddMulExp(c[9], x, 194)
+		c[9].AddMulExp(c[10], x, 125)
+		c[10].AddMulExp(c[11], x, 146)
+		c[11].AddMulExp(c[12], x, 29)
+		c[12].AddMulExp(c[13], x, 138)
+		c[13].AddMulExp(c[14], x, 162)
+		c[14].AddMulExp(c[15], x, 153)
+		c[15].AddMulExp(c[16], x, 65)
+		c[16].AddMulExp(c[17], x, 105)
+		c[17].AddMulExp(c[18], x, 122)
+		c[18].AddMulExp(c[19], x, 116)
+		c[19].AddMulExp(c[20], x, 238)
+		c[20].AddMulExp(c[21], x, 26)
+		c[21].AddMulExp(c[22], x, 36)
+		c[22].AddMulExp(c[23], x, 216)
+		c[23].AddMulExp(c[24], x, 112)
+		c[24].AddMulExp(c[25], x, 125)
+		c[25].AddMulExp(c[26], x, 228)
+		c[26].AddMulExp(c[27], x, 15)
+		c[27].AddMulExp(c[28], x, 49)
+		c[28].AddMulExp(c[29], x, 8)
+		c[29].AddMulExp(c[30], x, 162)
+		c[30].AddMulExp(c[31], x, 30)
+		c[31].AddMulExp(c[32], x, 126)
+		c[32].AddMulExp(c[33], x, 111)
+		c[33].AddMulExp(c[34], x, 58)
+		c[34].AddMulExp(element(b), x, 85)
+	}
+	return len(p), nil
+}
+func (c coder35) Code() []byte {
+	var buf [35]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder36 [36]element
+
+func (c *coder36) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 200)
+		c[1].AddMulExp(c[2], x, 183)
+		c[2].AddMulExp(c[3], x, 98)
+		c[3].AddMulExp(c[4], x, 16)
+		c[4].AddMulExp(c[5], x, 172)
+		c[5].AddMulExp(c[6], x, 31)
+		c[6].AddMulExp(c[7], x, 246)
+		c[7].AddMulExp(c[8], x, 234)
+		c[8].AddMulExp(c[9], x, 60)
+		c[9].AddMulExp(c[10], x, 152)
+		c[10].AddMulExp(c[11], x, 115)
+		c[11].AddMulExp(c[12], x, 0)
+		c[12].AddMulExp(c[13], x, 167)
+		c[13].AddMulExp(c[14], x, 152)
+		c[14].AddMulExp(c[15], x, 113)
+		c[15].AddMulExp(c[16], x, 248)
+		c[16].AddMulExp(c[17], x, 238)
+		c[17].AddMulExp(c[18], x, 107)
+		c[18].AddMulExp(c[19], x, 18)
+		c[19].AddMulExp(c[20], x, 63)
+		c[20].AddMulExp(c[21], x, 218)
+		c[21].AddMulExp(c[22], x, 37)
+		c[22].AddMulExp(c[23], x, 87)
+		c[23].AddMulExp(c[24], x, 210)
+		c[24].AddMulExp(c[25], x, 105)
+		c[25].AddMulExp(c[26], x, 177)
+		c[26].AddMulExp(c[27], x, 120)
+		c[27].AddMulExp(c[28], x, 74)
+		c[28].AddMulExp(c[29], x, 121)
+		c[29].AddMulExp(c[30], x, 196)
+		c[30].AddMulExp(c[31], x, 117)
+		c[31].AddMulExp(c[32], x, 251)
+		c[32].AddMulExp(c[33], x, 113)
+		c[33].AddMulExp(c[34], x, 233)
+		c[34].AddMulExp(c[35], x, 30)
+		c[35].AddMulExp(element(b), x, 120)
+	}
+	return len(p), nil
+}
+func (c coder36) Code() []byte {
+	var buf [36]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder37 [37]element
+
+func (c *coder37) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 154)
+		c[1].AddMulExp(c[2], x, 75)
+		c[2].AddMulExp(c[3], x, 141)
+		c[3].AddMulExp(c[4], x, 180)
+		c[4].AddMulExp(c[5], x, 61)
+		c[5].AddMulExp(c[6], x, 165)
+		c[6].AddMulExp(c[7], x, 104)
+		c[7].AddMulExp(c[8], x, 232)
+		c[8].AddMulExp(c[9], x, 46)
+		c[9].AddMulExp(c[10], x, 227)
+		c[10].AddMulExp(c[11], x, 96)
+		c[11].AddMulExp(c[12], x, 178)
+		c[12].AddMulExp(c[13], x, 92)
+		c[13].AddMulExp(c[14], x, 135)
+		c[14].AddMulExp(c[15], x, 57)
+		c[15].AddMulExp(c[16], x, 162)
+		c[16].AddMulExp(c[17], x, 120)
+		c[17].AddMulExp(c[18], x, 194)
+		c[18].AddMulExp(c[19], x, 212)
+		c[19].AddMulExp(c[20], x, 174)
+		c[20].AddMulExp(c[21], x, 252)
+		c[21].AddMulExp(c[22], x, 183)
+		c[22].AddMulExp(c[23], x, 42)
+		c[23].AddMulExp(c[24], x, 35)
+		c[24].AddMulExp(c[25], x, 157)
+		c[25].AddMulExp(c[26], x, 111)
+		c[26].AddMulExp(c[27], x, 23)
+		c[27].AddMulExp(c[28], x, 133)
+		c[28].AddMulExp(c[29], x, 100)
+		c[29].AddMulExp(c[30], x, 8)
+		c[30].AddMulExp(c[31], x, 105)
+		c[31].AddMulExp(c[32], x, 37)
+		c[32].AddMulExp(c[33], x, 192)
+		c[33].AddMulExp(c[34], x, 189)
+		c[34].AddMulExp(c[35], x, 159)
+		c[35].AddMulExp(c[36], x, 19)
+		c[36].AddMulExp(element(b), x, 156)
+	}
+	return len(p), nil
+}
+func (c coder37) Code() []byte {
+	var buf [37]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder38 [38]element
+
+func (c *coder38) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 159)
+		c[1].AddMulExp(c[2], x, 34)
+		c[2].AddMulExp(c[3], x, 38)
+		c[3].AddMulExp(c[4], x, 228)
+		c[4].AddMulExp(c[5], x, 230)
+		c[5].AddMulExp(c[6], x, 59)
+		c[6].AddMulExp(c[7], x, 243)
+		c[7].AddMulExp(c[8], x, 95)
+		c[8].AddMulExp(c[9], x, 49)
+		c[9].AddMulExp(c[10], x, 218)
+		c[10].AddMulExp(c[11], x, 176)
+		c[11].AddMulExp(c[12], x, 164)
+		c[12].AddMulExp(c[13], x, 20)
+		c[13].AddMulExp(c[14], x, 65)
+		c[14].AddMulExp(c[15], x, 45)
+		c[15].AddMulExp(c[16], x, 111)
+		c[16].AddMulExp(c[17], x, 39)
+		c[17].AddMulExp(c[18], x, 81)
+		c[18].AddMulExp(c[19], x, 49)
+		c[19].AddMulExp(c[20], x, 118)
+		c[20].AddMulExp(c[21], x, 113)
+		c[21].AddMulExp(c[22], x, 222)
+		c[22].AddMulExp(c[23], x, 193)
+		c[23].AddMulExp(c[24], x, 250)
+		c[24].AddMulExp(c[25], x, 242)
+		c[25].AddMulExp(c[26], x, 168)
+		c[26].AddMulExp(c[27], x, 217)
+		c[27].AddMulExp(c[28], x, 41)
+		c[28].AddMulExp(c[29], x, 164)
+		c[29].AddMulExp(c[30], x, 247)
+		c[30].AddMulExp(c[31], x, 177)
+		c[31].AddMulExp(c[32], x, 30)
+		c[32].AddMulExp(c[33], x, 238)
+		c[33].AddMulExp(c[34], x, 18)
+		c[34].AddMulExp(c[35], x, 120)
+		c[35].AddMulExp(c[36], x, 153)
+		c[36].AddMulExp(c[37], x, 60)
+		c[37].AddMulExp(element(b), x, 193)
+	}
+	return len(p), nil
+}
+func (c coder38) Code() []byte {
+	var buf [38]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder39 [39]element
+
+func (c *coder39) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 81)
+		c[1].AddMulExp(c[2], x, 216)
+		c[2].AddMulExp(c[3], x, 174)
+		c[3].AddMulExp(c[4], x, 47)
+		c[4].AddMulExp(c[5], x, 200)
+		c[5].AddMulExp(c[6], x, 150)
+		c[6].AddMulExp(c[7], x, 59)
+		c[7].AddMulExp(c[8], x, 156)
+		c[8].AddMulExp(c[9], x, 89)
+		c[9].AddMulExp(c[10], x, 143)
+		c[10].AddMulExp(c[11], x, 89)
+		c[11].AddMulExp(c[12], x, 166)
+		c[12].AddMulExp(c[13], x, 183)
+		c[13].AddMulExp(c[14], x, 170)
+		c[14].AddMulExp(c[15], x, 152)
+		c[15].AddMulExp(c[16], x, 21)
+		c[16].AddMulExp(c[17], x, 165)
+		c[17].AddMulExp(c[18], x, 177)
+		c[18].AddMulExp(c[19], x, 113)
+		c[19].AddMulExp(c[20], x, 132)
+		c[20].AddMulExp(c[21], x, 234)
+		c[21].AddMulExp(c[22], x, 5)
+		c[22].AddMulExp(c[23], x, 154)
+		c[23].AddMulExp(c[24], x, 68)
+		c[24].AddMulExp(c[25], x, 124)
+		c[25].AddMulExp(c[26], x, 175)
+		c[26].AddMulExp(c[27], x, 196)
+		c[27].AddMulExp(c[28], x, 157)
+		c[28].AddMulExp(c[29], x, 249)
+		c[29].AddMulExp(c[30], x, 233)
+		c[30].AddMulExp(c[31], x, 83)
+		c[31].AddMulExp(c[32], x, 24)
+		c[32].AddMulExp(c[33], x, 153)
+		c[33].AddMulExp(c[34], x, 241)
+		c[34].AddMulExp(c[35], x, 126)
+		c[35].AddMulExp(c[36], x, 36)
+		c[36].AddMulExp(c[37], x, 116)
+		c[37].AddMulExp(c[38], x, 19)
+		c[38].AddMulExp(element(b), x, 231)
+	}
+	return len(p), nil
+}
+func (c coder39) Code() []byte {
+	var buf [39]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder40 [40]element
+
+func (c *coder40) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 59)
+		c[1].AddMulExp(c[2], x, 116)
+		c[2].AddMulExp(c[3], x, 79)
+		c[3].AddMulExp(c[4], x, 161)
+		c[4].AddMulExp(c[5], x, 252)
+		c[5].AddMulExp(c[6], x, 98)
+		c[6].AddMulExp(c[7], x, 128)
+		c[7].AddMulExp(c[8], x, 205)
+		c[8].AddMulExp(c[9], x, 128)
+		c[9].AddMulExp(c[10], x, 161)
+		c[10].AddMulExp(c[11], x, 247)
+		c[11].AddMulExp(c[12], x, 57)
+		c[12].AddMulExp(c[13], x, 163)
+		c[13].AddMulExp(c[14], x, 56)
+		c[14].AddMulExp(c[15], x, 235)
+		c[15].AddMulExp(c[16], x, 106)
+		c[16].AddMulExp(c[17], x, 53)
+		c[17].AddMulExp(c[18], x, 26)
+		c[18].AddMulExp(c[19], x, 187)
+		c[19].AddMulExp(c[20], x, 174)
+		c[20].AddMulExp(c[21], x, 226)
+		c[21].AddMulExp(c[22], x, 104)
+		c[22].AddMulExp(c[23], x, 170)
+		c[23].AddMulExp(c[24], x, 7)
+		c[24].AddMulExp(c[25], x, 175)
+		c[25].AddMulExp(c[26], x, 35)
+		c[26].AddMulExp(c[27], x, 181)
+		c[27].AddMulExp(c[28], x, 114)
+		c[28].AddMulExp(c[29], x, 88)
+		c[29].AddMulExp(c[30], x, 41)
+		c[30].AddMulExp(c[31], x, 47)
+		c[31].AddMulExp(c[32], x, 163)
+		c[32].AddMulExp(c[33], x, 125)
+		c[33].AddMulExp(c[34], x, 134)
+		c[34].AddMulExp(c[35], x, 72)
+		c[35].AddMulExp(c[36], x, 20)
+		c[36].AddMulExp(c[37], x, 232)
+		c[37].AddMulExp(c[38], x, 53)
+		c[38].AddMulExp(c[39], x, 35)
+		c[39].AddMulExp(element(b), x, 15)
+	}
+	return len(p), nil
+}
+func (c coder40) Code() []byte {
+	var buf [40]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder41 [41]element
+
+func (c *coder41) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 132)
+		c[1].AddMulExp(c[2], x, 167)
+		c[2].AddMulExp(c[3], x, 52)
+		c[3].AddMulExp(c[4], x, 139)
+		c[4].AddMulExp(c[5], x, 184)
+		c[5].AddMulExp(c[6], x, 223)
+		c[6].AddMulExp(c[7], x, 149)
+		c[7].AddMulExp(c[8], x, 92)
+		c[8].AddMulExp(c[9], x, 250)
+		c[9].AddMulExp(c[10], x, 18)
+		c[10].AddMulExp(c[11], x, 83)
+		c[11].AddMulExp(c[12], x, 33)
+		c[12].AddMulExp(c[13], x, 127)
+		c[13].AddMulExp(c[14], x, 109)
+		c[14].AddMulExp(c[15], x, 194)
+		c[15].AddMulExp(c[16], x, 7)
+		c[16].AddMulExp(c[17], x, 211)
+		c[17].AddMulExp(c[18], x, 242)
+		c[18].AddMulExp(c[19], x, 109)
+		c[19].AddMulExp(c[20], x, 66)
+		c[20].AddMulExp(c[21], x, 86)
+		c[21].AddMulExp(c[22], x, 169)
+		c[22].AddMulExp(c[23], x, 87)
+		c[23].AddMulExp(c[24], x, 96)
+		c[24].AddMulExp(c[25], x, 187)
+		c[25].AddMulExp(c[26], x, 159)
+		c[26].AddMulExp(c[27], x, 114)
+		c[27].AddMulExp(c[28], x, 172)
+		c[28].AddMulExp(c[29], x, 118)
+		c[29].AddMulExp(c[30], x, 208)
+		c[30].AddMulExp(c[31], x, 183)
+		c[31].AddMulExp(c[32], x, 200)
+		c[32].AddMulExp(c[33], x, 82)
+		c[33].AddMulExp(c[34], x, 179)
+		c[34].AddMulExp(c[35], x, 38)
+		c[35].AddMulExp(c[36], x, 39)
+		c[36].AddMulExp(c[37], x, 34)
+		c[37].AddMulExp(c[38], x, 242)
+		c[38].AddMulExp(c[39], x, 142)
+		c[39].AddMulExp(c[40], x, 147)
+		c[40].AddMulExp(element(b), x, 55)
+	}
+	return len(p), nil
+}
+func (c coder41) Code() []byte {
+	var buf [41]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder42 [42]element
+
+func (c *coder42) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 250)
+		c[1].AddMulExp(c[2], x, 103)
+		c[2].AddMulExp(c[3], x, 221)
+		c[3].AddMulExp(c[4], x, 230)
+		c[4].AddMulExp(c[5], x, 25)
+		c[5].AddMulExp(c[6], x, 18)
+		c[6].AddMulExp(c[7], x, 137)
+		c[7].AddMulExp(c[8], x, 231)
+		c[8].AddMulExp(c[9], x, 0)
+		c[9].AddMulExp(c[10], x, 3)
+		c[10].AddMulExp(c[11], x, 58)
+		c[11].AddMulExp(c[12], x, 242)
+		c[12].AddMulExp(c[13], x, 221)
+		c[13].AddMulExp(c[14], x, 191)
+		c[14].AddMulExp(c[15], x, 110)
+		c[15].AddMulExp(c[16], x, 84)
+		c[16].AddMulExp(c[17], x, 230)
+		c[17].AddMulExp(c[18], x, 8)
+		c[18].AddMulExp(c[19], x, 188)
+		c[19].AddMulExp(c[20], x, 106)
+		c[20].AddMulExp(c[21], x, 96)
+		c[21].AddMulExp(c[22], x, 147)
+		c[22].AddMulExp(c[23], x, 15)
+		c[23].AddMulExp(c[24], x, 131)
+		c[24].AddMulExp(c[25], x, 139)
+		c[25].AddMulExp(c[26], x, 34)
+		c[26].AddMulExp(c[27], x, 101)
+		c[27].AddMulExp(c[28], x, 223)
+		c[28].AddMulExp(c[29], x, 39)
+		c[29].AddMulExp(c[30], x, 101)
+		c[30].AddMulExp(c[31], x, 213)
+		c[31].AddMulExp(c[32], x, 199)
+		c[32].AddMulExp(c[33], x, 237)
+		c[33].AddMulExp(c[34], x, 254)
+		c[34].AddMulExp(c[35], x, 201)
+		c[35].AddMulExp(c[36], x, 123)
+		c[36].AddMulExp(c[37], x, 171)
+		c[37].AddMulExp(c[38], x, 162)
+		c[38].AddMulExp(c[39], x, 194)
+		c[39].AddMulExp(c[40], x, 117)
+		c[40].AddMulExp(c[41], x, 50)
+		c[41].AddMulExp(element(b), x, 96)
+	}
+	return len(p), nil
+}
+func (c coder42) Code() []byte {
+	var buf [42]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder43 [43]element
+
+func (c *coder43) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 96)
+		c[1].AddMulExp(c[2], x, 67)
+		c[2].AddMulExp(c[3], x, 3)
+		c[3].AddMulExp(c[4], x, 245)
+		c[4].AddMulExp(c[5], x, 217)
+		c[5].AddMulExp(c[6], x, 215)
+		c[6].AddMulExp(c[7], x, 33)
+		c[7].AddMulExp(c[8], x, 65)
+		c[8].AddMulExp(c[9], x, 240)
+		c[9].AddMulExp(c[10], x, 109)
+		c[10].AddMulExp(c[11], x, 144)
+		c[11].AddMulExp(c[12], x, 63)
+		c[12].AddMulExp(c[13], x, 21)
+		c[13].AddMulExp(c[14], x, 131)
+		c[14].AddMulExp(c[15], x, 38)
+		c[15].AddMulExp(c[16], x, 101)
+		c[16].AddMulExp(c[17], x, 153)
+		c[17].AddMulExp(c[18], x, 128)
+		c[18].AddMulExp(c[19], x, 55)
+		c[19].AddMulExp(c[20], x, 31)
+		c[20].AddMulExp(c[21], x, 237)
+		c[21].AddMulExp(c[22], x, 3)
+		c[22].AddMulExp(c[23], x, 94)
+		c[23].AddMulExp(c[24], x, 160)
+		c[24].AddMulExp(c[25], x, 20)
+		c[25].AddMulExp(c[26], x, 87)
+		c[26].AddMulExp(c[27], x, 77)
+		c[27].AddMulExp(c[28], x, 56)
+		c[28].AddMulExp(c[29], x, 191)
+		c[29].AddMulExp(c[30], x, 123)
+		c[30].AddMulExp(c[31], x, 207)
+		c[31].AddMulExp(c[32], x, 75)
+		c[32].AddMulExp(c[33], x, 82)
+		c[33].AddMulExp(c[34], x, 0)
+		c[34].AddMulExp(c[35], x, 122)
+		c[35].AddMulExp(c[36], x, 132)
+		c[36].AddMulExp(c[37], x, 101)
+		c[37].AddMulExp(c[38], x, 145)
+		c[38].AddMulExp(c[39], x, 215)
+		c[39].AddMulExp(c[40], x, 15)
+		c[40].AddMulExp(c[41], x, 121)
+		c[41].AddMulExp(c[42], x, 192)
+		c[42].AddMulExp(element(b), x, 138)
+	}
+	return len(p), nil
+}
+func (c coder43) Code() []byte {
+	var buf [43]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder44 [44]element
+
+func (c *coder44) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 190)
+		c[1].AddMulExp(c[2], x, 7)
+		c[2].AddMulExp(c[3], x, 61)
+		c[3].AddMulExp(c[4], x, 121)
+		c[4].AddMulExp(c[5], x, 71)
+		c[5].AddMulExp(c[6], x, 246)
+		c[6].AddMulExp(c[7], x, 69)
+		c[7].AddMulExp(c[8], x, 55)
+		c[8].AddMulExp(c[9], x, 168)
+		c[9].AddMulExp(c[10], x, 188)
+		c[10].AddMulExp(c[11], x, 89)
+		c[11].AddMulExp(c[12], x, 243)
+		c[12].AddMulExp(c[13], x, 191)
+		c[13].AddMulExp(c[14], x, 25)
+		c[14].AddMulExp(c[15], x, 72)
+		c[15].AddMulExp(c[16], x, 123)
+		c[16].AddMulExp(c[17], x, 9)
+		c[17].AddMulExp(c[18], x, 145)
+		c[18].AddMulExp(c[19], x, 14)
+		c[19].AddMulExp(c[20], x, 247)
+		c[20].AddMulExp(c[21], x, 1)
+		c[21].AddMulExp(c[22], x, 238)
+		c[22].AddMulExp(c[23], x, 44)
+		c[23].AddMulExp(c[24], x, 78)
+		c[24].AddMulExp(c[25], x, 143)
+		c[25].AddMulExp(c[26], x, 62)
+		c[26].AddMulExp(c[27], x, 224)
+		c[27].AddMulExp(c[28], x, 126)
+		c[28].AddMulExp(c[29], x, 118)
+		c[29].AddMulExp(c[30], x, 114)
+		c[30].AddMulExp(c[31], x, 68)
+		c[31].AddMulExp(c[32], x, 163)
+		c[32].AddMulExp(c[33], x, 52)
+		c[33].AddMulExp(c[34], x, 194)
+		c[34].AddMulExp(c[35], x, 217)
+		c[35].AddMulExp(c[36], x, 147)
+		c[36].AddMulExp(c[37], x, 204)
+		c[37].AddMulExp(c[38], x, 169)
+		c[38].AddMulExp(c[39], x, 37)
+		c[39].AddMulExp(c[40], x, 130)
+		c[40].AddMulExp(c[41], x, 113)
+		c[41].AddMulExp(c[42], x, 102)
+		c[42].AddMulExp(c[43], x, 73)
+		c[43].AddMulExp(element(b), x, 181)
+	}
+	return len(p), nil
+}
+func (c coder44) Code() []byte {
+	var buf [44]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder45 [45]element
+
+func (c *coder45) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 6)
+		c[1].AddMulExp(c[2], x, 172)
+		c[2].AddMulExp(c[3], x, 72)
+		c[3].AddMulExp(c[4], x, 250)
+		c[4].AddMulExp(c[5], x, 18)
+		c[5].AddMulExp(c[6], x, 171)
+		c[6].AddMulExp(c[7], x, 171)
+		c[7].AddMulExp(c[8], x, 162)
+		c[8].AddMulExp(c[9], x, 229)
+		c[9].AddMulExp(c[10], x, 187)
+		c[10].AddMulExp(c[11], x, 239)
+		c[11].AddMulExp(c[12], x, 4)
+		c[12].AddMulExp(c[13], x, 187)
+		c[13].AddMulExp(c[14], x, 11)
+		c[14].AddMulExp(c[15], x, 37)
+		c[15].AddMulExp(c[16], x, 228)
+		c[16].AddMulExp(c[17], x, 102)
+		c[17].AddMulExp(c[18], x, 72)
+		c[18].AddMulExp(c[19], x, 102)
+		c[19].AddMulExp(c[20], x, 22)
+		c[20].AddMulExp(c[21], x, 33)
+		c[21].AddMulExp(c[22], x, 73)
+		c[22].AddMulExp(c[23], x, 95)
+		c[23].AddMulExp(c[24], x, 99)
+		c[24].AddMulExp(c[25], x, 132)
+		c[25].AddMulExp(c[26], x, 1)
+		c[26].AddMulExp(c[27], x, 15)
+		c[27].AddMulExp(c[28], x, 89)
+		c[28].AddMulExp(c[29], x, 4)
+		c[29].AddMulExp(c[30], x, 112)
+		c[30].AddMulExp(c[31], x, 130)
+		c[31].AddMulExp(c[32], x, 95)
+		c[32].AddMulExp(c[33], x, 211)
+		c[33].AddMulExp(c[34], x, 235)
+		c[34].AddMulExp(c[35], x, 227)
+		c[35].AddMulExp(c[36], x, 58)
+		c[36].AddMulExp(c[37], x, 35)
+		c[37].AddMulExp(c[38], x, 88)
+		c[38].AddMulExp(c[39], x, 132)
+		c[39].AddMulExp(c[40], x, 23)
+		c[40].AddMulExp(c[41], x, 44)
+		c[41].AddMulExp(c[42], x, 165)
+		c[42].AddMulExp(c[43], x, 54)
+		c[43].AddMulExp(c[44], x, 187)
+		c[44].AddMulExp(element(b), x, 225)
+	}
+	return len(p), nil
+}
+func (c coder45) Code() []byte {
+	var buf [45]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder46 [46]element
+
+func (c *coder46) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 112)
+		c[1].AddMulExp(c[2], x, 94)
+		c[2].AddMulExp(c[3], x, 88)
+		c[3].AddMulExp(c[4], x, 112)
+		c[4].AddMulExp(c[5], x, 253)
+		c[5].AddMulExp(c[6], x, 224)
+		c[6].AddMulExp(c[7], x, 202)
+		c[7].AddMulExp(c[8], x, 115)
+		c[8].AddMulExp(c[9], x, 187)
+		c[9].AddMulExp(c[10], x, 99)
+		c[10].AddMulExp(c[11], x, 89)
+		c[11].AddMulExp(c[12], x, 5)
+		c[12].AddMulExp(c[13], x, 54)
+		c[13].AddMulExp(c[14], x, 113)
+		c[14].AddMulExp(c[15], x, 129)
+		c[15].AddMulExp(c[16], x, 44)
+		c[16].AddMulExp(c[17], x, 58)
+		c[17].AddMulExp(c[18], x, 16)
+		c[18].AddMulExp(c[19], x, 135)
+		c[19].AddMulExp(c[20], x, 216)
+		c[20].AddMulExp(c[21], x, 169)
+		c[21].AddMulExp(c[22], x, 211)
+		c[22].AddMulExp(c[23], x, 36)
+		c[23].AddMulExp(c[24], x, 1)
+		c[24].AddMulExp(c[25], x, 4)
+		c[25].AddMulExp(c[26], x, 96)
+		c[26].AddMulExp(c[27], x, 60)
+		c[27].AddMulExp(c[28], x, 241)
+		c[28].AddMulExp(c[29], x, 73)
+		c[29].AddMulExp(c[30], x, 104)
+		c[30].AddMulExp(c[31], x, 234)
+		c[31].AddMulExp(c[32], x, 8)
+		c[32].AddMulExp(c[33], x, 249)
+		c[33].AddMulExp(c[34], x, 245)
+		c[34].AddMulExp(c[35], x, 119)
+		c[35].AddMulExp(c[36], x, 174)
+		c[36].AddMulExp(c[37], x, 52)
+		c[37].AddMulExp(c[38], x, 25)
+		c[38].AddMulExp(c[39], x, 157)
+		c[39].AddMulExp(c[40], x, 224)
+		c[40].AddMulExp(c[41], x, 43)
+		c[41].AddMulExp(c[42], x, 202)
+		c[42].AddMulExp(c[43], x, 223)
+		c[43].AddMulExp(c[44], x, 19)
+		c[44].AddMulExp(c[45], x, 82)
+		c[45].AddMulExp(element(b), x, 15)
+	}
+	return len(p), nil
+}
+func (c coder46) Code() []byte {
+	var buf [46]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder47 [47]element
+
+func (c *coder47) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 76)
+		c[1].AddMulExp(c[2], x, 164)
+		c[2].AddMulExp(c[3], x, 229)
+		c[3].AddMulExp(c[4], x, 92)
+		c[4].AddMulExp(c[5], x, 79)
+		c[5].AddMulExp(c[6], x, 168)
+		c[6].AddMulExp(c[7], x, 219)
+		c[7].AddMulExp(c[8], x, 110)
+		c[8].AddMulExp(c[9], x, 104)
+		c[9].AddMulExp(c[10], x, 21)
+		c[10].AddMulExp(c[11], x, 220)
+		c[11].AddMulExp(c[12], x, 74)
+		c[12].AddMulExp(c[13], x, 19)
+		c[13].AddMulExp(c[14], x, 199)
+		c[14].AddMulExp(c[15], x, 195)
+		c[15].AddMulExp(c[16], x, 100)
+		c[16].AddMulExp(c[17], x, 93)
+		c[17].AddMulExp(c[18], x, 191)
+		c[18].AddMulExp(c[19], x, 43)
+		c[19].AddMulExp(c[20], x, 213)
+		c[20].AddMulExp(c[21], x, 72)
+		c[21].AddMulExp(c[22], x, 56)
+		c[22].AddMulExp(c[23], x, 138)
+		c[23].AddMulExp(c[24], x, 161)
+		c[24].AddMulExp(c[25], x, 125)
+		c[25].AddMulExp(c[26], x, 187)
+		c[26].AddMulExp(c[27], x, 119)
+		c[27].AddMulExp(c[28], x, 250)
+		c[28].AddMulExp(c[29], x, 189)
+		c[29].AddMulExp(c[30], x, 137)
+		c[30].AddMulExp(c[31], x, 190)
+		c[31].AddMulExp(c[32], x, 76)
+		c[32].AddMulExp(c[33], x, 126)
+		c[33].AddMulExp(c[34], x, 247)
+		c[34].AddMulExp(c[35], x, 93)
+		c[35].AddMulExp(c[36], x, 30)
+		c[36].AddMulExp(c[37], x, 132)
+		c[37].AddMulExp(c[38], x, 6)
+		c[38].AddMulExp(c[39], x, 58)
+		c[39].AddMulExp(c[40], x, 213)
+		c[40].AddMulExp(c[41], x, 208)
+		c[41].AddMulExp(c[42], x, 165)
+		c[42].AddMulExp(c[43], x, 224)
+		c[43].AddMulExp(c[44], x, 152)
+		c[44].AddMulExp(c[45], x, 133)
+		c[45].AddMulExp(c[46], x, 91)
+		c[46].AddMulExp(element(b), x, 61)
+	}
+	return len(p), nil
+}
+func (c coder47) Code() []byte {
+	var buf [47]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder48 [48]element
+
+func (c *coder48) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 228)
+		c[1].AddMulExp(c[2], x, 25)
+		c[2].AddMulExp(c[3], x, 196)
+		c[3].AddMulExp(c[4], x, 130)
+		c[4].AddMulExp(c[5], x, 211)
+		c[5].AddMulExp(c[6], x, 146)
+		c[6].AddMulExp(c[7], x, 60)
+		c[7].AddMulExp(c[8], x, 24)
+		c[8].AddMulExp(c[9], x, 251)
+		c[9].AddMulExp(c[10], x, 90)
+		c[10].AddMulExp(c[11], x, 39)
+		c[11].AddMulExp(c[12], x, 102)
+		c[12].AddMulExp(c[13], x, 240)
+		c[13].AddMulExp(c[14], x, 61)
+		c[14].AddMulExp(c[15], x, 178)
+		c[15].AddMulExp(c[16], x, 63)
+		c[16].AddMulExp(c[17], x, 46)
+		c[17].AddMulExp(c[18], x, 123)
+		c[18].AddMulExp(c[19], x, 115)
+		c[19].AddMulExp(c[20], x, 18)
+		c[20].AddMulExp(c[21], x, 221)
+		c[21].AddMulExp(c[22], x, 111)
+		c[22].AddMulExp(c[23], x, 135)
+		c[23].AddMulExp(c[24], x, 160)
+		c[24].AddMulExp(c[25], x, 182)
+		c[25].AddMulExp(c[26], x, 205)
+		c[26].AddMulExp(c[27], x, 107)
+		c[27].AddMulExp(c[28], x, 206)
+		c[28].AddMulExp(c[29], x, 95)
+		c[29].AddMulExp(c[30], x, 150)
+		c[30].AddMulExp(c[31], x, 120)
+		c[31].AddMulExp(c[32], x, 184)
+		c[32].AddMulExp(c[33], x, 91)
+		c[33].AddMulExp(c[34], x, 21)
+		c[34].AddMulExp(c[35], x, 247)
+		c[35].AddMulExp(c[36], x, 156)
+		c[36].AddMulExp(c[37], x, 140)
+		c[37].AddMulExp(c[38], x, 238)
+		c[38].AddMulExp(c[39], x, 191)
+		c[39].AddMulExp(c[40], x, 11)
+		c[40].AddMulExp(c[41], x, 94)
+		c[41].AddMulExp(c[42], x, 227)
+		c[42].AddMulExp(c[43], x, 84)
+		c[43].AddMulExp(c[44], x, 50)
+		c[44].AddMulExp(c[45], x, 163)
+		c[45].AddMulExp(c[46], x, 39)
+		c[46].AddMulExp(c[47], x, 34)
+		c[47].AddMulExp(element(b), x, 108)
+	}
+	return len(p), nil
+}
+func (c coder48) Code() []byte {
+	var buf [48]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder49 [49]element
+
+func (c *coder49) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 172)
+		c[1].AddMulExp(c[2], x, 121)
+		c[2].AddMulExp(c[3], x, 1)
+		c[3].AddMulExp(c[4], x, 41)
+		c[4].AddMulExp(c[5], x, 193)
+		c[5].AddMulExp(c[6], x, 222)
+		c[6].AddMulExp(c[7], x, 237)
+		c[7].AddMulExp(c[8], x, 64)
+		c[8].AddMulExp(c[9], x, 109)
+		c[9].AddMulExp(c[10], x, 181)
+		c[10].AddMulExp(c[11], x, 52)
+		c[11].AddMulExp(c[12], x, 120)
+		c[12].AddMulExp(c[13], x, 212)
+		c[13].AddMulExp(c[14], x, 226)
+		c[14].AddMulExp(c[15], x, 239)
+		c[15].AddMulExp(c[16], x, 245)
+		c[16].AddMulExp(c[17], x, 208)
+		c[17].AddMulExp(c[18], x, 20)
+		c[18].AddMulExp(c[19], x, 246)
+		c[19].AddMulExp(c[20], x, 34)
+		c[20].AddMulExp(c[21], x, 225)
+		c[21].AddMulExp(c[22], x, 204)
+		c[22].AddMulExp(c[23], x, 134)
+		c[23].AddMulExp(c[24], x, 101)
+		c[24].AddMulExp(c[25], x, 125)
+		c[25].AddMulExp(c[26], x, 206)
+		c[26].AddMulExp(c[27], x, 69)
+		c[27].AddMulExp(c[28], x, 138)
+		c[28].AddMulExp(c[29], x, 250)
+		c[29].AddMulExp(c[30], x, 0)
+		c[30].AddMulExp(c[31], x, 77)
+		c[31].AddMulExp(c[32], x, 58)
+		c[32].AddMulExp(c[33], x, 143)
+		c[33].AddMulExp(c[34], x, 185)
+		c[34].AddMulExp(c[35], x, 220)
+		c[35].AddMulExp(c[36], x, 254)
+		c[36].AddMulExp(c[37], x, 210)
+		c[37].AddMulExp(c[38], x, 190)
+		c[38].AddMulExp(c[39], x, 112)
+		c[39].AddMulExp(c[40], x, 88)
+		c[40].AddMulExp(c[41], x, 91)
+		c[41].AddMulExp(c[42], x, 57)
+		c[42].AddMulExp(c[43], x, 90)
+		c[43].AddMulExp(c[44], x, 109)
+		c[44].AddMulExp(c[45], x, 5)
+		c[45].AddMulExp(c[46], x, 13)
+		c[46].AddMulExp(c[47], x, 181)
+		c[47].AddMulExp(c[48], x, 25)
+		c[48].AddMulExp(element(b), x, 156)
+	}
+	return len(p), nil
+}
+func (c coder49) Code() []byte {
+	var buf [49]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder50 [50]element
+
+func (c *coder50) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 232)
+		c[1].AddMulExp(c[2], x, 125)
+		c[2].AddMulExp(c[3], x, 157)
+		c[3].AddMulExp(c[4], x, 161)
+		c[4].AddMulExp(c[5], x, 164)
+		c[5].AddMulExp(c[6], x, 9)
+		c[6].AddMulExp(c[7], x, 118)
+		c[7].AddMulExp(c[8], x, 46)
+		c[8].AddMulExp(c[9], x, 209)
+		c[9].AddMulExp(c[10], x, 99)
+		c[10].AddMulExp(c[11], x, 203)
+		c[11].AddMulExp(c[12], x, 193)
+		c[12].AddMulExp(c[13], x, 35)
+		c[13].AddMulExp(c[14], x, 3)
+		c[14].AddMulExp(c[15], x, 209)
+		c[15].AddMulExp(c[16], x, 111)
+		c[16].AddMulExp(c[17], x, 195)
+		c[17].AddMulExp(c[18], x, 242)
+		c[18].AddMulExp(c[19], x, 203)
+		c[19].AddMulExp(c[20], x, 225)
+		c[20].AddMulExp(c[21], x, 46)
+		c[21].AddMulExp(c[22], x, 13)
+		c[22].AddMulExp(c[23], x, 32)
+		c[23].AddMulExp(c[24], x, 160)
+		c[24].AddMulExp(c[25], x, 126)
+		c[25].AddMulExp(c[26], x, 209)
+		c[26].AddMulExp(c[27], x, 130)
+		c[27].AddMulExp(c[28], x, 160)
+		c[28].AddMulExp(c[29], x, 242)
+		c[29].AddMulExp(c[30], x, 215)
+		c[30].AddMulExp(c[31], x, 242)
+		c[31].AddMulExp(c[32], x, 75)
+		c[32].AddMulExp(c[33], x, 77)
+		c[33].AddMulExp(c[34], x, 42)
+		c[34].AddMulExp(c[35], x, 189)
+		c[35].AddMulExp(c[36], x, 32)
+		c[36].AddMulExp(c[37], x, 113)
+		c[37].AddMulExp(c[38], x, 65)
+		c[38].AddMulExp(c[39], x, 124)
+		c[39].AddMulExp(c[40], x, 69)
+		c[40].AddMulExp(c[41], x, 228)
+		c[41].AddMulExp(c[42], x, 114)
+		c[42].AddMulExp(c[43], x, 235)
+		c[43].AddMulExp(c[44], x, 175)
+		c[44].AddMulExp(c[45], x, 124)
+		c[45].AddMulExp(c[46], x, 170)
+		c[46].AddMulExp(c[47], x, 215)
+		c[47].AddMulExp(c[48], x, 232)
+		c[48].AddMulExp(c[49], x, 133)
+		c[49].AddMulExp(element(b), x, 205)
+	}
+	return len(p), nil
+}
+func (c coder50) Code() []byte {
+	var buf [50]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder51 [51]element
+
+func (c *coder51) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 213)
+		c[1].AddMulExp(c[2], x, 166)
+		c[2].AddMulExp(c[3], x, 142)
+		c[3].AddMulExp(c[4], x, 43)
+		c[4].AddMulExp(c[5], x, 10)
+		c[5].AddMulExp(c[6], x, 216)
+		c[6].AddMulExp(c[7], x, 141)
+		c[7].AddMulExp(c[8], x, 163)
+		c[8].AddMulExp(c[9], x, 172)
+		c[9].AddMulExp(c[10], x, 180)
+		c[10].AddMulExp(c[11], x, 102)
+		c[11].AddMulExp(c[12], x, 70)
+		c[12].AddMulExp(c[13], x, 89)
+		c[13].AddMulExp(c[14], x, 62)
+		c[14].AddMulExp(c[15], x, 222)
+		c[15].AddMulExp(c[16], x, 62)
+		c[16].AddMulExp(c[17], x, 42)
+		c[17].AddMulExp(c[18], x, 210)
+		c[18].AddMulExp(c[19], x, 151)
+		c[19].AddMulExp(c[20], x, 163)
+		c[20].AddMulExp(c[21], x, 218)
+		c[21].AddMulExp(c[22], x, 70)
+		c[22].AddMulExp(c[23], x, 77)
+		c[23].AddMulExp(c[24], x, 39)
+		c[24].AddMulExp(c[25], x, 166)
+		c[25].AddMulExp(c[26], x, 191)
+		c[26].AddMulExp(c[27], x, 114)
+		c[27].AddMulExp(c[28], x, 202)
+		c[28].AddMulExp(c[29], x, 245)
+		c[29].AddMulExp(c[30], x, 188)
+		c[30].AddMulExp(c[31], x, 183)
+		c[31].AddMulExp(c[32], x, 221)
+		c[32].AddMulExp(c[33], x, 75)
+		c[33].AddMulExp(c[34], x, 212)
+		c[34].AddMulExp(c[35], x, 27)
+		c[35].AddMulExp(c[36], x, 237)
+		c[36].AddMulExp(c[37], x, 127)
+		c[37].AddMulExp(c[38], x, 204)
+		c[38].AddMulExp(c[39], x, 235)
+		c[39].AddMulExp(c[40], x, 62)
+		c[40].AddMulExp(c[41], x, 190)
+		c[41].AddMulExp(c[42], x, 232)
+		c[42].AddMulExp(c[43], x, 18)
+		c[43].AddMulExp(c[44], x, 46)
+		c[44].AddMulExp(c[45], x, 171)
+		c[45].AddMulExp(c[46], x, 15)
+		c[46].AddMulExp(c[47], x, 98)
+		c[47].AddMulExp(c[48], x, 247)
+		c[48].AddMulExp(c[49], x, 66)
+		c[49].AddMulExp(c[50], x, 163)
+		c[50].AddMulExp(element(b), x, 0)
+	}
+	return len(p), nil
+}
+func (c coder51) Code() []byte {
+	var buf [51]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder52 [52]element
+
+func (c *coder52) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 116)
+		c[1].AddMulExp(c[2], x, 50)
+		c[2].AddMulExp(c[3], x, 86)
+		c[3].AddMulExp(c[4], x, 186)
+		c[4].AddMulExp(c[5], x, 50)
+		c[5].AddMulExp(c[6], x, 220)
+		c[6].AddMulExp(c[7], x, 251)
+		c[7].AddMulExp(c[8], x, 89)
+		c[8].AddMulExp(c[9], x, 192)
+		c[9].AddMulExp(c[10], x, 46)
+		c[10].AddMulExp(c[11], x, 86)
+		c[11].AddMulExp(c[12], x, 127)
+		c[12].AddMulExp(c[13], x, 124)
+		c[13].AddMulExp(c[14], x, 19)
+		c[14].AddMulExp(c[15], x, 184)
+		c[15].AddMulExp(c[16], x, 233)
+		c[16].AddMulExp(c[17], x, 151)
+		c[17].AddMulExp(c[18], x, 215)
+		c[18].AddMulExp(c[19], x, 22)
+		c[19].AddMulExp(c[20], x, 14)
+		c[20].AddMulExp(c[21], x, 59)
+		c[21].AddMulExp(c[22], x, 145)
+		c[22].AddMulExp(c[23], x, 37)
+		c[23].AddMulExp(c[24], x, 242)
+		c[24].AddMulExp(c[25], x, 203)
+		c[25].AddMulExp(c[26], x, 134)
+		c[26].AddMulExp(c[27], x, 254)
+		c[27].AddMulExp(c[28], x, 89)
+		c[28].AddMulExp(c[29], x, 190)
+		c[29].AddMulExp(c[30], x, 94)
+		c[30].AddMulExp(c[31], x, 59)
+		c[31].AddMulExp(c[32], x, 65)
+		c[32].AddMulExp(c[33], x, 124)
+		c[33].AddMulExp(c[34], x, 113)
+		c[34].AddMulExp(c[35], x, 100)
+		c[35].AddMulExp(c[36], x, 233)
+		c[36].AddMulExp(c[37], x, 235)
+		c[37].AddMulExp(c[38], x, 121)
+		c[38].AddMulExp(c[39], x, 22)
+		c[39].AddMulExp(c[40], x, 76)
+		c[40].AddMulExp(c[41], x, 86)
+		c[41].AddMulExp(c[42], x, 97)
+		c[42].AddMulExp(c[43], x, 39)
+		c[43].AddMulExp(c[44], x, 242)
+		c[44].AddMulExp(c[45], x, 200)
+		c[45].AddMulExp(c[46], x, 220)
+		c[46].AddMulExp(c[47], x, 101)
+		c[47].AddMulExp(c[48], x, 33)
+		c[48].AddMulExp(c[49], x, 239)
+		c[49].AddMulExp(c[50], x, 254)
+		c[50].AddMulExp(c[51], x, 116)
+		c[51].AddMulExp(element(b), x, 51)
+	}
+	return len(p), nil
+}
+func (c coder52) Code() []byte {
+	var buf [52]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder53 [53]element
+
+func (c *coder53) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 122)
+		c[1].AddMulExp(c[2], x, 214)
+		c[2].AddMulExp(c[3], x, 231)
+		c[3].AddMulExp(c[4], x, 136)
+		c[4].AddMulExp(c[5], x, 199)
+		c[5].AddMulExp(c[6], x, 11)
+		c[6].AddMulExp(c[7], x, 6)
+		c[7].AddMulExp(c[8], x, 205)
+		c[8].AddMulExp(c[9], x, 124)
+		c[9].AddMulExp(c[10], x, 72)
+		c[10].AddMulExp(c[11], x, 213)
+		c[11].AddMulExp(c[12], x, 117)
+		c[12].AddMulExp(c[13], x, 187)
+		c[13].AddMulExp(c[14], x, 60)
+		c[14].AddMulExp(c[15], x, 147)
+		c[15].AddMulExp(c[16], x, 201)
+		c[16].AddMulExp(c[17], x, 73)
+		c[17].AddMulExp(c[18], x, 75)
+		c[18].AddMulExp(c[19], x, 33)
+		c[19].AddMulExp(c[20], x, 146)
+		c[20].AddMulExp(c[21], x, 171)
+		c[21].AddMulExp(c[22], x, 247)
+		c[22].AddMulExp(c[23], x, 118)
+		c[23].AddMulExp(c[24], x, 208)
+		c[24].AddMulExp(c[25], x, 157)
+		c[25].AddMulExp(c[26], x, 177)
+		c[26].AddMulExp(c[27], x, 203)
+		c[27].AddMulExp(c[28], x, 235)
+		c[28].AddMulExp(c[29], x, 83)
+		c[29].AddMulExp(c[30], x, 45)
+		c[30].AddMulExp(c[31], x, 226)
+		c[31].AddMulExp(c[32], x, 202)
+		c[32].AddMulExp(c[33], x, 229)
+		c[33].AddMulExp(c[34], x, 168)
+		c[34].AddMulExp(c[35], x, 7)
+		c[35].AddMulExp(c[36], x, 57)
+		c[36].AddMulExp(c[37], x, 237)
+		c[37].AddMulExp(c[38], x, 235)
+		c[38].AddMulExp(c[39], x, 200)
+		c[39].AddMulExp(c[40], x, 124)
+		c[40].AddMulExp(c[41], x, 106)
+		c[41].AddMulExp(c[42], x, 254)
+		c[42].AddMulExp(c[43], x, 165)
+		c[43].AddMulExp(c[44], x, 14)
+		c[44].AddMulExp(c[45], x, 147)
+		c[45].AddMulExp(c[46], x, 0)
+		c[46].AddMulExp(c[47], x, 57)
+		c[47].AddMulExp(c[48], x, 42)
+		c[48].AddMulExp(c[49], x, 31)
+		c[49].AddMulExp(c[50], x, 178)
+		c[50].AddMulExp(c[51], x, 213)
+		c[51].AddMulExp(c[52], x, 173)
+		c[52].AddMulExp(element(b), x, 103)
+	}
+	return len(p), nil
+}
+func (c coder53) Code() []byte {
+	var buf [53]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder54 [54]element
+
+func (c *coder54) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 183)
+		c[1].AddMulExp(c[2], x, 26)
+		c[2].AddMulExp(c[3], x, 201)
+		c[3].AddMulExp(c[4], x, 87)
+		c[4].AddMulExp(c[5], x, 210)
+		c[5].AddMulExp(c[6], x, 221)
+		c[6].AddMulExp(c[7], x, 113)
+		c[7].AddMulExp(c[8], x, 21)
+		c[8].AddMulExp(c[9], x, 46)
+		c[9].AddMulExp(c[10], x, 65)
+		c[10].AddMulExp(c[11], x, 45)
+		c[11].AddMulExp(c[12], x, 50)
+		c[12].AddMulExp(c[13], x, 238)
+		c[13].AddMulExp(c[14], x, 184)
+		c[14].AddMulExp(c[15], x, 249)
+		c[15].AddMulExp(c[16], x, 225)
+		c[16].AddMulExp(c[17], x, 102)
+		c[17].AddMulExp(c[18], x, 58)
+		c[18].AddMulExp(c[19], x, 209)
+		c[19].AddMulExp(c[20], x, 218)
+		c[20].AddMulExp(c[21], x, 109)
+		c[21].AddMulExp(c[22], x, 165)
+		c[22].AddMulExp(c[23], x, 26)
+		c[23].AddMulExp(c[24], x, 95)
+		c[24].AddMulExp(c[25], x, 184)
+		c[25].AddMulExp(c[26], x, 192)
+		c[26].AddMulExp(c[27], x, 52)
+		c[27].AddMulExp(c[28], x, 245)
+		c[28].AddMulExp(c[29], x, 35)
+		c[29].AddMulExp(c[30], x, 254)
+		c[30].AddMulExp(c[31], x, 238)
+		c[31].AddMulExp(c[32], x, 175)
+		c[32].AddMulExp(c[33], x, 172)
+		c[33].AddMulExp(c[34], x, 79)
+		c[34].AddMulExp(c[35], x, 123)
+		c[35].AddMulExp(c[36], x, 25)
+		c[36].AddMulExp(c[37], x, 122)
+		c[37].AddMulExp(c[38], x, 43)
+		c[38].AddMulExp(c[39], x, 120)
+		c[39].AddMulExp(c[40], x, 108)
+		c[40].AddMulExp(c[41], x, 215)
+		c[41].AddMulExp(c[42], x, 80)
+		c[42].AddMulExp(c[43], x, 128)
+		c[43].AddMulExp(c[44], x, 201)
+		c[44].AddMulExp(c[45], x, 235)
+		c[45].AddMulExp(c[46], x, 8)
+		c[46].AddMulExp(c[47], x, 153)
+		c[47].AddMulExp(c[48], x, 59)
+		c[48].AddMulExp(c[49], x, 101)
+		c[49].AddMulExp(c[50], x, 31)
+		c[50].AddMulExp(c[51], x, 198)
+		c[51].AddMulExp(c[52], x, 76)
+		c[52].AddMulExp(c[53], x, 31)
+		c[53].AddMulExp(element(b), x, 156)
+	}
+	return len(p), nil
+}
+func (c coder54) Code() []byte {
+	var buf [54]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder55 [55]element
+
+func (c *coder55) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 38)
+		c[1].AddMulExp(c[2], x, 197)
+		c[2].AddMulExp(c[3], x, 123)
+		c[3].AddMulExp(c[4], x, 167)
+		c[4].AddMulExp(c[5], x, 16)
+		c[5].AddMulExp(c[6], x, 87)
+		c[6].AddMulExp(c[7], x, 178)
+		c[7].AddMulExp(c[8], x, 238)
+		c[8].AddMulExp(c[9], x, 227)
+		c[9].AddMulExp(c[10], x, 97)
+		c[10].AddMulExp(c[11], x, 148)
+		c[11].AddMulExp(c[12], x, 247)
+		c[12].AddMulExp(c[13], x, 26)
+		c[13].AddMulExp(c[14], x, 90)
+		c[14].AddMulExp(c[15], x, 228)
+		c[15].AddMulExp(c[16], x, 182)
+		c[16].AddMulExp(c[17], x, 236)
+		c[17].AddMulExp(c[18], x, 197)
+		c[18].AddMulExp(c[19], x, 47)
+		c[19].AddMulExp(c[20], x, 249)
+		c[20].AddMulExp(c[21], x, 36)
+		c[21].AddMulExp(c[22], x, 213)
+		c[22].AddMulExp(c[23], x, 54)
+		c[23].AddMulExp(c[24], x, 113)
+		c[24].AddMulExp(c[25], x, 181)
+		c[25].AddMulExp(c[26], x, 74)
+		c[26].AddMulExp(c[27], x, 177)
+		c[27].AddMulExp(c[28], x, 204)
+		c[28].AddMulExp(c[29], x, 155)
+		c[29].AddMulExp(c[30], x, 61)
+		c[30].AddMulExp(c[31], x, 47)
+		c[31].AddMulExp(c[32], x, 42)
+		c[32].AddMulExp(c[33], x, 0)
+		c[33].AddMulExp(c[34], x, 132)
+		c[34].AddMulExp(c[35], x, 144)
+		c[35].AddMulExp(c[36], x, 251)
+		c[36].AddMulExp(c[37], x, 200)
+		c[37].AddMulExp(c[38], x, 38)
+		c[38].AddMulExp(c[39], x, 38)
+		c[39].AddMulExp(c[40], x, 138)
+		c[40].AddMulExp(c[41], x, 54)
+		c[41].AddMulExp(c[42], x, 44)
+		c[42].AddMulExp(c[43], x, 64)
+		c[43].AddMulExp(c[44], x, 19)
+		c[44].AddMulExp(c[45], x, 22)
+		c[45].AddMulExp(c[46], x, 206)
+		c[46].AddMulExp(c[47], x, 16)
+		c[47].AddMulExp(c[48], x, 10)
+		c[48].AddMulExp(c[49], x, 228)
+		c[49].AddMulExp(c[50], x, 211)
+		c[50].AddMulExp(c[51], x, 161)
+		c[51].AddMulExp(c[52], x, 171)
+		c[52].AddMulExp(c[53], x, 44)
+		c[53].AddMulExp(c[54], x, 194)
+		c[54].AddMulExp(element(b), x, 210)
+	}
+	return len(p), nil
+}
+func (c coder55) Code() []byte {
+	var buf [55]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder56 [56]element
+
+func (c *coder56) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 106)
+		c[1].AddMulExp(c[2], x, 120)
+		c[2].AddMulExp(c[3], x, 107)
+		c[3].AddMulExp(c[4], x, 157)
+		c[4].AddMulExp(c[5], x, 164)
+		c[5].AddMulExp(c[6], x, 216)
+		c[6].AddMulExp(c[7], x, 112)
+		c[7].AddMulExp(c[8], x, 116)
+		c[8].AddMulExp(c[9], x, 2)
+		c[9].AddMulExp(c[10], x, 91)
+		c[10].AddMulExp(c[11], x, 248)
+		c[11].AddMulExp(c[12], x, 163)
+		c[12].AddMulExp(c[13], x, 36)
+		c[13].AddMulExp(c[14], x, 201)
+		c[14].AddMulExp(c[15], x, 202)
+		c[15].AddMulExp(c[16], x, 229)
+		c[16].AddMulExp(c[17], x, 6)
+		c[17].AddMulExp(c[18], x, 144)
+		c[18].AddMulExp(c[19], x, 254)
+		c[19].AddMulExp(c[20], x, 155)
+		c[20].AddMulExp(c[21], x, 135)
+		c[21].AddMulExp(c[22], x, 208)
+		c[22].AddMulExp(c[23], x, 170)
+		c[23].AddMulExp(c[24], x, 209)
+		c[24].AddMulExp(c[25], x, 12)
+		c[25].AddMulExp(c[26], x, 139)
+		c[26].AddMulExp(c[27], x, 127)
+		c[27].AddMulExp(c[28], x, 142)
+		c[28].AddMulExp(c[29], x, 182)
+		c[29].AddMulExp(c[30], x, 249)
+		c[30].AddMulExp(c[31], x, 177)
+		c[31].AddMulExp(c[32], x, 174)
+		c[32].AddMulExp(c[33], x, 190)
+		c[33].AddMulExp(c[34], x, 28)
+		c[34].AddMulExp(c[35], x, 10)
+		c[35].AddMulExp(c[36], x, 85)
+		c[36].AddMulExp(c[37], x, 239)
+		c[37].AddMulExp(c[38], x, 184)
+		c[38].AddMulExp(c[39], x, 101)
+		c[39].AddMulExp(c[40], x, 124)
+		c[40].AddMulExp(c[41], x, 152)
+		c[41].AddMulExp(c[42], x, 206)
+		c[42].AddMulExp(c[43], x, 96)
+		c[43].AddMulExp(c[44], x, 23)
+		c[44].AddMulExp(c[45], x, 163)
+		c[45].AddMulExp(c[46], x, 61)
+		c[46].AddMulExp(c[47], x, 27)
+		c[47].AddMulExp(c[48], x, 196)
+		c[48].AddMulExp(c[49], x, 247)
+		c[49].AddMulExp(c[50], x, 151)
+		c[50].AddMulExp(c[51], x, 154)
+		c[51].AddMulExp(c[52], x, 202)
+		c[52].AddMulExp(c[53], x, 207)
+		c[53].AddMulExp(c[54], x, 20)
+		c[54].AddMulExp(c[55], x, 61)
+		c[55].AddMulExp(element(b), x, 10)
+	}
+	return len(p), nil
+}
+func (c coder56) Code() []byte {
+	var buf [56]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder57 [57]element
+
+func (c *coder57) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 58)
+		c[1].AddMulExp(c[2], x, 140)
+		c[2].AddMulExp(c[3], x, 237)
+		c[3].AddMulExp(c[4], x, 93)
+		c[4].AddMulExp(c[5], x, 106)
+		c[5].AddMulExp(c[6], x, 61)
+		c[6].AddMulExp(c[7], x, 193)
+		c[7].AddMulExp(c[8], x, 2)
+		c[8].AddMulExp(c[9], x, 87)
+		c[9].AddMulExp(c[10], x, 73)
+		c[10].AddMulExp(c[11], x, 194)
+		c[11].AddMulExp(c[12], x, 215)
+		c[12].AddMulExp(c[13], x, 159)
+		c[13].AddMulExp(c[14], x, 163)
+		c[14].AddMulExp(c[15], x, 10)
+		c[15].AddMulExp(c[16], x, 155)
+		c[16].AddMulExp(c[17], x, 5)
+		c[17].AddMulExp(c[18], x, 121)
+		c[18].AddMulExp(c[19], x, 153)
+		c[19].AddMulExp(c[20], x, 59)
+		c[20].AddMulExp(c[21], x, 248)
+		c[21].AddMulExp(c[22], x, 4)
+		c[22].AddMulExp(c[23], x, 117)
+		c[23].AddMulExp(c[24], x, 22)
+		c[24].AddMulExp(c[25], x, 60)
+		c[25].AddMulExp(c[26], x, 177)
+		c[26].AddMulExp(c[27], x, 144)
+		c[27].AddMulExp(c[28], x, 44)
+		c[28].AddMulExp(c[29], x, 72)
+		c[29].AddMulExp(c[30], x, 228)
+		c[30].AddMulExp(c[31], x, 62)
+		c[31].AddMulExp(c[32], x, 1)
+		c[32].AddMulExp(c[33], x, 19)
+		c[33].AddMulExp(c[34], x, 170)
+		c[34].AddMulExp(c[35], x, 113)
+		c[35].AddMulExp(c[36], x, 158)
+		c[36].AddMulExp(c[37], x, 25)
+		c[37].AddMulExp(c[38], x, 175)
+		c[38].AddMulExp(c[39], x, 199)
+		c[39].AddMulExp(c[40], x, 139)
+		c[40].AddMulExp(c[41], x, 90)
+		c[41].AddMulExp(c[42], x, 1)
+		c[42].AddMulExp(c[43], x, 210)
+		c[43].AddMulExp(c[44], x, 7)
+		c[44].AddMulExp(c[45], x, 119)
+		c[45].AddMulExp(c[46], x, 154)
+		c[46].AddMulExp(c[47], x, 89)
+		c[47].AddMulExp(c[48], x, 159)
+		c[48].AddMulExp(c[49], x, 130)
+		c[49].AddMulExp(c[50], x, 122)
+		c[50].AddMulExp(c[51], x, 46)
+		c[51].AddMulExp(c[52], x, 147)
+		c[52].AddMulExp(c[53], x, 190)
+		c[53].AddMulExp(c[54], x, 135)
+		c[54].AddMulExp(c[55], x, 94)
+		c[55].AddMulExp(c[56], x, 68)
+		c[56].AddMulExp(element(b), x, 66)
+	}
+	return len(p), nil
+}
+func (c coder57) Code() []byte {
+	var buf [57]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder58 [58]element
+
+func (c *coder58) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 82)
+		c[1].AddMulExp(c[2], x, 116)
+		c[2].AddMulExp(c[3], x, 26)
+		c[3].AddMulExp(c[4], x, 247)
+		c[4].AddMulExp(c[5], x, 66)
+		c[5].AddMulExp(c[6], x, 27)
+		c[6].AddMulExp(c[7], x, 62)
+		c[7].AddMulExp(c[8], x, 107)
+		c[8].AddMulExp(c[9], x, 252)
+		c[9].AddMulExp(c[10], x, 182)
+		c[10].AddMulExp(c[11], x, 200)
+		c[11].AddMulExp(c[12], x, 185)
+		c[12].AddMulExp(c[13], x, 235)
+		c[13].AddMulExp(c[14], x, 55)
+		c[14].AddMulExp(c[15], x, 251)
+		c[15].AddMulExp(c[16], x, 242)
+		c[16].AddMulExp(c[17], x, 210)
+		c[17].AddMulExp(c[18], x, 144)
+		c[18].AddMulExp(c[19], x, 154)
+		c[19].AddMulExp(c[20], x, 237)
+		c[20].AddMulExp(c[21], x, 176)
+		c[21].AddMulExp(c[22], x, 141)
+		c[22].AddMulExp(c[23], x, 192)
+		c[23].AddMulExp(c[24], x, 248)
+		c[24].AddMulExp(c[25], x, 152)
+		c[25].AddMulExp(c[26], x, 249)
+		c[26].AddMulExp(c[27], x, 206)
+		c[27].AddMulExp(c[28], x, 85)
+		c[28].AddMulExp(c[29], x, 253)
+		c[29].AddMulExp(c[30], x, 142)
+		c[30].AddMulExp(c[31], x, 65)
+		c[31].AddMulExp(c[32], x, 165)
+		c[32].AddMulExp(c[33], x, 125)
+		c[33].AddMulExp(c[34], x, 23)
+		c[34].AddMulExp(c[35], x, 24)
+		c[35].AddMulExp(c[36], x, 30)
+		c[36].AddMulExp(c[37], x, 122)
+		c[37].AddMulExp(c[38], x, 240)
+		c[38].AddMulExp(c[39], x, 214)
+		c[39].AddMulExp(c[40], x, 6)
+		c[40].AddMulExp(c[41], x, 129)
+		c[41].AddMulExp(c[42], x, 218)
+		c[42].AddMulExp(c[43], x, 29)
+		c[43].AddMulExp(c[44], x, 145)
+		c[44].AddMulExp(c[45], x, 127)
+		c[45].AddMulExp(c[46], x, 134)
+		c[46].AddMulExp(c[47], x, 206)
+		c[47].AddMulExp(c[48], x, 245)
+		c[48].AddMulExp(c[49], x, 117)
+		c[49].AddMulExp(c[50], x, 29)
+		c[50].AddMulExp(c[51], x, 41)
+		c[51].AddMulExp(c[52], x, 63)
+		c[52].AddMulExp(c[53], x, 159)
+		c[53].AddMulExp(c[54], x, 142)
+		c[54].AddMulExp(c[55], x, 233)
+		c[55].AddMulExp(c[56], x, 125)
+		c[56].AddMulExp(c[57], x, 148)
+		c[57].AddMulExp(element(b), x, 123)
+	}
+	return len(p), nil
+}
+func (c coder58) Code() []byte {
+	var buf [58]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder59 [59]element
+
+func (c *coder59) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 57)
+		c[1].AddMulExp(c[2], x, 115)
+		c[2].AddMulExp(c[3], x, 232)
+		c[3].AddMulExp(c[4], x, 11)
+		c[4].AddMulExp(c[5], x, 195)
+		c[5].AddMulExp(c[6], x, 217)
+		c[6].AddMulExp(c[7], x, 3)
+		c[7].AddMulExp(c[8], x, 206)
+		c[8].AddMulExp(c[9], x, 77)
+		c[9].AddMulExp(c[10], x, 67)
+		c[10].AddMulExp(c[11], x, 29)
+		c[11].AddMulExp(c[12], x, 166)
+		c[12].AddMulExp(c[13], x, 180)
+		c[13].AddMulExp(c[14], x, 106)
+		c[14].AddMulExp(c[15], x, 118)
+		c[15].AddMulExp(c[16], x, 203)
+		c[16].AddMulExp(c[17], x, 17)
+		c[17].AddMulExp(c[18], x, 69)
+		c[18].AddMulExp(c[19], x, 152)
+		c[19].AddMulExp(c[20], x, 213)
+		c[20].AddMulExp(c[21], x, 74)
+		c[21].AddMulExp(c[22], x, 44)
+		c[22].AddMulExp(c[23], x, 49)
+		c[23].AddMulExp(c[24], x, 43)
+		c[24].AddMulExp(c[25], x, 98)
+		c[25].AddMulExp(c[26], x, 61)
+		c[26].AddMulExp(c[27], x, 253)
+		c[27].AddMulExp(c[28], x, 122)
+		c[28].AddMulExp(c[29], x, 14)
+		c[29].AddMulExp(c[30], x, 43)
+		c[30].AddMulExp(c[31], x, 209)
+		c[31].AddMulExp(c[32], x, 143)
+		c[32].AddMulExp(c[33], x, 9)
+		c[33].AddMulExp(c[34], x, 104)
+		c[34].AddMulExp(c[35], x, 107)
+		c[35].AddMulExp(c[36], x, 171)
+		c[36].AddMulExp(c[37], x, 224)
+		c[37].AddMulExp(c[38], x, 57)
+		c[38].AddMulExp(c[39], x, 254)
+		c[39].AddMulExp(c[40], x, 251)
+		c[40].AddMulExp(c[41], x, 226)
+		c[41].AddMulExp(c[42], x, 232)
+		c[42].AddMulExp(c[43], x, 221)
+		c[43].AddMulExp(c[44], x, 194)
+		c[44].AddMulExp(c[45], x, 240)
+		c[45].AddMulExp(c[46], x, 117)
+		c[46].AddMulExp(c[47], x, 161)
+		c[47].AddMulExp(c[48], x, 82)
+		c[48].AddMulExp(c[49], x, 178)
+		c[49].AddMulExp(c[50], x, 246)
+		c[50].AddMulExp(c[51], x, 178)
+		c[51].AddMulExp(c[52], x, 33)
+		c[52].AddMulExp(c[53], x, 50)
+		c[53].AddMulExp(c[54], x, 86)
+		c[54].AddMulExp(c[55], x, 215)
+		c[55].AddMulExp(c[56], x, 239)
+		c[56].AddMulExp(c[57], x, 180)
+		c[57].AddMulExp(c[58], x, 180)
+		c[58].AddMulExp(element(b), x, 181)
+	}
+	return len(p), nil
+}
+func (c coder59) Code() []byte {
+	var buf [59]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder60 [60]element
+
+func (c *coder60) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 107)
+		c[1].AddMulExp(c[2], x, 140)
+		c[2].AddMulExp(c[3], x, 26)
+		c[3].AddMulExp(c[4], x, 12)
+		c[4].AddMulExp(c[5], x, 9)
+		c[5].AddMulExp(c[6], x, 141)
+		c[6].AddMulExp(c[7], x, 243)
+		c[7].AddMulExp(c[8], x, 197)
+		c[8].AddMulExp(c[9], x, 226)
+		c[9].AddMulExp(c[10], x, 197)
+		c[10].AddMulExp(c[11], x, 219)
+		c[11].AddMulExp(c[12], x, 45)
+		c[12].AddMulExp(c[13], x, 211)
+		c[13].AddMulExp(c[14], x, 101)
+		c[14].AddMulExp(c[15], x, 219)
+		c[15].AddMulExp(c[16], x, 120)
+		c[16].AddMulExp(c[17], x, 28)
+		c[17].AddMulExp(c[18], x, 181)
+		c[18].AddMulExp(c[19], x, 127)
+		c[19].AddMulExp(c[20], x, 6)
+		c[20].AddMulExp(c[21], x, 100)
+		c[21].AddMulExp(c[22], x, 247)
+		c[22].AddMulExp(c[23], x, 2)
+		c[23].AddMulExp(c[24], x, 205)
+		c[24].AddMulExp(c[25], x, 198)
+		c[25].AddMulExp(c[26], x, 57)
+		c[26].AddMulExp(c[27], x, 115)
+		c[27].AddMulExp(c[28], x, 219)
+		c[28].AddMulExp(c[29], x, 101)
+		c[29].AddMulExp(c[30], x, 109)
+		c[30].AddMulExp(c[31], x, 160)
+		c[31].AddMulExp(c[32], x, 82)
+		c[32].AddMulExp(c[33], x, 37)
+		c[33].AddMulExp(c[34], x, 38)
+		c[34].AddMulExp(c[35], x, 238)
+		c[35].AddMulExp(c[36], x, 49)
+		c[36].AddMulExp(c[37], x, 160)
+		c[37].AddMulExp(c[38], x, 209)
+		c[38].AddMulExp(c[39], x, 121)
+		c[39].AddMulExp(c[40], x, 86)
+		c[40].AddMulExp(c[41], x, 11)
+		c[41].AddMulExp(c[42], x, 124)
+		c[42].AddMulExp(c[43], x, 30)
+		c[43].AddMulExp(c[44], x, 181)
+		c[44].AddMulExp(c[45], x, 84)
+		c[45].AddMulExp(c[46], x, 25)
+		c[46].AddMulExp(c[47], x, 194)
+		c[47].AddMulExp(c[48], x, 87)
+		c[48].AddMulExp(c[49], x, 65)
+		c[49].AddMulExp(c[50], x, 102)
+		c[50].AddMulExp(c[51], x, 190)
+		c[51].AddMulExp(c[52], x, 220)
+		c[52].AddMulExp(c[53], x, 70)
+		c[53].AddMulExp(c[54], x, 27)
+		c[54].AddMulExp(c[55], x, 209)
+		c[55].AddMulExp(c[56], x, 16)
+		c[56].AddMulExp(c[57], x, 89)
+		c[57].AddMulExp(c[58], x, 7)
+		c[58].AddMulExp(c[59], x, 33)
+		c[59].AddMulExp(element(b), x, 240)
+	}
+	return len(p), nil
+}
+func (c coder60) Code() []byte {
+	var buf [60]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder61 [61]element
+
+func (c *coder61) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 161)
+		c[1].AddMulExp(c[2], x, 244)
+		c[2].AddMulExp(c[3], x, 105)
+		c[3].AddMulExp(c[4], x, 115)
+		c[4].AddMulExp(c[5], x, 64)
+		c[5].AddMulExp(c[6], x, 9)
+		c[6].AddMulExp(c[7], x, 221)
+		c[7].AddMulExp(c[8], x, 236)
+		c[8].AddMulExp(c[9], x, 16)
+		c[9].AddMulExp(c[10], x, 145)
+		c[10].AddMulExp(c[11], x, 148)
+		c[11].AddMulExp(c[12], x, 34)
+		c[12].AddMulExp(c[13], x, 144)
+		c[13].AddMulExp(c[14], x, 186)
+		c[14].AddMulExp(c[15], x, 13)
+		c[15].AddMulExp(c[16], x, 20)
+		c[16].AddMulExp(c[17], x, 254)
+		c[17].AddMulExp(c[18], x, 246)
+		c[18].AddMulExp(c[19], x, 38)
+		c[19].AddMulExp(c[20], x, 35)
+		c[20].AddMulExp(c[21], x, 202)
+		c[21].AddMulExp(c[22], x, 72)
+		c[22].AddMulExp(c[23], x, 4)
+		c[23].AddMulExp(c[24], x, 212)
+		c[24].AddMulExp(c[25], x, 159)
+		c[25].AddMulExp(c[26], x, 211)
+		c[26].AddMulExp(c[27], x, 165)
+		c[27].AddMulExp(c[28], x, 135)
+		c[28].AddMulExp(c[29], x, 252)
+		c[29].AddMulExp(c[30], x, 250)
+		c[30].AddMulExp(c[31], x, 25)
+		c[31].AddMulExp(c[32], x, 87)
+		c[32].AddMulExp(c[33], x, 30)
+		c[33].AddMulExp(c[34], x, 120)
+		c[34].AddMulExp(c[35], x, 226)
+		c[35].AddMulExp(c[36], x, 234)
+		c[36].AddMulExp(c[37], x, 92)
+		c[37].AddMulExp(c[38], x, 199)
+		c[38].AddMulExp(c[39], x, 72)
+		c[39].AddMulExp(c[40], x, 7)
+		c[40].AddMulExp(c[41], x, 155)
+		c[41].AddMulExp(c[42], x, 218)
+		c[42].AddMulExp(c[43], x, 231)
+		c[43].AddMulExp(c[44], x, 44)
+		c[44].AddMulExp(c[45], x, 125)
+		c[45].AddMulExp(c[46], x, 178)
+		c[46].AddMulExp(c[47], x, 156)
+		c[47].AddMulExp(c[48], x, 174)
+		c[48].AddMulExp(c[49], x, 124)
+		c[49].AddMulExp(c[50], x, 43)
+		c[50].AddMulExp(c[51], x, 100)
+		c[51].AddMulExp(c[52], x, 31)
+		c[52].AddMulExp(c[53], x, 56)
+		c[53].AddMulExp(c[54], x, 101)
+		c[54].AddMulExp(c[55], x, 204)
+		c[55].AddMulExp(c[56], x, 64)
+		c[56].AddMulExp(c[57], x, 175)
+		c[57].AddMulExp(c[58], x, 225)
+		c[58].AddMulExp(c[59], x, 169)
+		c[59].AddMulExp(c[60], x, 146)
+		c[60].AddMulExp(element(b), x, 45)
+	}
+	return len(p), nil
+}
+func (c coder61) Code() []byte {
+	var buf [61]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder62 [62]element
+
+func (c *coder62) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 65)
+		c[1].AddMulExp(c[2], x, 202)
+		c[2].AddMulExp(c[3], x, 113)
+		c[3].AddMulExp(c[4], x, 98)
+		c[4].AddMulExp(c[5], x, 71)
+		c[5].AddMulExp(c[6], x, 223)
+		c[6].AddMulExp(c[7], x, 248)
+		c[7].AddMulExp(c[8], x, 118)
+		c[8].AddMulExp(c[9], x, 214)
+		c[9].AddMulExp(c[10], x, 94)
+		c[10].AddMulExp(c[11], x, 0)
+		c[11].AddMulExp(c[12], x, 122)
+		c[12].AddMulExp(c[13], x, 37)
+		c[13].AddMulExp(c[14], x, 23)
+		c[14].AddMulExp(c[15], x, 2)
+		c[15].AddMulExp(c[16], x, 228)
+		c[16].AddMulExp(c[17], x, 58)
+		c[17].AddMulExp(c[18], x, 121)
+		c[18].AddMulExp(c[19], x, 7)
+		c[19].AddMulExp(c[20], x, 105)
+		c[20].AddMulExp(c[21], x, 135)
+		c[21].AddMulExp(c[22], x, 78)
+		c[22].AddMulExp(c[23], x, 243)
+		c[23].AddMulExp(c[24], x, 118)
+		c[24].AddMulExp(c[25], x, 70)
+		c[25].AddMulExp(c[26], x, 76)
+		c[26].AddMulExp(c[27], x, 223)
+		c[27].AddMulExp(c[28], x, 89)
+		c[28].AddMulExp(c[29], x, 72)
+		c[29].AddMulExp(c[30], x, 50)
+		c[30].AddMulExp(c[31], x, 70)
+		c[31].AddMulExp(c[32], x, 111)
+		c[32].AddMulExp(c[33], x, 194)
+		c[33].AddMulExp(c[34], x, 17)
+		c[34].AddMulExp(c[35], x, 212)
+		c[35].AddMulExp(c[36], x, 126)
+		c[36].AddMulExp(c[37], x, 181)
+		c[37].AddMulExp(c[38], x, 35)
+		c[38].AddMulExp(c[39], x, 221)
+		c[39].AddMulExp(c[40], x, 117)
+		c[40].AddMulExp(c[41], x, 235)
+		c[41].AddMulExp(c[42], x, 11)
+		c[42].AddMulExp(c[43], x, 229)
+		c[43].AddMulExp(c[44], x, 149)
+		c[44].AddMulExp(c[45], x, 147)
+		c[45].AddMulExp(c[46], x, 123)
+		c[46].AddMulExp(c[47], x, 213)
+		c[47].AddMulExp(c[48], x, 40)
+		c[48].AddMulExp(c[49], x, 115)
+		c[49].AddMulExp(c[50], x, 6)
+		c[50].AddMulExp(c[51], x, 200)
+		c[51].AddMulExp(c[52], x, 100)
+		c[52].AddMulExp(c[53], x, 26)
+		c[53].AddMulExp(c[54], x, 246)
+		c[54].AddMulExp(c[55], x, 182)
+		c[55].AddMulExp(c[56], x, 218)
+		c[56].AddMulExp(c[57], x, 127)
+		c[57].AddMulExp(c[58], x, 215)
+		c[58].AddMulExp(c[59], x, 36)
+		c[59].AddMulExp(c[60], x, 186)
+		c[60].AddMulExp(c[61], x, 110)
+		c[61].AddMulExp(element(b), x, 106)
+	}
+	return len(p), nil
+}
+func (c coder62) Code() []byte {
+	var buf [62]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder63 [63]element
+
+func (c *coder63) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 30)
+		c[1].AddMulExp(c[2], x, 71)
+		c[2].AddMulExp(c[3], x, 36)
+		c[3].AddMulExp(c[4], x, 71)
+		c[4].AddMulExp(c[5], x, 19)
+		c[5].AddMulExp(c[6], x, 195)
+		c[6].AddMulExp(c[7], x, 172)
+		c[7].AddMulExp(c[8], x, 110)
+		c[8].AddMulExp(c[9], x, 61)
+		c[9].AddMulExp(c[10], x, 2)
+		c[10].AddMulExp(c[11], x, 169)
+		c[11].AddMulExp(c[12], x, 194)
+		c[12].AddMulExp(c[13], x, 90)
+		c[13].AddMulExp(c[14], x, 136)
+		c[14].AddMulExp(c[15], x, 59)
+		c[15].AddMulExp(c[16], x, 182)
+		c[16].AddMulExp(c[17], x, 231)
+		c[17].AddMulExp(c[18], x, 145)
+		c[18].AddMulExp(c[19], x, 102)
+		c[19].AddMulExp(c[20], x, 39)
+		c[20].AddMulExp(c[21], x, 170)
+		c[21].AddMulExp(c[22], x, 231)
+		c[22].AddMulExp(c[23], x, 214)
+		c[23].AddMulExp(c[24], x, 67)
+		c[24].AddMulExp(c[25], x, 196)
+		c[25].AddMulExp(c[26], x, 207)
+		c[26].AddMulExp(c[27], x, 53)
+		c[27].AddMulExp(c[28], x, 112)
+		c[28].AddMulExp(c[29], x, 246)
+		c[29].AddMulExp(c[30], x, 90)
+		c[30].AddMulExp(c[31], x, 90)
+		c[31].AddMulExp(c[32], x, 121)
+		c[32].AddMulExp(c[33], x, 183)
+		c[33].AddMulExp(c[34], x, 146)
+		c[34].AddMulExp(c[35], x, 74)
+		c[35].AddMulExp(c[36], x, 77)
+		c[36].AddMulExp(c[37], x, 38)
+		c[37].AddMulExp(c[38], x, 89)
+		c[38].AddMulExp(c[39], x, 22)
+		c[39].AddMulExp(c[40], x, 231)
+		c[40].AddMulExp(c[41], x, 55)
+		c[41].AddMulExp(c[42], x, 56)
+		c[42].AddMulExp(c[43], x, 242)
+		c[43].AddMulExp(c[44], x, 112)
+		c[44].AddMulExp(c[45], x, 217)
+		c[45].AddMulExp(c[46], x, 110)
+		c[46].AddMulExp(c[47], x, 123)
+		c[47].AddMulExp(c[48], x, 62)
+		c[48].AddMulExp(c[49], x, 201)
+		c[49].AddMulExp(c[50], x, 217)
+		c[50].AddMulExp(c[51], x, 128)
+		c[51].AddMulExp(c[52], x, 165)
+		c[52].AddMulExp(c[53], x, 60)
+		c[53].AddMulExp(c[54], x, 181)
+		c[54].AddMulExp(c[55], x, 37)
+		c[55].AddMulExp(c[56], x, 161)
+		c[56].AddMulExp(c[57], x, 246)
+		c[57].AddMulExp(c[58], x, 132)
+		c[58].AddMulExp(c[59], x, 246)
+		c[59].AddMulExp(c[60], x, 18)
+		c[60].AddMulExp(c[61], x, 115)
+		c[61].AddMulExp(c[62], x, 136)
+		c[62].AddMulExp(element(b), x, 168)
+	}
+	return len(p), nil
+}
+func (c coder63) Code() []byte {
+	var buf [63]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder64 [64]element
+
+func (c *coder64) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 45)
+		c[1].AddMulExp(c[2], x, 51)
+		c[2].AddMulExp(c[3], x, 175)
+		c[3].AddMulExp(c[4], x, 9)
+		c[4].AddMulExp(c[5], x, 7)
+		c[5].AddMulExp(c[6], x, 158)
+		c[6].AddMulExp(c[7], x, 159)
+		c[7].AddMulExp(c[8], x, 49)
+		c[8].AddMulExp(c[9], x, 68)
+		c[9].AddMulExp(c[10], x, 119)
+		c[10].AddMulExp(c[11], x, 92)
+		c[11].AddMulExp(c[12], x, 123)
+		c[12].AddMulExp(c[13], x, 177)
+		c[13].AddMulExp(c[14], x, 204)
+		c[14].AddMulExp(c[15], x, 187)
+		c[15].AddMulExp(c[16], x, 254)
+		c[16].AddMulExp(c[17], x, 200)
+		c[17].AddMulExp(c[18], x, 78)
+		c[18].AddMulExp(c[19], x, 141)
+		c[19].AddMulExp(c[20], x, 149)
+		c[20].AddMulExp(c[21], x, 119)
+		c[21].AddMulExp(c[22], x, 26)
+		c[22].AddMulExp(c[23], x, 127)
+		c[23].AddMulExp(c[24], x, 53)
+		c[24].AddMulExp(c[25], x, 160)
+		c[25].AddMulExp(c[26], x, 93)
+		c[26].AddMulExp(c[27], x, 199)
+		c[27].AddMulExp(c[28], x, 212)
+		c[28].AddMulExp(c[29], x, 29)
+		c[29].AddMulExp(c[30], x, 24)
+		c[30].AddMulExp(c[31], x, 145)
+		c[31].AddMulExp(c[32], x, 156)
+		c[32].AddMulExp(c[33], x, 208)
+		c[33].AddMulExp(c[34], x, 150)
+		c[34].AddMulExp(c[35], x, 218)
+		c[35].AddMulExp(c[36], x, 209)
+		c[36].AddMulExp(c[37], x, 4)
+		c[37].AddMulExp(c[38], x, 216)
+		c[38].AddMulExp(c[39], x, 91)
+		c[39].AddMulExp(c[40], x, 47)
+		c[40].AddMulExp(c[41], x, 184)
+		c[41].AddMulExp(c[42], x, 146)
+		c[42].AddMulExp(c[43], x, 47)
+		c[43].AddMulExp(c[44], x, 140)
+		c[44].AddMulExp(c[45], x, 195)
+		c[45].AddMulExp(c[46], x, 195)
+		c[46].AddMulExp(c[47], x, 125)
+		c[47].AddMulExp(c[48], x, 242)
+		c[48].AddMulExp(c[49], x, 238)
+		c[49].AddMulExp(c[50], x, 63)
+		c[50].AddMulExp(c[51], x, 99)
+		c[51].AddMulExp(c[52], x, 108)
+		c[52].AddMulExp(c[53], x, 140)
+		c[53].AddMulExp(c[54], x, 230)
+		c[54].AddMulExp(c[55], x, 242)
+		c[55].AddMulExp(c[56], x, 31)
+		c[56].AddMulExp(c[57], x, 204)
+		c[57].AddMulExp(c[58], x, 11)
+		c[58].AddMulExp(c[59], x, 178)
+		c[59].AddMulExp(c[60], x, 243)
+		c[60].AddMulExp(c[61], x, 217)
+		c[61].AddMulExp(c[62], x, 156)
+		c[62].AddMulExp(c[63], x, 213)
+		c[63].AddMulExp(element(b), x, 231)
+	}
+	return len(p), nil
+}
+func (c coder64) Code() []byte {
+	var buf [64]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder65 [65]element
+
+func (c *coder65) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 137)
+		c[1].AddMulExp(c[2], x, 158)
+		c[2].AddMulExp(c[3], x, 247)
+		c[3].AddMulExp(c[4], x, 240)
+		c[4].AddMulExp(c[5], x, 37)
+		c[5].AddMulExp(c[6], x, 238)
+		c[6].AddMulExp(c[7], x, 214)
+		c[7].AddMulExp(c[8], x, 128)
+		c[8].AddMulExp(c[9], x, 99)
+		c[9].AddMulExp(c[10], x, 218)
+		c[10].AddMulExp(c[11], x, 46)
+		c[11].AddMulExp(c[12], x, 138)
+		c[12].AddMulExp(c[13], x, 198)
+		c[13].AddMulExp(c[14], x, 128)
+		c[14].AddMulExp(c[15], x, 92)
+		c[15].AddMulExp(c[16], x, 219)
+		c[16].AddMulExp(c[17], x, 109)
+		c[17].AddMulExp(c[18], x, 139)
+		c[18].AddMulExp(c[19], x, 166)
+		c[19].AddMulExp(c[20], x, 25)
+		c[20].AddMulExp(c[21], x, 66)
+		c[21].AddMulExp(c[22], x, 67)
+		c[22].AddMulExp(c[23], x, 14)
+		c[23].AddMulExp(c[24], x, 58)
+		c[24].AddMulExp(c[25], x, 238)
+		c[25].AddMulExp(c[26], x, 149)
+		c[26].AddMulExp(c[27], x, 177)
+		c[27].AddMulExp(c[28], x, 195)
+		c[28].AddMulExp(c[29], x, 221)
+		c[29].AddMulExp(c[30], x, 154)
+		c[30].AddMulExp(c[31], x, 171)
+		c[31].AddMulExp(c[32], x, 48)
+		c[32].AddMulExp(c[33], x, 80)
+		c[33].AddMulExp(c[34], x, 12)
+		c[34].AddMulExp(c[35], x, 59)
+		c[35].AddMulExp(c[36], x, 190)
+		c[36].AddMulExp(c[37], x, 228)
+		c[37].AddMulExp(c[38], x, 19)
+		c[38].AddMulExp(c[39], x, 55)
+		c[39].AddMulExp(c[40], x, 208)
+		c[40].AddMulExp(c[41], x, 92)
+		c[41].AddMulExp(c[42], x, 112)
+		c[42].AddMulExp(c[43], x, 229)
+		c[43].AddMulExp(c[44], x, 37)
+		c[44].AddMulExp(c[45], x, 60)
+		c[45].AddMulExp(c[46], x, 10)
+		c[46].AddMulExp(c[47], x, 47)
+		c[47].AddMulExp(c[48], x, 81)
+		c[48].AddMulExp(c[49], x, 0)
+		c[49].AddMulExp(c[50], x, 192)
+		c[50].AddMulExp(c[51], x, 37)
+		c[51].AddMulExp(c[52], x, 171)
+		c[52].AddMulExp(c[53], x, 175)
+		c[53].AddMulExp(c[54], x, 147)
+		c[54].AddMulExp(c[55], x, 128)
+		c[55].AddMulExp(c[56], x, 73)
+		c[56].AddMulExp(c[57], x, 166)
+		c[57].AddMulExp(c[58], x, 61)
+		c[58].AddMulExp(c[59], x, 149)
+		c[59].AddMulExp(c[60], x, 12)
+		c[60].AddMulExp(c[61], x, 24)
+		c[61].AddMulExp(c[62], x, 95)
+		c[62].AddMulExp(c[63], x, 70)
+		c[63].AddMulExp(c[64], x, 113)
+		c[64].AddMulExp(element(b), x, 40)
+	}
+	return len(p), nil
+}
+func (c coder65) Code() []byte {
+	var buf [65]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder66 [66]element
+
+func (c *coder66) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 5)
+		c[1].AddMulExp(c[2], x, 118)
+		c[2].AddMulExp(c[3], x, 222)
+		c[3].AddMulExp(c[4], x, 180)
+		c[4].AddMulExp(c[5], x, 136)
+		c[5].AddMulExp(c[6], x, 136)
+		c[6].AddMulExp(c[7], x, 162)
+		c[7].AddMulExp(c[8], x, 51)
+		c[8].AddMulExp(c[9], x, 46)
+		c[9].AddMulExp(c[10], x, 117)
+		c[10].AddMulExp(c[11], x, 13)
+		c[11].AddMulExp(c[12], x, 215)
+		c[12].AddMulExp(c[13], x, 81)
+		c[13].AddMulExp(c[14], x, 17)
+		c[14].AddMulExp(c[15], x, 139)
+		c[15].AddMulExp(c[16], x, 247)
+		c[16].AddMulExp(c[17], x, 197)
+		c[17].AddMulExp(c[18], x, 171)
+		c[18].AddMulExp(c[19], x, 95)
+		c[19].AddMulExp(c[20], x, 173)
+		c[20].AddMulExp(c[21], x, 65)
+		c[21].AddMulExp(c[22], x, 137)
+		c[22].AddMulExp(c[23], x, 178)
+		c[23].AddMulExp(c[24], x, 68)
+		c[24].AddMulExp(c[25], x, 111)
+		c[25].AddMulExp(c[26], x, 95)
+		c[26].AddMulExp(c[27], x, 101)
+		c[27].AddMulExp(c[28], x, 41)
+		c[28].AddMulExp(c[29], x, 72)
+		c[29].AddMulExp(c[30], x, 214)
+		c[30].AddMulExp(c[31], x, 169)
+		c[31].AddMulExp(c[32], x, 197)
+		c[32].AddMulExp(c[33], x, 95)
+		c[33].AddMulExp(c[34], x, 7)
+		c[34].AddMulExp(c[35], x, 44)
+		c[35].AddMulExp(c[36], x, 154)
+		c[36].AddMulExp(c[37], x, 77)
+		c[37].AddMulExp(c[38], x, 111)
+		c[38].AddMulExp(c[39], x, 236)
+		c[39].AddMulExp(c[40], x, 40)
+		c[40].AddMulExp(c[41], x, 121)
+		c[41].AddMulExp(c[42], x, 143)
+		c[42].AddMulExp(c[43], x, 63)
+		c[43].AddMulExp(c[44], x, 87)
+		c[44].AddMulExp(c[45], x, 80)
+		c[45].AddMulExp(c[46], x, 253)
+		c[46].AddMulExp(c[47], x, 240)
+		c[47].AddMulExp(c[48], x, 126)
+		c[48].AddMulExp(c[49], x, 217)
+		c[49].AddMulExp(c[50], x, 77)
+		c[50].AddMulExp(c[51], x, 34)
+		c[51].AddMulExp(c[52], x, 232)
+		c[52].AddMulExp(c[53], x, 106)
+		c[53].AddMulExp(c[54], x, 50)
+		c[54].AddMulExp(c[55], x, 168)
+		c[55].AddMulExp(c[56], x, 82)
+		c[56].AddMulExp(c[57], x, 76)
+		c[57].AddMulExp(c[58], x, 146)
+		c[58].AddMulExp(c[59], x, 67)
+		c[59].AddMulExp(c[60], x, 106)
+		c[60].AddMulExp(c[61], x, 171)
+		c[61].AddMulExp(c[62], x, 25)
+		c[62].AddMulExp(c[63], x, 132)
+		c[63].AddMulExp(c[64], x, 93)
+		c[64].AddMulExp(c[65], x, 45)
+		c[65].AddMulExp(element(b), x, 105)
+	}
+	return len(p), nil
+}
+func (c coder66) Code() []byte {
+	var buf [66]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder67 [67]element
+
+func (c *coder67) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 191)
+		c[1].AddMulExp(c[2], x, 172)
+		c[2].AddMulExp(c[3], x, 113)
+		c[3].AddMulExp(c[4], x, 86)
+		c[4].AddMulExp(c[5], x, 7)
+		c[5].AddMulExp(c[6], x, 166)
+		c[6].AddMulExp(c[7], x, 246)
+		c[7].AddMulExp(c[8], x, 185)
+		c[8].AddMulExp(c[9], x, 155)
+		c[9].AddMulExp(c[10], x, 250)
+		c[10].AddMulExp(c[11], x, 98)
+		c[11].AddMulExp(c[12], x, 113)
+		c[12].AddMulExp(c[13], x, 89)
+		c[13].AddMulExp(c[14], x, 86)
+		c[14].AddMulExp(c[15], x, 214)
+		c[15].AddMulExp(c[16], x, 225)
+		c[16].AddMulExp(c[17], x, 156)
+		c[17].AddMulExp(c[18], x, 190)
+		c[18].AddMulExp(c[19], x, 58)
+		c[19].AddMulExp(c[20], x, 33)
+		c[20].AddMulExp(c[21], x, 144)
+		c[21].AddMulExp(c[22], x, 67)
+		c[22].AddMulExp(c[23], x, 179)
+		c[23].AddMulExp(c[24], x, 163)
+		c[24].AddMulExp(c[25], x, 52)
+		c[25].AddMulExp(c[26], x, 154)
+		c[26].AddMulExp(c[27], x, 233)
+		c[27].AddMulExp(c[28], x, 151)
+		c[28].AddMulExp(c[29], x, 104)
+		c[29].AddMulExp(c[30], x, 251)
+		c[30].AddMulExp(c[31], x, 160)
+		c[31].AddMulExp(c[32], x, 126)
+		c[32].AddMulExp(c[33], x, 175)
+		c[33].AddMulExp(c[34], x, 208)
+		c[34].AddMulExp(c[35], x, 225)
+		c[35].AddMulExp(c[36], x, 70)
+		c[36].AddMulExp(c[37], x, 227)
+		c[37].AddMulExp(c[38], x, 146)
+		c[38].AddMulExp(c[39], x, 4)
+		c[39].AddMulExp(c[40], x, 152)
+		c[40].AddMulExp(c[41], x, 139)
+		c[41].AddMulExp(c[42], x, 103)
+		c[42].AddMulExp(c[43], x, 25)
+		c[43].AddMulExp(c[44], x, 107)
+		c[44].AddMulExp(c[45], x, 61)
+		c[45].AddMulExp(c[46], x, 204)
+		c[46].AddMulExp(c[47], x, 159)
+		c[47].AddMulExp(c[48], x, 250)
+		c[48].AddMulExp(c[49], x, 193)
+		c[49].AddMulExp(c[50], x, 225)
+		c[50].AddMulExp(c[51], x, 105)
+		c[51].AddMulExp(c[52], x, 160)
+		c[52].AddMulExp(c[53], x, 98)
+		c[53].AddMulExp(c[54], x, 167)
+		c[54].AddMulExp(c[55], x, 2)
+		c[55].AddMulExp(c[56], x, 53)
+		c[56].AddMulExp(c[57], x, 16)
+		c[57].AddMulExp(c[58], x, 242)
+		c[58].AddMulExp(c[59], x, 83)
+		c[59].AddMulExp(c[60], x, 210)
+		c[60].AddMulExp(c[61], x, 196)
+		c[61].AddMulExp(c[62], x, 103)
+		c[62].AddMulExp(c[63], x, 248)
+		c[63].AddMulExp(c[64], x, 86)
+		c[64].AddMulExp(c[65], x, 211)
+		c[65].AddMulExp(c[66], x, 41)
+		c[66].AddMulExp(element(b), x, 171)
+	}
+	return len(p), nil
+}
+func (c coder67) Code() []byte {
+	var buf [67]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
+}
+
+type coder68 [68]element
+
+func (c *coder68) Write(p []byte) (int, error) {
+	for _, b := range p {
+		x := c[0]
+		c[0].AddMulExp(c[1], x, 247)
+		c[1].AddMulExp(c[2], x, 159)
+		c[2].AddMulExp(c[3], x, 223)
+		c[3].AddMulExp(c[4], x, 33)
+		c[4].AddMulExp(c[5], x, 224)
+		c[5].AddMulExp(c[6], x, 93)
+		c[6].AddMulExp(c[7], x, 77)
+		c[7].AddMulExp(c[8], x, 70)
+		c[8].AddMulExp(c[9], x, 90)
+		c[9].AddMulExp(c[10], x, 160)
+		c[10].AddMulExp(c[11], x, 32)
+		c[11].AddMulExp(c[12], x, 254)
+		c[12].AddMulExp(c[13], x, 43)
+		c[13].AddMulExp(c[14], x, 150)
+		c[14].AddMulExp(c[15], x, 84)
+		c[15].AddMulExp(c[16], x, 101)
+		c[16].AddMulExp(c[17], x, 190)
+		c[17].AddMulExp(c[18], x, 205)
+		c[18].AddMulExp(c[19], x, 133)
+		c[19].AddMulExp(c[20], x, 52)
+		c[20].AddMulExp(c[21], x, 60)
+		c[21].AddMulExp(c[22], x, 202)
+		c[22].AddMulExp(c[23], x, 165)
+		c[23].AddMulExp(c[24], x, 220)
+		c[24].AddMulExp(c[25], x, 203)
+		c[25].AddMulExp(c[26], x, 151)
+		c[26].AddMulExp(c[27], x, 93)
+		c[27].AddMulExp(c[28], x, 84)
+		c[28].AddMulExp(c[29], x, 15)
+		c[29].AddMulExp(c[30], x, 84)
+		c[30].AddMulExp(c[31], x, 253)
+		c[31].AddMulExp(c[32], x, 173)
+		c[32].AddMulExp(c[33], x, 160)
+		c[33].AddMulExp(c[34], x, 89)
+		c[34].AddMulExp(c[35], x, 227)
+		c[35].AddMulExp(c[36], x, 52)
+		c[36].AddMulExp(c[37], x, 199)
+		c[37].AddMulExp(c[38], x, 97)
+		c[38].AddMulExp(c[39], x, 95)
+		c[39].AddMulExp(c[40], x, 231)
+		c[40].AddMulExp(c[41], x, 52)
+		c[41].AddMulExp(c[42], x, 177)
+		c[42].AddMulExp(c[43], x, 41)
+		c[43].AddMulExp(c[44], x, 125)
+		c[44].AddMulExp(c[45], x, 137)
+		c[45].AddMulExp(c[46], x, 241)
+		c[46].AddMulExp(c[47], x, 166)
+		c[47].AddMulExp(c[48], x, 225)
+		c[48].AddMulExp(c[49], x, 118)
+		c[49].AddMulExp(c[50], x, 2)
+		c[50].AddMulExp(c[51], x, 54)
+		c[51].AddMulExp(c[52], x, 32)
+		c[52].AddMulExp(c[53], x, 82)
+		c[53].AddMulExp(c[54], x, 215)
+		c[54].AddMulExp(c[55], x, 175)
+		c[55].AddMulExp(c[56], x, 198)
+		c[56].AddMulExp(c[57], x, 43)
+		c[57].AddMulExp(c[58], x, 238)
+		c[58].AddMulExp(c[59], x, 235)
+		c[59].AddMulExp(c[60], x, 27)
+		c[60].AddMulExp(c[61], x, 101)
+		c[61].AddMulExp(c[62], x, 184)
+		c[62].AddMulExp(c[63], x, 127)
+		c[63].AddMulExp(c[64], x, 3)
+		c[64].AddMulExp(c[65], x, 5)
+		c[65].AddMulExp(c[66], x, 8)
+		c[66].AddMulExp(c[67], x, 163)
+		c[67].AddMulExp(element(b), x, 238)
+	}
+	return len(p), nil
+}
+func (c coder68) Code() []byte {
+	var buf [68]byte
+	c.Write(buf[:])
+	for i := range buf {
+		buf[i] = byte(c[i])
+	}
+	return buf[:]
 }

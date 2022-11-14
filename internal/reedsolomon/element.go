@@ -6,11 +6,6 @@ type element uint8
 const zero = element(0)
 const one = element(1)
 
-// exp returns a^n
-func exp(n int) element {
-	return expTable[n]
-}
-
 // add returns x + y.
 func add(x, y element) element {
 	return x ^ y

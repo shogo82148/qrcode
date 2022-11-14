@@ -2,25 +2,8 @@ package reedsolomon
 
 import (
 	"bytes"
-	"log"
 	"testing"
 )
-
-func TestXxx(t *testing.T) {
-	for i := 2; i <= 68; i++ {
-		coff := make([]element, i+1)
-		coff[0] = one
-		for j := 0; j < i; j++ {
-			for k := i; k >= 1; k-- {
-				coff[k].AddMulExp(coff[k], coff[k-1], j)
-			}
-		}
-		log.Println("*****", i, "*****")
-		for _, a := range coff {
-			log.Println(a, logTable[a])
-		}
-	}
-}
 
 // JIS X 0510: 2018
 // 附属書1
@@ -67,7 +50,7 @@ func TestXxx(t *testing.T) {
 func TestSample(t *testing.T) {
 	// https://www.swetake.com/qrcode/qr3.html
 	// https://www.swetake.com/qrcode/qr_ecc_calc_sample.html
-	w := New17()
+	w := &coder17{}
 	w.Write([]byte{
 		0b0010_0000, 0b0100_0001, 0b1100_1101, 0b0100_0101,
 		0b0010_1001, 0b1101_1100, 0b0010_1110, 0b1000_0000,
