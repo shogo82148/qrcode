@@ -13,6 +13,10 @@ func NewBuffer(data []byte) *Buffer {
 	return &Buffer{buf: data}
 }
 
+func (b *Buffer) Bytes() []byte {
+	return b.buf
+}
+
 func (b *Buffer) ReadBit() (uint8, error) {
 	if b.offset >= len(b.buf) {
 		return 0, io.EOF
@@ -27,6 +31,7 @@ func (b *Buffer) ReadBit() (uint8, error) {
 }
 
 func (b *Buffer) WriteBit(bit uint8) error {
+	bit &= 1
 	if b.wrote == 0 {
 		b.buf = append(b.buf, byte(bit<<7))
 		b.wrote = 1

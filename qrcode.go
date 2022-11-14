@@ -9,15 +9,6 @@ import (
 	binimage "github.com/shogo82148/qrcode/internal/image"
 )
 
-// 0x00000001
-// 0x01111101
-// 0x01000101
-// 0x01000101
-// 0x01000101
-// 0x01111101
-// 0x00000001
-// 0x11111111
-
 func Generate() image.Image {
 	w := 21
 	img := binimage.New(image.Rect(0, 0, w, w))
