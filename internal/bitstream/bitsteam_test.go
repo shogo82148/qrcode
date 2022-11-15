@@ -86,6 +86,14 @@ func TestWriteBits(t *testing.T) {
 			},
 			want: []byte{0b0000_1000, 0b1110_1111},
 		},
+		{
+			in: []seq{
+				{0b000, 3},
+				{0b1111_1111, 8},
+				{0b00000, 5},
+			},
+			want: []byte{0b0001_1111, 0b1110_0000},
+		},
 	}
 
 	for _, tt := range tests {

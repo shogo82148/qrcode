@@ -63,7 +63,7 @@ func (b *Buffer) WriteBitsLSB(bits uint8, n int) error {
 	if m := b.wrote + n; m > 8 {
 		b.buf[len(b.buf)-1] |= bits >> (m - 8)
 		b.wrote = m - 8
-		b.buf = append(b.buf, byte(bits<<(m-8)))
+		b.buf = append(b.buf, byte(bits<<(8-b.wrote)))
 		return nil
 	}
 	b.buf[len(b.buf)-1] |= bits << (8 - (b.wrote + n))
