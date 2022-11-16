@@ -36,11 +36,18 @@ func max(a, b int) int {
 	return b
 }
 
+const timingPatternOffset = 6
+
+func skipTimingPattern(n int) int {
+	if n < timingPatternOffset {
+		return n
+	}
+	return n + 1
+}
+
 func (qr *QRCode) Encode() (image.Image, error) {
 	var buf bitstream.Buffer
 	qr.encodeToBits(&buf)
-
-	const timingPatternOffset = 6
 
 	w := 16 + 4*int(qr.Version)
 	img := binimage.New(image.Rect(0, 0, w+1, w+1))
@@ -114,38 +121,14 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	}
 
 	model := encodedModel[0b00_010] // TODO: auto detect
-	img.SetBinary(0, 8, (model>>14)&1 != 0)
-	img.SetBinary(1, 8, (model>>13)&1 != 0)
-	img.SetBinary(2, 8, (model>>12)&1 != 0)
-	img.SetBinary(3, 8, (model>>11)&1 != 0)
-	img.SetBinary(4, 8, (model>>10)&1 != 0)
-	img.SetBinary(5, 8, (model>>9)&1 != 0)
-	img.SetBinary(7, 8, (model>>8)&1 != 0)
-	img.SetBinary(8, 8, (model>>7)&1 != 0)
-	img.SetBinary(8, 7, (model>>6)&1 != 0)
-	img.SetBinary(8, 5, (model>>5)&1 != 0)
-	img.SetBinary(8, 4, (model>>4)&1 != 0)
-	img.SetBinary(8, 3, (model>>3)&1 != 0)
-	img.SetBinary(8, 2, (model>>2)&1 != 0)
-	img.SetBinary(8, 1, (model>>1)&1 != 0)
-	img.SetBinary(8, 0, (model>>0)&1 != 0)
+	for i := 0; i < 8; i++ {
+		img.SetBinary(8, skipTimingPattern(i), (model>>i)&1 != 0)
+		img.SetBinary(skipTimingPattern(i), 8, (model>>(14-i))&1 != 0)
 
-	img.SetBinary(8, w-0, (model>>14)&1 != 0)
-	img.SetBinary(8, w-1, (model>>13)&1 != 0)
-	img.SetBinary(8, w-2, (model>>12)&1 != 0)
-	img.SetBinary(8, w-3, (model>>11)&1 != 0)
-	img.SetBinary(8, w-4, (model>>10)&1 != 0)
-	img.SetBinary(8, w-5, (model>>9)&1 != 0)
-	img.SetBinary(8, w-6, (model>>8)&1 != 0)
+		img.SetBinary(w-i, 8, (model>>i)&1 != 0)
+		img.SetBinary(8, w-i, (model>>(14-i))&1 != 0)
+	}
 	img.SetBinary(8, w-7, binimage.Black)
-	img.SetBinary(w-7, 8, (model>>7)&1 != 0)
-	img.SetBinary(w-6, 8, (model>>6)&1 != 0)
-	img.SetBinary(w-5, 8, (model>>5)&1 != 0)
-	img.SetBinary(w-4, 8, (model>>4)&1 != 0)
-	img.SetBinary(w-3, 8, (model>>3)&1 != 0)
-	img.SetBinary(w-2, 8, (model>>2)&1 != 0)
-	img.SetBinary(w-1, 8, (model>>1)&1 != 0)
-	img.SetBinary(w-0, 8, (model>>0)&1 != 0)
 
 	for i := 0; i <= w; i++ {
 		for j := 0; j <= w; j++ {
