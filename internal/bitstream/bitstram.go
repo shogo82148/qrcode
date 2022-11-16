@@ -22,6 +22,11 @@ func (b *Buffer) Bytes() []byte {
 	return b.buf
 }
 
+// Len returns the number of bits of the buffer.
+func (b *Buffer) Len() int64 {
+	return int64(len(b.buf))*8 + int64(b.wrote)
+}
+
 // ReadBit reads one bit from b.
 func (b *Buffer) ReadBit() (uint8, error) {
 	if b.offset >= len(b.buf) {
@@ -50,23 +55,92 @@ func (b *Buffer) WriteBit(bit uint8) error {
 }
 
 // WriteBitsLSB writes n bits of LSB to b.
-// if n > 8, it panics.
-func (b *Buffer) WriteBitsLSB(bits uint8, n int) error {
-	if n > 8 {
+// if n > 64, it panics.
+func (b *Buffer) WriteBitsLSB(bits uint64, n int) error {
+	switch {
+	case n > 64:
 		panic("too long bit length" + strconv.Itoa(n))
+	case n > 56:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>56), n-56)
+		b.writeByte(uint8(bits >> 48))
+		b.writeByte(uint8(bits >> 40))
+		b.writeByte(uint8(bits >> 32))
+		b.writeByte(uint8(bits >> 24))
+		b.writeByte(uint8(bits >> 16))
+		b.writeByte(uint8(bits >> 8))
+		b.writeByte(uint8(bits))
+	case n > 48:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>48), n-48)
+		b.writeByte(uint8(bits >> 40))
+		b.writeByte(uint8(bits >> 32))
+		b.writeByte(uint8(bits >> 24))
+		b.writeByte(uint8(bits >> 16))
+		b.writeByte(uint8(bits >> 8))
+		b.writeByte(uint8(bits))
+	case n > 40:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>40), n-40)
+		b.writeByte(uint8(bits >> 32))
+		b.writeByte(uint8(bits >> 24))
+		b.writeByte(uint8(bits >> 16))
+		b.writeByte(uint8(bits >> 8))
+		b.writeByte(uint8(bits))
+	case n > 32:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>32), n-32)
+		b.writeByte(uint8(bits >> 24))
+		b.writeByte(uint8(bits >> 16))
+		b.writeByte(uint8(bits >> 8))
+		b.writeByte(uint8(bits))
+	case n > 24:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>24), n-24)
+		b.writeByte(uint8(bits >> 16))
+		b.writeByte(uint8(bits >> 8))
+		b.writeByte(uint8(bits))
+	case n > 16:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>16), n-16)
+		b.writeByte(uint8(bits >> 8))
+		b.writeByte(uint8(bits))
+	case n > 8:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits>>8), n-8)
+		b.writeByte(uint8(bits))
+	case n > 0:
+		bits &= (1 << n) - 1
+		b.writeBitsLSB(uint8(bits), n)
+	case n == 0:
+		// nothing to do
+	default:
+		panic("negative bit length")
 	}
+	return nil
+}
+
+func (b *Buffer) writeBitsLSB(bits uint8, n int) {
 	if b.wrote == 0 {
 		b.buf = append(b.buf, byte(bits<<(8-n)))
-		b.wrote = n
-		return nil
+		b.wrote = n % 8
+		return
 	}
 	if m := b.wrote + n; m > 8 {
 		b.buf[len(b.buf)-1] |= bits >> (m - 8)
 		b.wrote = m - 8
-		b.buf = append(b.buf, byte(bits<<(8-b.wrote)))
-		return nil
+		b.buf = append(b.buf, bits<<(8-b.wrote))
+		return
 	}
 	b.buf[len(b.buf)-1] |= bits << (8 - (b.wrote + n))
 	b.wrote += n
-	return nil
+}
+
+func (b *Buffer) writeByte(bits uint8) {
+	if b.wrote == 0 {
+		b.buf = append(b.buf, bits)
+		return
+	}
+	b.buf[len(b.buf)-1] |= bits >> b.wrote
+	b.buf = append(b.buf, bits<<(8-b.wrote))
 }
