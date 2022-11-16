@@ -120,13 +120,13 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		}
 	}
 
-	model := encodedModel[0b00_010] // TODO: auto detect
+	format := encodedFormat[0b00_010] // TODO: auto detect
 	for i := 0; i < 8; i++ {
-		img.SetBinary(8, skipTimingPattern(i), (model>>i)&1 != 0)
-		img.SetBinary(skipTimingPattern(i), 8, (model>>(14-i))&1 != 0)
+		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
+		img.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
 
-		img.SetBinary(w-i, 8, (model>>i)&1 != 0)
-		img.SetBinary(8, w-i, (model>>(14-i))&1 != 0)
+		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
+		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
 	}
 	img.SetBinary(8, w-7, binimage.Black)
 

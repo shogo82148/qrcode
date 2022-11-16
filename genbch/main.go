@@ -16,7 +16,7 @@ func main() {
 	fmt.Fprintln(&buf, "package qrcode")
 
 	// model number
-	fmt.Fprintln(&buf, "var encodedModel = [...]uint{")
+	fmt.Fprintln(&buf, "var encodedFormat = [...]uint{")
 	p := parameter{
 		in:    5,
 		check: 10,

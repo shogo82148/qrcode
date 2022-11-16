@@ -2,7 +2,7 @@
 
 package qrcode
 
-var encodedModel = [...]uint{
+var encodedFormat = [...]uint{
 	0x5412, // 00000
 	0x5125, // 00001
 	0x5e7c, // 00010
