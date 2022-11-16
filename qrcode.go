@@ -208,6 +208,8 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 	switch s.Mode {
 	case ModeNumber:
 		return s.encodeNumber(version, buf)
+	case ModeAlphabet:
+		return s.encodeAlphabet(version, buf)
 	default:
 		return errors.New("qrcode: unknown mode")
 	}
@@ -241,16 +243,7 @@ func (s *Segment) encodeNumber(version Version, buf *bitstream.Buffer) error {
 	buf.WriteBitsLSB(uint64(ModeNumber), 4)
 
 	// data length
-	switch {
-	case version <= 0 || version > 40:
-		return fmt.Errorf("qrcode: invalid version: %d", version)
-	case version < 10:
-		buf.WriteBitsLSB(uint64(len(s.Data)), 10)
-	case version < 27:
-		buf.WriteBitsLSB(uint64(len(s.Data)), 12)
-	default:
-		buf.WriteBitsLSB(uint64(len(s.Data)), 14)
-	}
+	buf.WriteBitsLSB(uint64(len(s.Data)), n)
 
 	// data
 	for i := 0; i+2 < len(data); i += 3 {
@@ -270,6 +263,62 @@ func (s *Segment) encodeNumber(version Version, buf *bitstream.Buffer) error {
 		n2 := int(data[len(data)-1] - '0')
 		bits := n1*10 + n2
 		buf.WriteBitsLSB(uint64(bits), 7)
+	}
+	return nil
+}
+
+var alphabets [256]int
+
+func init() {
+	for i := range alphabets {
+		alphabets[i] = -1
+	}
+	for i, ch := range "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:" {
+		alphabets[ch] = i
+	}
+}
+
+func (s *Segment) encodeAlphabet(version Version, buf *bitstream.Buffer) error {
+	// validation
+	var n int
+	data := s.Data
+	switch {
+	case version <= 0 || version > 40:
+		return fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 9
+	case version < 27:
+		n = 11
+	default:
+		n = 13
+	}
+	if len(data) >= 1<<n {
+		return fmt.Errorf("qrcode: data is too long: %d", len(data))
+	}
+
+	for _, ch := range data {
+		if alphabets[ch] < 0 {
+			return fmt.Errorf("qrcode: invalid character in alphabet mode: %02x", ch)
+		}
+	}
+
+	// mode
+	buf.WriteBitsLSB(uint64(ModeAlphabet), 4)
+
+	// data length
+	buf.WriteBitsLSB(uint64(len(data)), n)
+
+	// data
+	for i := 0; i+1 < len(data); i += 2 {
+		n1 := alphabets[data[i+0]]
+		n2 := alphabets[data[i+1]]
+		bits := n1*45 + n2
+		buf.WriteBitsLSB(uint64(bits), 11)
+	}
+
+	if len(data)%2 != 0 {
+		bits := alphabets[data[len(data)-1]]
+		buf.WriteBitsLSB(uint64(bits), 6)
 	}
 	return nil
 }
