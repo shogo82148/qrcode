@@ -9,14 +9,60 @@ import (
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestQRCode(t *testing.T) {
+func TestQRCode_Encode(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Segments: []Segment{
+			{
+				Mode: ModeNumber,
+				Data: []byte("01234567"),
+			},
+		},
+	}
+	img, err := qr.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	var buf bytes.Buffer
-	img := Generate()
 	if err := png.Encode(&buf, img); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile("qrcode.png", buf.Bytes(), 0o644); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestQRCode_encodeToBits(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Segments: []Segment{
+			{
+				Mode: ModeNumber,
+				Data: []byte("01234567"),
+			},
+		},
+	}
+
+	var buf bitstream.Buffer
+	qr.encodeToBits(&buf)
+	got := buf.Bytes()
+	want := []byte{
+		0b0001_0000, 0b0010_0000, 0b0000_1100, 0b0101_0110,
+		0b0110_0001, 0b1000_0000,
+
+		0b1110_1100, 0b0001_0001,
+		0b1110_1100, 0b0001_0001,
+		0b1110_1100, 0b0001_0001,
+		0b1110_1100, 0b0001_0001,
+		0b1110_1100, 0b0001_0001,
+
+		0b1010_0101, 0b0010_0100, 0b1101_0100, 0b1100_0001,
+		0b1110_1101, 0b0011_0110, 0b1100_0111, 0b1000_0111,
+		0b0010_1100, 0b0101_0101,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("unexpected result:\ngot  %08b,\nwant %08b", got, want)
 	}
 }
 

@@ -9,89 +9,83 @@ import (
 
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	binimage "github.com/shogo82148/qrcode/internal/image"
+	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
-func Generate() image.Image {
-	w := 21
-	img := binimage.New(image.Rect(0, 0, w, w))
-	used := binimage.New(image.Rect(0, 0, w, w))
+type QRCode struct {
+	Version  Version
+	Level    Level
+	Segments []Segment
+}
 
-	for i := 0; i < 7; i++ {
-		img.SetBinary(i, 0, binimage.Black)
-		img.SetBinary(0, i, binimage.Black)
-		img.SetBinary(i, 6, binimage.Black)
-		img.SetBinary(6, i, binimage.Black)
+func New(data []byte) (*QRCode, error) {
+	return &QRCode{}, nil
+}
 
-		img.SetBinary(w-i-1, 0, binimage.Black)
-		img.SetBinary(w-0-1, i, binimage.Black)
-		img.SetBinary(w-i-1, 6, binimage.Black)
-		img.SetBinary(w-6-1, i, binimage.Black)
-
-		img.SetBinary(0, w-i-1, binimage.Black)
-		img.SetBinary(i, w-0-1, binimage.Black)
-		img.SetBinary(6, w-i-1, binimage.Black)
-		img.SetBinary(i, w-6-1, binimage.Black)
+func abs(x int) int {
+	if x < 0 {
+		return -x
 	}
+	return x
+}
 
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			img.SetBinary(i+2, j+2, binimage.Black)
-			img.SetBinary(w-i-3, j+2, binimage.Black)
-			img.SetBinary(i+2, w-j-3, binimage.Black)
-		}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func (qr *QRCode) Encode() (image.Image, error) {
+	var buf bitstream.Buffer
+	qr.encodeToBits(&buf)
+
+	const timingPatternOffset = 6
+
+	w := 16 + 4*int(qr.Version)
+	img := binimage.New(image.Rect(0, 0, w+1, w+1))
+	used := binimage.New(image.Rect(0, 0, w+1, w+1))
+
+	// timing pattern
+	for i := 0; i <= w; i++ {
+		img.SetBinary(i, timingPatternOffset, i%2 == 0)
+		img.SetBinary(timingPatternOffset, i, i%2 == 0)
+		used.SetBinary(i, timingPatternOffset, true)
+		used.SetBinary(timingPatternOffset, i, true)
 	}
 
 	// finder pattern
-	for i := 0; i < 8; i++ {
-		for j := 0; j < 8; j++ {
-			used.SetBinary(i, j, true)
-			used.SetBinary(w-i-1, j, true)
-			used.SetBinary(i, w-j-1, true)
+	for y := 0; y < 8; y++ {
+		for x := 0; x < 8; x++ {
+			d := max(abs(x-3), abs(y-3))
+			c := binimage.Color(d != 2 && d != 4)
+			img.SetBinary(x, y, c)
+			img.SetBinary(w-x, y, c)
+			img.SetBinary(x, w-y, c)
+			used.SetBinary(x, y, true)
+			used.SetBinary(w-x, y, true)
+			used.SetBinary(x, w-y, true)
 		}
 	}
 
-	// model number
+	// reserve the space for format info
 	for i := 0; i < 8; i++ {
 		used.SetBinary(i, 8, true)
 		used.SetBinary(8, i, true)
-		used.SetBinary(8, w-i-1, true)
-		used.SetBinary(w-i-1, 8, true)
+		used.SetBinary(8, w-i, true)
+		used.SetBinary(w-i, 8, true)
 	}
 	used.SetBinary(8, 8, true)
-
-	// timing pattern
-	for i := 6; i < w-6; i++ {
-		img.SetBinary(i, 6, i%2 == 0)
-		img.SetBinary(6, i, i%2 == 0)
-		used.SetBinary(i, 6, true)
-		used.SetBinary(6, i, true)
-	}
-
-	buffer := bitstream.NewBuffer([]byte{
-		0b0001_0000, 0b0010_0000, 0b0000_1100, 0b0101_0110,
-		0b0110_0001, 0b1000_0000,
-
-		0b1110_1100, 0b0001_0001,
-		0b1110_1100, 0b0001_0001,
-		0b1110_1100, 0b0001_0001,
-		0b1110_1100, 0b0001_0001,
-		0b1110_1100, 0b0001_0001,
-
-		0b1010_0101, 0b0010_0100, 0b1101_0100, 0b1100_0001,
-		0b1110_1101, 0b0011_0110, 0b1100_0111, 0b1000_0111,
-		0b0010_1100, 0b0101_0101,
-	})
-
 	dy := -1
-	x, y := 20, 20
+	x, y := w, w
 	for {
-		if x == 6 {
+		if x == timingPatternOffset {
 			// skip timing pattern
 			x--
 			continue
 		}
 		if !used.BinaryAt(x, y) {
-			bit, err := buffer.ReadBit()
+			bit, err := buf.ReadBit()
 			if err != nil {
 				break
 			}
@@ -103,14 +97,14 @@ func Generate() image.Image {
 		}
 
 		if !used.BinaryAt(x, y) {
-			bit, err := buffer.ReadBit()
+			bit, err := buf.ReadBit()
 			if err != nil {
 				break
 			}
 			img.SetBinary(x, y, bit != 0)
 		}
 		x, y = x+1, y+dy
-		if y < 0 || y >= w {
+		if y < 0 || y > w {
 			dy *= -1
 			x, y = x-2, y+dy
 		}
@@ -119,7 +113,7 @@ func Generate() image.Image {
 		}
 	}
 
-	model := encodedModel[0b00_010]
+	model := encodedModel[0b00_010] // TODO: auto detect
 	img.SetBinary(0, 8, (model>>14)&1 != 0)
 	img.SetBinary(1, 8, (model>>13)&1 != 0)
 	img.SetBinary(2, 8, (model>>12)&1 != 0)
@@ -136,25 +130,25 @@ func Generate() image.Image {
 	img.SetBinary(8, 1, (model>>1)&1 != 0)
 	img.SetBinary(8, 0, (model>>0)&1 != 0)
 
-	img.SetBinary(8, w-1, (model>>14)&1 != 0)
-	img.SetBinary(8, w-2, (model>>13)&1 != 0)
-	img.SetBinary(8, w-3, (model>>12)&1 != 0)
-	img.SetBinary(8, w-4, (model>>11)&1 != 0)
-	img.SetBinary(8, w-5, (model>>10)&1 != 0)
-	img.SetBinary(8, w-6, (model>>9)&1 != 0)
-	img.SetBinary(8, w-7, (model>>8)&1 != 0)
-	img.SetBinary(8, w-8, binimage.Black)
-	img.SetBinary(w-8, 8, (model>>7)&1 != 0)
-	img.SetBinary(w-7, 8, (model>>6)&1 != 0)
-	img.SetBinary(w-6, 8, (model>>5)&1 != 0)
-	img.SetBinary(w-5, 8, (model>>4)&1 != 0)
-	img.SetBinary(w-4, 8, (model>>3)&1 != 0)
-	img.SetBinary(w-3, 8, (model>>2)&1 != 0)
-	img.SetBinary(w-2, 8, (model>>1)&1 != 0)
-	img.SetBinary(w-1, 8, (model>>0)&1 != 0)
+	img.SetBinary(8, w-0, (model>>14)&1 != 0)
+	img.SetBinary(8, w-1, (model>>13)&1 != 0)
+	img.SetBinary(8, w-2, (model>>12)&1 != 0)
+	img.SetBinary(8, w-3, (model>>11)&1 != 0)
+	img.SetBinary(8, w-4, (model>>10)&1 != 0)
+	img.SetBinary(8, w-5, (model>>9)&1 != 0)
+	img.SetBinary(8, w-6, (model>>8)&1 != 0)
+	img.SetBinary(8, w-7, binimage.Black)
+	img.SetBinary(w-7, 8, (model>>7)&1 != 0)
+	img.SetBinary(w-6, 8, (model>>6)&1 != 0)
+	img.SetBinary(w-5, 8, (model>>5)&1 != 0)
+	img.SetBinary(w-4, 8, (model>>4)&1 != 0)
+	img.SetBinary(w-3, 8, (model>>3)&1 != 0)
+	img.SetBinary(w-2, 8, (model>>2)&1 != 0)
+	img.SetBinary(w-1, 8, (model>>1)&1 != 0)
+	img.SetBinary(w-0, 8, (model>>0)&1 != 0)
 
-	for i := 0; i < w; i++ {
-		for j := 0; j < w; j++ {
+	for i := 0; i <= w; i++ {
+		for j := 0; j <= w; j++ {
 			if used.BinaryAt(i, j) {
 				continue
 			}
@@ -164,10 +158,42 @@ func Generate() image.Image {
 			}
 		}
 	}
-	return img
+
+	return img, nil
+}
+
+func (qr *QRCode) encodeToBits(buf *bitstream.Buffer) {
+	for _, s := range qr.Segments {
+		s.encode(qr.Version, buf)
+	}
+	l := buf.Len()
+	buf.WriteBitsLSB(0x00, int(8-l%8))
+	for i := 0; i < 10; i++ {
+		if i%2 == 0 {
+			buf.WriteBitsLSB(0b1110_1100, 8)
+		} else {
+			buf.WriteBitsLSB(0b0001_0001, 8)
+		}
+	}
+
+	rs := reedsolomon.New(10) // TODO: 決める
+	rs.Write(buf.Bytes())
+	sum := rs.Sum(make([]byte, 0, 10))
+	for _, b := range sum {
+		buf.WriteBitsLSB(uint64(b), 8)
+	}
 }
 
 type Version int
+
+type Level int
+
+const (
+	LevelL Level = iota
+	LevelM
+	LevelQ
+	LevelH
+)
 
 type Mode uint8
 
