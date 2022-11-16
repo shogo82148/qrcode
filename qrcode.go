@@ -15,6 +15,7 @@ import (
 type QRCode struct {
 	Version  Version
 	Level    Level
+	Mask     Mask
 	Segments []Segment
 }
 
@@ -120,7 +121,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		}
 	}
 
-	format := encodedFormat[0b00_010] // TODO: auto detect
+	format := encodedFormat[int(qr.Level)<<3+int(qr.Mask)]
 	for i := 0; i < 8; i++ {
 		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
 		img.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
@@ -132,13 +133,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 
 	for i := 0; i <= w; i++ {
 		for j := 0; j <= w; j++ {
-			if used.BinaryAt(i, j) {
-				continue
-			}
-			if i%3 == 0 {
-				c := img.BinaryAt(i, j)
-				img.SetBinary(i, j, !c)
-			}
+			img.XORBinary(i, j, !used.BinaryAt(i, j) && i%3 == 0)
 		}
 	}
 
@@ -172,11 +167,13 @@ type Version int
 type Level int
 
 const (
-	LevelL Level = iota
-	LevelM
-	LevelQ
-	LevelH
+	LevelL Level = 0b01
+	LevelM Level = 0b00
+	LevelQ Level = 0b11
+	LevelH Level = 0b10
 )
+
+type Mask int
 
 type Mode uint8
 

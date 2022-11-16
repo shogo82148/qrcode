@@ -12,10 +12,12 @@ import (
 func TestQRCode_Encode(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
+		Level:   LevelM,
+		Mask:    0b010,
 		Segments: []Segment{
 			{
 				Mode: ModeNumber,
-				Data: []byte("01234567"),
+				Data: []byte("012345678"),
 			},
 		},
 	}

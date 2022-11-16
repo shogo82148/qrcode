@@ -63,3 +63,12 @@ func (img *Binary) SetBinary(x, y int, c Color) {
 		img.Pix[offset] &^= mask
 	}
 }
+
+func (img *Binary) XORBinary(x, y int, c Color) {
+	offset := (y-img.Rect.Min.Y)*img.Stride + (x-img.Rect.Min.X)/8
+	shift := (x - img.Rect.Min.X) % 8
+	mask := byte(0x80 >> shift)
+	if c {
+		img.Pix[offset] ^= mask
+	}
+}
