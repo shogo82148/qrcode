@@ -210,6 +210,8 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 		return s.encodeNumber(version, buf)
 	case ModeAlphabet:
 		return s.encodeAlphabet(version, buf)
+	case ModeBytes:
+		return s.encodeBytes(version, buf)
 	default:
 		return errors.New("qrcode: unknown mode")
 	}
@@ -319,6 +321,35 @@ func (s *Segment) encodeAlphabet(version Version, buf *bitstream.Buffer) error {
 	if len(data)%2 != 0 {
 		bits := alphabets[data[len(data)-1]]
 		buf.WriteBitsLSB(uint64(bits), 6)
+	}
+	return nil
+}
+
+func (s *Segment) encodeBytes(version Version, buf *bitstream.Buffer) error {
+	// validation
+	var n int
+	data := s.Data
+	switch {
+	case version <= 0 || version > 40:
+		return fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 8
+	default:
+		n = 16
+	}
+	if len(data) >= 1<<n {
+		return fmt.Errorf("qrcode: data is too long: %d", len(data))
+	}
+
+	// mode
+	buf.WriteBitsLSB(uint64(ModeBytes), 4)
+
+	// data length
+	buf.WriteBitsLSB(uint64(len(data)), n)
+
+	// data
+	for _, bits := range data {
+		buf.WriteBitsLSB(uint64(bits), 8)
 	}
 	return nil
 }

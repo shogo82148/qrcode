@@ -61,3 +61,24 @@ func TestSegment_encodeAlphabet(t *testing.T) {
 		t.Errorf("got %08b, want %08b", got, want)
 	}
 }
+
+func TestSegment_encodeBytes(t *testing.T) {
+	s := &Segment{
+		Mode: ModeBytes,
+		Data: []byte{0xAA, 0x55},
+	}
+	var buf bitstream.Buffer
+
+	if err := s.encode(1, &buf); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []byte{
+		0b0100_0000, 0b0010_1010, 0b1010_0101, 0b0101_0000,
+	}
+	got := buf.Bytes()
+
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
