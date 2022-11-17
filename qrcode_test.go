@@ -17,7 +17,7 @@ func TestQRCode_Encode(t *testing.T) {
 		Segments: []Segment{
 			{
 				Mode: ModeNumber,
-				Data: []byte("012345678"),
+				Data: []byte("01234567"),
 			},
 		},
 	}
@@ -38,6 +38,7 @@ func TestQRCode_Encode(t *testing.T) {
 func TestQRCode_encodeToBits(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
+		Level:   LevelM,
 		Segments: []Segment{
 			{
 				Mode: ModeNumber,
@@ -50,15 +51,18 @@ func TestQRCode_encodeToBits(t *testing.T) {
 	qr.encodeToBits(&buf)
 	got := buf.Bytes()
 	want := []byte{
+		// data
 		0b0001_0000, 0b0010_0000, 0b0000_1100, 0b0101_0110,
 		0b0110_0001, 0b1000_0000,
 
+		// padding
 		0b1110_1100, 0b0001_0001,
 		0b1110_1100, 0b0001_0001,
 		0b1110_1100, 0b0001_0001,
 		0b1110_1100, 0b0001_0001,
 		0b1110_1100, 0b0001_0001,
 
+		// error correction code
 		0b1010_0101, 0b0010_0100, 0b1101_0100, 0b1100_0001,
 		0b1110_1101, 0b0011_0110, 0b1100_0111, 0b1000_0111,
 		0b0010_1100, 0b0101_0101,

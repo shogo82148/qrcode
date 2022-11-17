@@ -23,8 +23,12 @@ func (b *Buffer) Bytes() []byte {
 }
 
 // Len returns the number of bits of the buffer.
-func (b *Buffer) Len() int64 {
-	return int64(len(b.buf))*8 + int64(b.wrote)
+func (b *Buffer) Len() int {
+	l := len(b.buf) * 8
+	if b.wrote != 0 {
+		l = l - 8 + b.wrote
+	}
+	return l
 }
 
 // ReadBit reads one bit from b.

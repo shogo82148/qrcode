@@ -92,10 +92,10 @@ func (img *Binary) Clone() *Binary {
 	}
 }
 
-func (img *Binary) OnesCount() int64 {
-	var cnt int64
+func (img *Binary) OnesCount() int {
+	var cnt int
 	for _, b := range img.Pix {
-		cnt += int64(bits.OnesCount8(b))
+		cnt += bits.OnesCount8(b)
 	}
 	return cnt
 }

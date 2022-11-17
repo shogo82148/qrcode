@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"strconv"
 
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	binimage "github.com/shogo82148/qrcode/internal/image"
@@ -102,7 +103,10 @@ func (qr *QRCode) encodeToBits(buf *bitstream.Buffer) {
 	}
 	l := buf.Len()
 	buf.WriteBitsLSB(0x00, int(8-l%8))
-	for i := 0; i < 10; i++ {
+
+	// padding
+	capacity := capacityTable[qr.Version][qr.Level]
+	for i := 0; buf.Len() < capacity.Data*8; i++ {
 		if i%2 == 0 {
 			buf.WriteBitsLSB(0b1110_1100, 8)
 		} else {
@@ -110,9 +114,10 @@ func (qr *QRCode) encodeToBits(buf *bitstream.Buffer) {
 		}
 	}
 
-	rs := reedsolomon.New(10) // TODO: 決める
+	n := capacity.Total - capacity.Data
+	rs := reedsolomon.New(n)
 	rs.Write(buf.Bytes())
-	sum := rs.Sum(make([]byte, 0, 10))
+	sum := rs.Sum(make([]byte, 0, n))
 	for _, b := range sum {
 		buf.WriteBitsLSB(uint64(b), 8)
 	}
@@ -128,6 +133,20 @@ const (
 	LevelQ Level = 0b11
 	LevelH Level = 0b10
 )
+
+func (lv Level) String() string {
+	switch lv {
+	case LevelL:
+		return "L"
+	case LevelM:
+		return "M"
+	case LevelQ:
+		return "Q"
+	case LevelH:
+		return "H"
+	}
+	return "invalid(" + strconv.Itoa(int(lv)) + ")"
+}
 
 type Mask int
 
