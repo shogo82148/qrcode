@@ -83,6 +83,15 @@ func (img *Binary) XorBinary(x, y int, c Color) {
 	}
 }
 
+func (img *Binary) Clone() *Binary {
+	pix := append([]byte(nil), img.Pix...)
+	return &Binary{
+		Pix:    pix,
+		Stride: img.Stride,
+		Rect:   img.Rect,
+	}
+}
+
 func (img *Binary) OnesCount() int64 {
 	var cnt int64
 	for _, b := range img.Pix {

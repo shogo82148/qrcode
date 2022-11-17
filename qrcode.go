@@ -23,20 +23,6 @@ func New(data []byte) (*QRCode, error) {
 	return &QRCode{}, nil
 }
 
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 const timingPatternOffset = 6
 
 func skipTimingPattern(n int) int {
@@ -51,39 +37,8 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	qr.encodeToBits(&buf)
 
 	w := 16 + 4*int(qr.Version)
-	img := binimage.New(image.Rect(0, 0, w+1, w+1))
-	used := binimage.New(image.Rect(0, 0, w+1, w+1))
-
-	// timing pattern
-	for i := 0; i <= w; i++ {
-		img.SetBinary(i, timingPatternOffset, i%2 == 0)
-		img.SetBinary(timingPatternOffset, i, i%2 == 0)
-		used.SetBinary(i, timingPatternOffset, true)
-		used.SetBinary(timingPatternOffset, i, true)
-	}
-
-	// finder pattern
-	for y := 0; y < 8; y++ {
-		for x := 0; x < 8; x++ {
-			d := max(abs(x-3), abs(y-3))
-			c := binimage.Color(d != 2 && d != 4)
-			img.SetBinary(x, y, c)
-			img.SetBinary(w-x, y, c)
-			img.SetBinary(x, w-y, c)
-			used.SetBinary(x, y, true)
-			used.SetBinary(w-x, y, true)
-			used.SetBinary(x, w-y, true)
-		}
-	}
-
-	// reserve the space for format info
-	for i := 0; i < 8; i++ {
-		used.SetBinary(i, 8, true)
-		used.SetBinary(8, i, true)
-		used.SetBinary(8, w-i, true)
-		used.SetBinary(w-i, 8, true)
-	}
-	used.SetBinary(8, 8, true)
+	img := baseList[qr.Version]
+	used := usedList[qr.Version]
 
 	dy := -1
 	x, y := w, w
