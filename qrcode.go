@@ -78,6 +78,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		}
 	}
 
+	// format
 	format := encodedFormat[int(qr.Level)<<3+int(qr.Mask)]
 	for i := 0; i < 8; i++ {
 		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
@@ -88,6 +89,15 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	}
 	img.SetBinary(8, w-7, binimage.Black)
 
+	// version
+	if qr.Version >= 7 {
+		version := encodedVersion[qr.Version]
+		for i := 0; i < 18; i++ {
+			img.SetBinary(i/3, w-10+i%3, (version>>i)&1 != 0)
+			img.SetBinary(w-10+i%3, i/3, (version>>i)&1 != 0)
+		}
+	}
+
 	for i := 0; i <= w; i++ {
 		for j := 0; j <= w; j++ {
 			img.XorBinary(i, j, !used.BinaryAt(i, j) && i%3 == 0)
@@ -97,14 +107,20 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	return img, nil
 }
 
-func (qr *QRCode) encodeToBits(buf *bitstream.Buffer) {
+type block struct {
+	data       []byte
+	correction []byte
+}
+
+func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) {
+	var buf bitstream.Buffer
 	for _, s := range qr.Segments {
-		s.encode(qr.Version, buf)
+		s.encode(qr.Version, &buf)
 	}
 	l := buf.Len()
 	buf.WriteBitsLSB(0x00, int(8-l%8))
 
-	// padding
+	// add padding.
 	capacity := capacityTable[qr.Version][qr.Level]
 	for i := 0; buf.Len() < capacity.Data*8; i++ {
 		if i%2 == 0 {
@@ -114,12 +130,46 @@ func (qr *QRCode) encodeToBits(buf *bitstream.Buffer) {
 		}
 	}
 
-	n := capacity.Total - capacity.Data
-	rs := reedsolomon.New(n)
-	rs.Write(buf.Bytes())
-	sum := rs.Sum(make([]byte, 0, n))
-	for _, b := range sum {
-		buf.WriteBitsLSB(uint64(b), 8)
+	// split to block and calculate error correction code.
+	data := buf.Bytes()
+	blocks := []block{}
+	for _, blockCapacity := range capacity.Blocks {
+		for i := 0; i < blockCapacity.Num; i++ {
+			n := blockCapacity.Total - blockCapacity.Data
+			rs := reedsolomon.New(n)
+			rs.Write(data[:capacity.Data])
+			correction := rs.Sum(make([]byte, 0, n))
+			blocks = append(blocks, block{
+				data:       data[:capacity.Data],
+				correction: correction,
+			})
+		}
+	}
+
+	// assemble
+	for i := 0; ; i++ {
+		var wrote int
+		for _, b := range blocks {
+			if i < len(b.data) {
+				ret.WriteBitsLSB(uint64(b.data[i]), 8)
+				wrote++
+			}
+		}
+		if wrote == 0 {
+			break
+		}
+	}
+	for i := 0; ; i++ {
+		var wrote int
+		for _, b := range blocks {
+			if i < len(b.correction) {
+				ret.WriteBitsLSB(uint64(b.correction[i]), 8)
+				wrote++
+			}
+		}
+		if wrote == 0 {
+			break
+		}
 	}
 }
 
