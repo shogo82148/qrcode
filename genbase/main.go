@@ -168,14 +168,16 @@ func newBase(version int) (*binimage.Binary, *binimage.Binary) {
 	used.SetBinary(8, 8, true)
 
 	// reserved space for version info
-	for i := 0; i < 6; i++ {
-		used.SetBinary(i, w-10, true)
-		used.SetBinary(i, w-9, true)
-		used.SetBinary(i, w-8, true)
+	if version >= 7 {
+		for i := 0; i < 6; i++ {
+			used.SetBinary(i, w-10, true)
+			used.SetBinary(i, w-9, true)
+			used.SetBinary(i, w-8, true)
 
-		used.SetBinary(w-10, i, true)
-		used.SetBinary(w-9, i, true)
-		used.SetBinary(w-8, i, true)
+			used.SetBinary(w-10, i, true)
+			used.SetBinary(w-9, i, true)
+			used.SetBinary(w-8, i, true)
+		}
 	}
 
 	return img, used
