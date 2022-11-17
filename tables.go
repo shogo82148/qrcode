@@ -533,49 +533,54 @@ var capacityTable = [41][4]capacity{
 	{
 		LevelL: {
 			Total: 733,
-			Data:  19,
+			Data:  589,
 			Blocks: []blockCapacity{
 				{Num: 5, Total: 122, Data: 98},
 				{Num: 1, Total: 123, Data: 99},
 			},
 		},
 		LevelM: {
-			Total: 26,
-			Data:  16,
+			Total: 733,
+			Data:  453,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
+				{Num: 7, Total: 73, Data: 45},
+				{Num: 3, Total: 74, Data: 46},
 			},
 		},
 		LevelQ: {
-			Total: 26,
-			Data:  13,
+			Total: 733,
+			Data:  325,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
+				{Num: 15, Total: 43, Data: 19},
+				{Num: 2, Total: 44, Data: 20},
 			},
 		},
 		LevelH: {
-			Total: 26,
-			Data:  9,
+			Total: 733,
+			Data:  253,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
+				{Num: 3, Total: 45, Data: 15},
+				{Num: 13, Total: 46, Data: 16},
 			},
 		},
 	},
 
-	// version 2
+	// version 17
 	{
 		LevelL: {
-			Total: 26,
-			Data:  19,
+			Total: 815,
+			Data:  647,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
+				{Num: 1, Total: 135, Data: 107},
+				{Num: 5, Total: 136, Data: 108},
 			},
 		},
 		LevelM: {
-			Total: 26,
-			Data:  16,
+			Total: 815,
+			Data:  507,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
+				{Num: 10, Total: 74, Data: 46},
+				{Num: 1, Total: 75, Data: 47},
 			},
 		},
 		LevelQ: {
