@@ -84,6 +84,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		used.SetBinary(w-i, 8, true)
 	}
 	used.SetBinary(8, 8, true)
+
 	dy := -1
 	x, y := w, w
 	for {
@@ -133,7 +134,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 
 	for i := 0; i <= w; i++ {
 		for j := 0; j <= w; j++ {
-			img.XORBinary(i, j, !used.BinaryAt(i, j) && i%3 == 0)
+			img.XorBinary(i, j, !used.BinaryAt(i, j) && i%3 == 0)
 		}
 	}
 
