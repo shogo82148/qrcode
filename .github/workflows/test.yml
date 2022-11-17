@@ -1,0 +1,43 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - "1.19"
+          - "1.18"
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+
+      - name: test
+        run: |
+          go test -v -coverprofile=profile.cov ./...
+
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
+          flag-name: Go-${{ matrix.go }}
+          parallel: true
+
+  # notifies that all test jobs are finished.
+  finish:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
