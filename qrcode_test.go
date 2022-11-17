@@ -2,11 +2,10 @@ package qrcode
 
 import (
 	"bytes"
-	"image/png"
-	"os"
 	"testing"
 
 	"github.com/shogo82148/qrcode/internal/bitstream"
+	binimage "github.com/shogo82148/qrcode/internal/image"
 )
 
 func TestQRCode_Encode(t *testing.T) {
@@ -26,12 +25,36 @@ func TestQRCode_Encode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var buf bytes.Buffer
-	if err := png.Encode(&buf, img); err != nil {
-		t.Fatal(err)
+	got := img.(*binimage.Binary).Pix
+
+	// X 0510 : 2018
+	// 附属書I (参考)
+	// シンボルの符号化例
+	want := []byte{
+		0b11111110, 0b01011011, 0b11111000,
+		0b10000010, 0b01111010, 0b00001000,
+		0b10111010, 0b10000010, 0b11101000,
+		0b10111010, 0b11000010, 0b11101000,
+		0b10111010, 0b10111010, 0b11101000,
+		0b10000010, 0b10001010, 0b00001000,
+		0b11111110, 0b10101011, 0b11111000,
+		0b00000000, 0b10011000, 0b00000000,
+		0b10111110, 0b01001011, 0b11100000,
+		0b00010101, 0b10101001, 0b01100000,
+		0b00100011, 0b01010100, 0b11111000,
+		0b00001000, 0b01000001, 0b11100000,
+		0b00011111, 0b10010100, 0b10000000,
+		0b00000000, 0b10111110, 0b01100000,
+		0b11111110, 0b01101011, 0b00000000,
+		0b10000010, 0b10111110, 0b00101000,
+		0b10111010, 0b10001001, 0b01100000,
+		0b10111010, 0b11001001, 0b00000000,
+		0b10111010, 0b10110100, 0b10100000,
+		0b10000010, 0b00000001, 0b10110000,
+		0b11111110, 0b11110100, 0b10100000,
 	}
-	if err := os.WriteFile("qrcode.png", buf.Bytes(), 0o644); err != nil {
-		t.Fatal(err)
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
 	}
 }
 
