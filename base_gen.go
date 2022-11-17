@@ -3,7 +3,7 @@
 package qrcode
 
 import (
-	binimage "github.com/shogo82148/qrcode/internal/image"
+	"github.com/shogo82148/qrcode/internal/binimage"
 	"image"
 )
 

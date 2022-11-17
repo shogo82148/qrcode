@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/shogo82148/qrcode/internal/binimage"
 	"github.com/shogo82148/qrcode/internal/bitstream"
-	binimage "github.com/shogo82148/qrcode/internal/image"
 )
 
 func TestQRCode_Encode(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"image"
 	"strconv"
 
+	"github.com/shogo82148/qrcode/internal/binimage"
 	"github.com/shogo82148/qrcode/internal/bitstream"
-	binimage "github.com/shogo82148/qrcode/internal/image"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
