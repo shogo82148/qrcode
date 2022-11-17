@@ -12,7 +12,7 @@ func TestTable(t *testing.T) {
 
 		for level, capacity := range capacityTable[version] {
 			if capacity.Total != total {
-				t.Errorf("version %d: unexpected total capacity: got %d, want %d", version, capacity.Total, total)
+				t.Errorf("version %d: level %s: unexpected total capacity: got %d, want %d", version, Level(level), capacity.Total, total)
 			}
 
 			var c, k int

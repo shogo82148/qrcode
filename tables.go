@@ -386,6 +386,182 @@ var capacityTable = [41][4]capacity{
 		},
 	},
 
+	// version 12
+	{
+		LevelL: {
+			Total: 466,
+			Data:  370,
+			Blocks: []blockCapacity{
+				{Num: 2, Total: 116, Data: 92},
+				{Num: 2, Total: 117, Data: 93},
+			},
+		},
+		LevelM: {
+			Total: 466,
+			Data:  290,
+			Blocks: []blockCapacity{
+				{Num: 6, Total: 58, Data: 36},
+				{Num: 2, Total: 59, Data: 37},
+			},
+		},
+		LevelQ: {
+			Total: 466,
+			Data:  206,
+			Blocks: []blockCapacity{
+				{Num: 4, Total: 46, Data: 20},
+				{Num: 6, Total: 47, Data: 21},
+			},
+		},
+		LevelH: {
+			Total: 466,
+			Data:  158,
+			Blocks: []blockCapacity{
+				{Num: 7, Total: 42, Data: 14},
+				{Num: 4, Total: 43, Data: 15},
+			},
+		},
+	},
+
+	// version 13
+	{
+		LevelL: {
+			Total: 532,
+			Data:  428,
+			Blocks: []blockCapacity{
+				{Num: 4, Total: 133, Data: 107},
+			},
+		},
+		LevelM: {
+			Total: 532,
+			Data:  334,
+			Blocks: []blockCapacity{
+				{Num: 8, Total: 59, Data: 37},
+				{Num: 1, Total: 60, Data: 38},
+			},
+		},
+		LevelQ: {
+			Total: 532,
+			Data:  244,
+			Blocks: []blockCapacity{
+				{Num: 8, Total: 44, Data: 20},
+				{Num: 4, Total: 45, Data: 21},
+			},
+		},
+		LevelH: {
+			Total: 532,
+			Data:  180,
+			Blocks: []blockCapacity{
+				{Num: 12, Total: 33, Data: 11},
+				{Num: 4, Total: 34, Data: 12},
+			},
+		},
+	},
+
+	// version 14
+	{
+		LevelL: {
+			Total: 581,
+			Data:  461,
+			Blocks: []blockCapacity{
+				{Num: 3, Total: 145, Data: 115},
+				{Num: 1, Total: 146, Data: 116},
+			},
+		},
+		LevelM: {
+			Total: 581,
+			Data:  365,
+			Blocks: []blockCapacity{
+				{Num: 4, Total: 64, Data: 40},
+				{Num: 5, Total: 65, Data: 41},
+			},
+		},
+		LevelQ: {
+			Total: 581,
+			Data:  261,
+			Blocks: []blockCapacity{
+				{Num: 11, Total: 36, Data: 16},
+				{Num: 5, Total: 37, Data: 17},
+			},
+		},
+		LevelH: {
+			Total: 581,
+			Data:  197,
+			Blocks: []blockCapacity{
+				{Num: 11, Total: 36, Data: 12},
+				{Num: 5, Total: 37, Data: 13},
+			},
+		},
+	},
+
+	// version 15
+	{
+		LevelL: {
+			Total: 655,
+			Data:  523,
+			Blocks: []blockCapacity{
+				{Num: 5, Total: 109, Data: 87},
+				{Num: 1, Total: 110, Data: 88},
+			},
+		},
+		LevelM: {
+			Total: 655,
+			Data:  415,
+			Blocks: []blockCapacity{
+				{Num: 5, Total: 65, Data: 41},
+				{Num: 5, Total: 66, Data: 42},
+			},
+		},
+		LevelQ: {
+			Total: 655,
+			Data:  295,
+			Blocks: []blockCapacity{
+				{Num: 5, Total: 54, Data: 24},
+				{Num: 7, Total: 55, Data: 25},
+			},
+		},
+		LevelH: {
+			Total: 655,
+			Data:  223,
+			Blocks: []blockCapacity{
+				{Num: 11, Total: 36, Data: 12},
+				{Num: 7, Total: 37, Data: 13},
+			},
+		},
+	},
+
+	// version 16
+	{
+		LevelL: {
+			Total: 733,
+			Data:  19,
+			Blocks: []blockCapacity{
+				{Num: 5, Total: 122, Data: 98},
+				{Num: 1, Total: 123, Data: 99},
+			},
+		},
+		LevelM: {
+			Total: 26,
+			Data:  16,
+			Blocks: []blockCapacity{
+				{Num: 1, Total: 26, Data: 16},
+			},
+		},
+		LevelQ: {
+			Total: 26,
+			Data:  13,
+			Blocks: []blockCapacity{
+				{Num: 1, Total: 26, Data: 13},
+			},
+		},
+		LevelH: {
+			Total: 26,
+			Data:  9,
+			Blocks: []blockCapacity{
+				{Num: 1, Total: 26, Data: 9},
+			},
+		},
+	},
+
 	// version 2
 	{
 		LevelL: {
@@ -1099,189 +1275,39 @@ var capacityTable = [41][4]capacity{
 			},
 		},
 	},
-	// version 2
+
+	// version 40
 	{
 		LevelL: {
-			Total: 26,
-			Data:  19,
+			Total: 3532,
+			Data:  2956,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
+				{Num: 19, Total: 148, Data: 118},
+				{Num: 6, Total: 149, Data: 119},
 			},
 		},
 		LevelM: {
-			Total: 26,
-			Data:  16,
+			Total: 3706,
+			Data:  2334,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
+				{Num: 18, Total: 75, Data: 47},
+				{Num: 31, Total: 76, Data: 48},
 			},
 		},
 		LevelQ: {
-			Total: 26,
-			Data:  13,
+			Total: 3706,
+			Data:  1666,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
+				{Num: 34, Total: 54, Data: 24},
+				{Num: 34, Total: 55, Data: 25},
 			},
 		},
 		LevelH: {
-			Total: 26,
-			Data:  9,
+			Total: 3706,
+			Data:  1276,
 			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
-			},
-		},
-	},
-	// version 2
-	{
-		LevelL: {
-			Total: 26,
-			Data:  19,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
-			},
-		},
-		LevelM: {
-			Total: 26,
-			Data:  16,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
-			},
-		},
-		LevelQ: {
-			Total: 26,
-			Data:  13,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
-			},
-		},
-		LevelH: {
-			Total: 26,
-			Data:  9,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
-			},
-		},
-	},
-	// version 2
-	{
-		LevelL: {
-			Total: 26,
-			Data:  19,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
-			},
-		},
-		LevelM: {
-			Total: 26,
-			Data:  16,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
-			},
-		},
-		LevelQ: {
-			Total: 26,
-			Data:  13,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
-			},
-		},
-		LevelH: {
-			Total: 26,
-			Data:  9,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
-			},
-		},
-	},
-	// version 2
-	{
-		LevelL: {
-			Total: 26,
-			Data:  19,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
-			},
-		},
-		LevelM: {
-			Total: 26,
-			Data:  16,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
-			},
-		},
-		LevelQ: {
-			Total: 26,
-			Data:  13,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
-			},
-		},
-		LevelH: {
-			Total: 26,
-			Data:  9,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
-			},
-		},
-	},
-	// version 2
-	{
-		LevelL: {
-			Total: 26,
-			Data:  19,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
-			},
-		},
-		LevelM: {
-			Total: 26,
-			Data:  16,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
-			},
-		},
-		LevelQ: {
-			Total: 26,
-			Data:  13,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
-			},
-		},
-		LevelH: {
-			Total: 26,
-			Data:  9,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
-			},
-		},
-	},
-	// version 2
-	{
-		LevelL: {
-			Total: 26,
-			Data:  19,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 19},
-			},
-		},
-		LevelM: {
-			Total: 26,
-			Data:  16,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 16},
-			},
-		},
-		LevelQ: {
-			Total: 26,
-			Data:  13,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 13},
-			},
-		},
-		LevelH: {
-			Total: 26,
-			Data:  9,
-			Blocks: []blockCapacity{
-				{Num: 1, Total: 26, Data: 9},
+				{Num: 20, Total: 45, Data: 15},
+				{Num: 61, Total: 46, Data: 16},
 			},
 		},
 	},
