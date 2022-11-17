@@ -118,7 +118,7 @@ func TestSegment_encodeNumber(t *testing.T) {
 
 func TestSegment_encodeAlphabet(t *testing.T) {
 	s := &Segment{
-		Mode: ModeAlphabet,
+		Mode: ModeAlphanumeric,
 		Data: []byte("AC-42"),
 	}
 	var buf bitstream.Buffer
