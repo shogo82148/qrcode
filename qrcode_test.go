@@ -8,7 +8,7 @@ import (
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestQRCode_Encode(t *testing.T) {
+func TestQRCode_Encode1(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelM,
@@ -52,6 +52,54 @@ func TestQRCode_Encode(t *testing.T) {
 		0b10111010, 0b10110100, 0b10100000,
 		0b10000010, 0b00000001, 0b10110000,
 		0b11111110, 0b11110100, 0b10100000,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestQRCode_Encode2(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelH,
+		Mask:    0b001,
+		Segments: []Segment{
+			{
+				Mode: ModeBytes,
+				Data: []byte("Ver1"),
+			},
+		},
+	}
+	img, err := qr.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := img.(*binimage.Binary).Pix
+
+	// from Wikipedia: https://en.wikipedia.org/wiki/QR_code
+	want := []byte{
+		0b11111110, 0b00110011, 0b11111000,
+		0b10000010, 0b10001010, 0b00001000,
+		0b10111010, 0b10001010, 0b11101000,
+		0b10111010, 0b10001010, 0b11101000,
+		0b10111010, 0b10111010, 0b11101000,
+		0b10000010, 0b10100010, 0b00001000,
+		0b11111110, 0b10101011, 0b11111000,
+		0b00000000, 0b00000000, 0b00000000,
+		0b00100111, 0b11110101, 0b11110000,
+		0b00011101, 0b11111010, 0b01001000,
+		0b11011011, 0b00101010, 0b00101000,
+		0b01110000, 0b10010100, 0b11001000,
+		0b11100011, 0b00111100, 0b00001000,
+		0b00000000, 0b11001101, 0b00010000,
+		0b11111110, 0b11111101, 0b11001000,
+		0b10000010, 0b11001011, 0b00000000,
+		0b10111010, 0b00100101, 0b10001000,
+		0b10111010, 0b00011110, 0b00000000,
+		0b10111010, 0b11000110, 0b00111000,
+		0b10000010, 0b01101010, 0b10000000,
+		0b11111110, 0b00110010, 0b01101000,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)
