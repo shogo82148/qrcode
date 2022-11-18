@@ -157,16 +157,17 @@ func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) {
 		for i := 0; i < blockCapacity.Num; i++ {
 			n := blockCapacity.Total - blockCapacity.Data
 			rs := reedsolomon.New(n)
-			rs.Write(data[:capacity.Data])
+			rs.Write(data[:blockCapacity.Data])
 			correction := rs.Sum(make([]byte, 0, n))
 			blocks = append(blocks, block{
-				data:       data[:capacity.Data],
+				data:       data[:blockCapacity.Data],
 				correction: correction,
 			})
+			data = data[blockCapacity.Data:]
 		}
 	}
 
-	// assemble
+	// Interleave the blocks.
 	for i := 0; ; i++ {
 		var wrote int
 		for _, b := range blocks {
