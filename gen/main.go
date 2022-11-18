@@ -11,13 +11,13 @@ import (
 
 func main() {
 	qr := &qrcode.QRCode{
-		Version: 1,
+		Version: 3,
 		Level:   qrcode.LevelH,
 		Mask:    0b001,
 		Segments: []qrcode.Segment{
 			{
 				Mode: qrcode.ModeBytes,
-				Data: []byte("Ver1"),
+				Data: []byte("Version 3 QR Code"),
 			},
 		},
 	}
