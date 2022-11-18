@@ -210,9 +210,9 @@ const (
 	// The Data must be ascii characters [0-9].
 	ModeNumber Mode = 0b0001
 
-	// ModeNumber is alphabet and number mode.
+	// ModeAlphanumeric is alphabet and number mode.
 	// The Data must be ascii characters [0-9A-Z $%*+\-./:].
-	ModeAlphabet Mode = 0b0010
+	ModeAlphanumeric Mode = 0b0010
 
 	// ModeBytes is 8-bit bytes mode.
 	// The Data can include any bytes.
@@ -239,7 +239,7 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 	switch s.Mode {
 	case ModeNumber:
 		return s.encodeNumber(version, buf)
-	case ModeAlphabet:
+	case ModeAlphanumeric:
 		return s.encodeAlphabet(version, buf)
 	case ModeBytes:
 		return s.encodeBytes(version, buf)
@@ -336,7 +336,7 @@ func (s *Segment) encodeAlphabet(version Version, buf *bitstream.Buffer) error {
 	}
 
 	// mode
-	buf.WriteBitsLSB(uint64(ModeAlphabet), 4)
+	buf.WriteBitsLSB(uint64(ModeAlphanumeric), 4)
 
 	// data length
 	buf.WriteBitsLSB(uint64(len(data)), n)
