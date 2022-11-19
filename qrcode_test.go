@@ -562,3 +562,24 @@ func TestSegment_encodeBytes(t *testing.T) {
 		t.Errorf("got %08b, want %08b", got, want)
 	}
 }
+
+func BenchmarkEncode(b *testing.B) {
+	qr := &QRCode{
+		Version: 40,
+		Level:   LevelM,
+		Mask:    0b010,
+		Segments: []Segment{
+			{
+				Mode: ModeNumber,
+				Data: bytes.Repeat([]byte("9"), 3057),
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, err := qr.Encode()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
