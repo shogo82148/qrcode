@@ -134,23 +134,10 @@ type block struct {
 
 func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) {
 	var buf bitstream.Buffer
-	for _, s := range qr.Segments {
-		s.encode(qr.Version, &buf)
-	}
-	l := buf.Len()
-	buf.WriteBitsLSB(0x00, int(8-l%8))
-
-	// add padding.
-	capacity := capacityTable[qr.Version][qr.Level]
-	for i := 0; buf.Len() < capacity.Data*8; i++ {
-		if i%2 == 0 {
-			buf.WriteBitsLSB(0b1110_1100, 8)
-		} else {
-			buf.WriteBitsLSB(0b0001_0001, 8)
-		}
-	}
+	qr.encodeSegments(&buf)
 
 	// split to block and calculate error correction code.
+	capacity := capacityTable[qr.Version][qr.Level]
 	data := buf.Bytes()
 	blocks := []block{}
 	for _, blockCapacity := range capacity.Blocks {
@@ -190,6 +177,24 @@ func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) {
 		}
 		if wrote == 0 {
 			break
+		}
+	}
+}
+
+func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) {
+	for _, s := range qr.Segments {
+		s.encode(qr.Version, buf)
+	}
+	l := buf.Len()
+	buf.WriteBitsLSB(0x00, int(8-l%8))
+
+	// add padding.
+	capacity := capacityTable[qr.Version][qr.Level]
+	for i := 0; buf.Len() < capacity.Data*8; i++ {
+		if i%2 == 0 {
+			buf.WriteBitsLSB(0b1110_1100, 8)
+		} else {
+			buf.WriteBitsLSB(0b0001_0001, 8)
 		}
 	}
 }
