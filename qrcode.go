@@ -35,7 +35,9 @@ func skipTimingPattern(n int) int {
 
 func (qr *QRCode) Encode() (image.Image, error) {
 	var buf bitstream.Buffer
-	qr.encodeToBits(&buf)
+	if err := qr.encodeToBits(&buf); err != nil {
+		return nil, err
+	}
 
 	w := 16 + 4*int(qr.Version)
 	img := baseList[qr.Version].Clone()
@@ -132,9 +134,11 @@ type block struct {
 	correction []byte
 }
 
-func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) {
+func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) error {
 	var buf bitstream.Buffer
-	qr.encodeSegments(&buf)
+	if err := qr.encodeSegments(&buf); err != nil {
+		return err
+	}
 
 	// split to block and calculate error correction code.
 	capacity := capacityTable[qr.Version][qr.Level]
@@ -179,17 +183,23 @@ func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) {
 			break
 		}
 	}
+	return nil
 }
 
-func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) {
+func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 	for _, s := range qr.Segments {
-		s.encode(qr.Version, buf)
+		if err := s.encode(qr.Version, buf); err != nil {
+			return err
+		}
+	}
+	capacity := capacityTable[qr.Version][qr.Level]
+	if buf.Len() > capacity.Data*8 {
+		return errors.New("qrcode: data is too large")
 	}
 	l := buf.Len()
 	buf.WriteBitsLSB(0x00, int(8-l%8))
 
 	// add padding.
-	capacity := capacityTable[qr.Version][qr.Level]
 	for i := 0; buf.Len() < capacity.Data*8; i++ {
 		if i%2 == 0 {
 			buf.WriteBitsLSB(0b1110_1100, 8)
@@ -197,6 +207,7 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) {
 			buf.WriteBitsLSB(0b0001_0001, 8)
 		}
 	}
+	return nil
 }
 
 type Version int

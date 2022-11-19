@@ -316,6 +316,60 @@ func TestQRCode_Encode5(t *testing.T) {
 	}
 }
 
+func TestQRCode_Encode_ErrorTooLong(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelH,
+		Mask:    0b010,
+		Segments: []Segment{
+			{
+				Mode: ModeNumber,
+				Data: []byte("123456789012345678"),
+			},
+		},
+	}
+	_, err := qr.Encode()
+	if err == nil {
+		t.Error("want error, got not")
+	}
+}
+
+func TestQRCode_Encode_ErrorInvalidNumber(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelM,
+		Mask:    0b010,
+		Segments: []Segment{
+			{
+				Mode: ModeNumber,
+				Data: []byte("A"),
+			},
+		},
+	}
+	_, err := qr.Encode()
+	if err == nil {
+		t.Error("want error, got not")
+	}
+}
+
+func TestQRCode_Encode_ErrorInvalidAlphanumeric(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelM,
+		Mask:    0b010,
+		Segments: []Segment{
+			{
+				Mode: ModeAlphanumeric,
+				Data: []byte("a"),
+			},
+		},
+	}
+	_, err := qr.Encode()
+	if err == nil {
+		t.Error("want error, got not")
+	}
+}
+
 func TestQRCode_encodeToBits(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
