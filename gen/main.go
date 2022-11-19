@@ -11,13 +11,31 @@ import (
 
 func main() {
 	qr := &qrcode.QRCode{
-		Version: 3,
+		Version: 10,
 		Level:   qrcode.LevelH,
-		Mask:    0b001,
+		Mask:    0b100,
 		Segments: []qrcode.Segment{
 			{
+				Mode: qrcode.ModeAlphanumeric,
+				Data: []byte("VERSION 10 QR CODE"),
+			},
+			{
 				Mode: qrcode.ModeBytes,
-				Data: []byte("Version 3 QR Code"),
+				Data: []byte(","),
+			},
+			{
+				Mode: qrcode.ModeAlphanumeric,
+				Data: []byte(" UP TO 174 CHAR AT H LEVEL"),
+			},
+			{
+				Mode: qrcode.ModeBytes,
+				Data: []byte(","),
+			},
+			{
+				Mode: qrcode.ModeAlphanumeric,
+				Data: []byte(
+					" WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. " +
+						"NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"),
 			},
 		},
 	}
