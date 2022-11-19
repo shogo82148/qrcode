@@ -316,7 +316,7 @@ func TestQRCode_Encode5(t *testing.T) {
 	}
 }
 
-func TestQRCode_encodeToBits1(t *testing.T) {
+func TestQRCode_encodeToBits(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelM,
