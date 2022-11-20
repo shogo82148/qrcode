@@ -141,9 +141,13 @@ func (c *coder2) Write(p []byte) (int, error) {
 }
 func (c coder2) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:2]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 2 {
+		buf = make([]byte, 2)
+	} else {
+		buf = buf[:2]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -179,9 +183,13 @@ func (c *coder3) Write(p []byte) (int, error) {
 }
 func (c coder3) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:3]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 3 {
+		buf = make([]byte, 3)
+	} else {
+		buf = buf[:3]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -218,9 +226,13 @@ func (c *coder4) Write(p []byte) (int, error) {
 }
 func (c coder4) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:4]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 4 {
+		buf = make([]byte, 4)
+	} else {
+		buf = buf[:4]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -258,9 +270,13 @@ func (c *coder5) Write(p []byte) (int, error) {
 }
 func (c coder5) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:5]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 5 {
+		buf = make([]byte, 5)
+	} else {
+		buf = buf[:5]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -299,9 +315,13 @@ func (c *coder6) Write(p []byte) (int, error) {
 }
 func (c coder6) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:6]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 6 {
+		buf = make([]byte, 6)
+	} else {
+		buf = buf[:6]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -341,9 +361,13 @@ func (c *coder7) Write(p []byte) (int, error) {
 }
 func (c coder7) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:7]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 7 {
+		buf = make([]byte, 7)
+	} else {
+		buf = buf[:7]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -384,9 +408,13 @@ func (c *coder8) Write(p []byte) (int, error) {
 }
 func (c coder8) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:8]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 8 {
+		buf = make([]byte, 8)
+	} else {
+		buf = buf[:8]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -428,9 +456,13 @@ func (c *coder9) Write(p []byte) (int, error) {
 }
 func (c coder9) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:9]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 9 {
+		buf = make([]byte, 9)
+	} else {
+		buf = buf[:9]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -473,9 +505,13 @@ func (c *coder10) Write(p []byte) (int, error) {
 }
 func (c coder10) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:10]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 10 {
+		buf = make([]byte, 10)
+	} else {
+		buf = buf[:10]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -519,9 +555,13 @@ func (c *coder11) Write(p []byte) (int, error) {
 }
 func (c coder11) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:11]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 11 {
+		buf = make([]byte, 11)
+	} else {
+		buf = buf[:11]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -566,9 +606,13 @@ func (c *coder12) Write(p []byte) (int, error) {
 }
 func (c coder12) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:12]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 12 {
+		buf = make([]byte, 12)
+	} else {
+		buf = buf[:12]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -614,9 +658,13 @@ func (c *coder13) Write(p []byte) (int, error) {
 }
 func (c coder13) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:13]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 13 {
+		buf = make([]byte, 13)
+	} else {
+		buf = buf[:13]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -663,9 +711,13 @@ func (c *coder14) Write(p []byte) (int, error) {
 }
 func (c coder14) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:14]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 14 {
+		buf = make([]byte, 14)
+	} else {
+		buf = buf[:14]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -713,9 +765,13 @@ func (c *coder15) Write(p []byte) (int, error) {
 }
 func (c coder15) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:15]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 15 {
+		buf = make([]byte, 15)
+	} else {
+		buf = buf[:15]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -764,9 +820,13 @@ func (c *coder16) Write(p []byte) (int, error) {
 }
 func (c coder16) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:16]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 16 {
+		buf = make([]byte, 16)
+	} else {
+		buf = buf[:16]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -816,9 +876,13 @@ func (c *coder17) Write(p []byte) (int, error) {
 }
 func (c coder17) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:17]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 17 {
+		buf = make([]byte, 17)
+	} else {
+		buf = buf[:17]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -869,9 +933,13 @@ func (c *coder18) Write(p []byte) (int, error) {
 }
 func (c coder18) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:18]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 18 {
+		buf = make([]byte, 18)
+	} else {
+		buf = buf[:18]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -923,9 +991,13 @@ func (c *coder19) Write(p []byte) (int, error) {
 }
 func (c coder19) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:19]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 19 {
+		buf = make([]byte, 19)
+	} else {
+		buf = buf[:19]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -978,9 +1050,13 @@ func (c *coder20) Write(p []byte) (int, error) {
 }
 func (c coder20) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:20]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 20 {
+		buf = make([]byte, 20)
+	} else {
+		buf = buf[:20]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1034,9 +1110,13 @@ func (c *coder21) Write(p []byte) (int, error) {
 }
 func (c coder21) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:21]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 21 {
+		buf = make([]byte, 21)
+	} else {
+		buf = buf[:21]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1091,9 +1171,13 @@ func (c *coder22) Write(p []byte) (int, error) {
 }
 func (c coder22) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:22]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 22 {
+		buf = make([]byte, 22)
+	} else {
+		buf = buf[:22]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1149,9 +1233,13 @@ func (c *coder23) Write(p []byte) (int, error) {
 }
 func (c coder23) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:23]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 23 {
+		buf = make([]byte, 23)
+	} else {
+		buf = buf[:23]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1208,9 +1296,13 @@ func (c *coder24) Write(p []byte) (int, error) {
 }
 func (c coder24) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:24]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 24 {
+		buf = make([]byte, 24)
+	} else {
+		buf = buf[:24]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1268,9 +1360,13 @@ func (c *coder25) Write(p []byte) (int, error) {
 }
 func (c coder25) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:25]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 25 {
+		buf = make([]byte, 25)
+	} else {
+		buf = buf[:25]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1329,9 +1425,13 @@ func (c *coder26) Write(p []byte) (int, error) {
 }
 func (c coder26) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:26]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 26 {
+		buf = make([]byte, 26)
+	} else {
+		buf = buf[:26]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1391,9 +1491,13 @@ func (c *coder27) Write(p []byte) (int, error) {
 }
 func (c coder27) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:27]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 27 {
+		buf = make([]byte, 27)
+	} else {
+		buf = buf[:27]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1454,9 +1558,13 @@ func (c *coder28) Write(p []byte) (int, error) {
 }
 func (c coder28) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:28]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 28 {
+		buf = make([]byte, 28)
+	} else {
+		buf = buf[:28]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1518,9 +1626,13 @@ func (c *coder29) Write(p []byte) (int, error) {
 }
 func (c coder29) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:29]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 29 {
+		buf = make([]byte, 29)
+	} else {
+		buf = buf[:29]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1583,9 +1695,13 @@ func (c *coder30) Write(p []byte) (int, error) {
 }
 func (c coder30) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:30]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 30 {
+		buf = make([]byte, 30)
+	} else {
+		buf = buf[:30]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1649,9 +1765,13 @@ func (c *coder31) Write(p []byte) (int, error) {
 }
 func (c coder31) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:31]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 31 {
+		buf = make([]byte, 31)
+	} else {
+		buf = buf[:31]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1716,9 +1836,13 @@ func (c *coder32) Write(p []byte) (int, error) {
 }
 func (c coder32) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:32]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 32 {
+		buf = make([]byte, 32)
+	} else {
+		buf = buf[:32]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1784,9 +1908,13 @@ func (c *coder33) Write(p []byte) (int, error) {
 }
 func (c coder33) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:33]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 33 {
+		buf = make([]byte, 33)
+	} else {
+		buf = buf[:33]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1853,9 +1981,13 @@ func (c *coder34) Write(p []byte) (int, error) {
 }
 func (c coder34) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:34]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 34 {
+		buf = make([]byte, 34)
+	} else {
+		buf = buf[:34]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1923,9 +2055,13 @@ func (c *coder35) Write(p []byte) (int, error) {
 }
 func (c coder35) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:35]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 35 {
+		buf = make([]byte, 35)
+	} else {
+		buf = buf[:35]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -1994,9 +2130,13 @@ func (c *coder36) Write(p []byte) (int, error) {
 }
 func (c coder36) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:36]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 36 {
+		buf = make([]byte, 36)
+	} else {
+		buf = buf[:36]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2066,9 +2206,13 @@ func (c *coder37) Write(p []byte) (int, error) {
 }
 func (c coder37) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:37]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 37 {
+		buf = make([]byte, 37)
+	} else {
+		buf = buf[:37]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2139,9 +2283,13 @@ func (c *coder38) Write(p []byte) (int, error) {
 }
 func (c coder38) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:38]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 38 {
+		buf = make([]byte, 38)
+	} else {
+		buf = buf[:38]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2213,9 +2361,13 @@ func (c *coder39) Write(p []byte) (int, error) {
 }
 func (c coder39) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:39]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 39 {
+		buf = make([]byte, 39)
+	} else {
+		buf = buf[:39]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2288,9 +2440,13 @@ func (c *coder40) Write(p []byte) (int, error) {
 }
 func (c coder40) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:40]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 40 {
+		buf = make([]byte, 40)
+	} else {
+		buf = buf[:40]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2364,9 +2520,13 @@ func (c *coder41) Write(p []byte) (int, error) {
 }
 func (c coder41) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:41]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 41 {
+		buf = make([]byte, 41)
+	} else {
+		buf = buf[:41]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2441,9 +2601,13 @@ func (c *coder42) Write(p []byte) (int, error) {
 }
 func (c coder42) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:42]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 42 {
+		buf = make([]byte, 42)
+	} else {
+		buf = buf[:42]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2519,9 +2683,13 @@ func (c *coder43) Write(p []byte) (int, error) {
 }
 func (c coder43) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:43]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 43 {
+		buf = make([]byte, 43)
+	} else {
+		buf = buf[:43]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2598,9 +2766,13 @@ func (c *coder44) Write(p []byte) (int, error) {
 }
 func (c coder44) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:44]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 44 {
+		buf = make([]byte, 44)
+	} else {
+		buf = buf[:44]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2678,9 +2850,13 @@ func (c *coder45) Write(p []byte) (int, error) {
 }
 func (c coder45) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:45]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 45 {
+		buf = make([]byte, 45)
+	} else {
+		buf = buf[:45]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2759,9 +2935,13 @@ func (c *coder46) Write(p []byte) (int, error) {
 }
 func (c coder46) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:46]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 46 {
+		buf = make([]byte, 46)
+	} else {
+		buf = buf[:46]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2841,9 +3021,13 @@ func (c *coder47) Write(p []byte) (int, error) {
 }
 func (c coder47) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:47]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 47 {
+		buf = make([]byte, 47)
+	} else {
+		buf = buf[:47]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -2924,9 +3108,13 @@ func (c *coder48) Write(p []byte) (int, error) {
 }
 func (c coder48) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:48]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 48 {
+		buf = make([]byte, 48)
+	} else {
+		buf = buf[:48]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3008,9 +3196,13 @@ func (c *coder49) Write(p []byte) (int, error) {
 }
 func (c coder49) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:49]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 49 {
+		buf = make([]byte, 49)
+	} else {
+		buf = buf[:49]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3093,9 +3285,13 @@ func (c *coder50) Write(p []byte) (int, error) {
 }
 func (c coder50) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:50]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 50 {
+		buf = make([]byte, 50)
+	} else {
+		buf = buf[:50]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3179,9 +3375,13 @@ func (c *coder51) Write(p []byte) (int, error) {
 }
 func (c coder51) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:51]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 51 {
+		buf = make([]byte, 51)
+	} else {
+		buf = buf[:51]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3266,9 +3466,13 @@ func (c *coder52) Write(p []byte) (int, error) {
 }
 func (c coder52) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:52]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 52 {
+		buf = make([]byte, 52)
+	} else {
+		buf = buf[:52]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3354,9 +3558,13 @@ func (c *coder53) Write(p []byte) (int, error) {
 }
 func (c coder53) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:53]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 53 {
+		buf = make([]byte, 53)
+	} else {
+		buf = buf[:53]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3443,9 +3651,13 @@ func (c *coder54) Write(p []byte) (int, error) {
 }
 func (c coder54) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:54]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 54 {
+		buf = make([]byte, 54)
+	} else {
+		buf = buf[:54]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3533,9 +3745,13 @@ func (c *coder55) Write(p []byte) (int, error) {
 }
 func (c coder55) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:55]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 55 {
+		buf = make([]byte, 55)
+	} else {
+		buf = buf[:55]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3624,9 +3840,13 @@ func (c *coder56) Write(p []byte) (int, error) {
 }
 func (c coder56) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:56]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 56 {
+		buf = make([]byte, 56)
+	} else {
+		buf = buf[:56]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3716,9 +3936,13 @@ func (c *coder57) Write(p []byte) (int, error) {
 }
 func (c coder57) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:57]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 57 {
+		buf = make([]byte, 57)
+	} else {
+		buf = buf[:57]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3809,9 +4033,13 @@ func (c *coder58) Write(p []byte) (int, error) {
 }
 func (c coder58) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:58]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 58 {
+		buf = make([]byte, 58)
+	} else {
+		buf = buf[:58]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3903,9 +4131,13 @@ func (c *coder59) Write(p []byte) (int, error) {
 }
 func (c coder59) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:59]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 59 {
+		buf = make([]byte, 59)
+	} else {
+		buf = buf[:59]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -3998,9 +4230,13 @@ func (c *coder60) Write(p []byte) (int, error) {
 }
 func (c coder60) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:60]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 60 {
+		buf = make([]byte, 60)
+	} else {
+		buf = buf[:60]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4094,9 +4330,13 @@ func (c *coder61) Write(p []byte) (int, error) {
 }
 func (c coder61) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:61]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 61 {
+		buf = make([]byte, 61)
+	} else {
+		buf = buf[:61]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4191,9 +4431,13 @@ func (c *coder62) Write(p []byte) (int, error) {
 }
 func (c coder62) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:62]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 62 {
+		buf = make([]byte, 62)
+	} else {
+		buf = buf[:62]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4289,9 +4533,13 @@ func (c *coder63) Write(p []byte) (int, error) {
 }
 func (c coder63) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:63]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 63 {
+		buf = make([]byte, 63)
+	} else {
+		buf = buf[:63]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4388,9 +4636,13 @@ func (c *coder64) Write(p []byte) (int, error) {
 }
 func (c coder64) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:64]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 64 {
+		buf = make([]byte, 64)
+	} else {
+		buf = buf[:64]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4488,9 +4740,13 @@ func (c *coder65) Write(p []byte) (int, error) {
 }
 func (c coder65) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:65]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 65 {
+		buf = make([]byte, 65)
+	} else {
+		buf = buf[:65]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4589,9 +4845,13 @@ func (c *coder66) Write(p []byte) (int, error) {
 }
 func (c coder66) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:66]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 66 {
+		buf = make([]byte, 66)
+	} else {
+		buf = buf[:66]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4691,9 +4951,13 @@ func (c *coder67) Write(p []byte) (int, error) {
 }
 func (c coder67) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:67]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 67 {
+		buf = make([]byte, 67)
+	} else {
+		buf = buf[:67]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
@@ -4794,9 +5058,13 @@ func (c *coder68) Write(p []byte) (int, error) {
 }
 func (c coder68) Sum(buf []byte) []byte {
 	c.Write(buf)
-	buf = buf[:68]
-	for i := range buf {
-		buf[i] = 0
+	if cap(buf) < 68 {
+		buf = make([]byte, 68)
+	} else {
+		buf = buf[:68]
+		for i := range buf {
+			buf[i] = 0
+		}
 	}
 	c.Write(buf)
 	for i := range buf {
