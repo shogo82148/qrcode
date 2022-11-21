@@ -1,6 +1,8 @@
 package poly
 
 import (
+	"errors"
+
 	"github.com/shogo82148/qrcode/internal/reedsolomon/element"
 )
 
@@ -123,6 +125,9 @@ func EuclideanAlgorithm(a, b Poly, R int) (sigma Poly, omega Poly, err error) {
 	}
 
 	sigmaTildeAtZero := t.Coefficient(0)
+	if sigmaTildeAtZero == element.Zero {
+		return nil, nil, errors.New("sigmaTilde(0) was zero")
+	}
 	inv := element.Inv(sigmaTildeAtZero)
 	sigma = t.MulElement(inv)
 	omega = r.MulElement(inv)

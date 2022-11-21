@@ -87,7 +87,7 @@ func TestDecode_NoError(t *testing.T) {
 	}
 }
 
-func TestDecode_Error(t *testing.T) {
+func TestDecode_WithError(t *testing.T) {
 	// JIS X 0510: 2018
 	// 附属書1
 	// シンボルの符号化例
@@ -99,6 +99,39 @@ func TestDecode_Error(t *testing.T) {
 		// error correction codes
 		0b1000_0110, 0b0000_1101, 0b0010_0010, 0b1010_1110,
 		0b0011_0000,
+	}
+
+	if err := Decode(data, 2); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []byte{
+		// data
+		0b0100_0000, 0b0001_1000, 0b1010_1100, 0b1100_0011,
+		0b0000_0000,
+
+		// error correction codes
+		0b1000_0110, 0b0000_1101, 0b0010_0010, 0b1010_1110,
+		0b0011_0000,
+	}
+
+	if !bytes.Equal(data, want) {
+		t.Errorf("got %08b, want %08b", data, want)
+	}
+}
+
+func TestDecode_FailCorrection(t *testing.T) {
+	// JIS X 0510: 2018
+	// 附属書1
+	// シンボルの符号化例
+	data := []byte{
+		// data
+		0b0100_0000, 0b0001_1000, 0b1010_1100, 0b1100_0011,
+		0b0000_0000 ^ 0b0101_0101, /* Error! */
+
+		// error correction codes
+		0b1000_0110, 0b0000_1101, 0b0010_0010, 0b1010_1110,
+		0b0011_0000 ^ 0b0101_0101, /* Error! */
 	}
 
 	if err := Decode(data, 2); err != nil {

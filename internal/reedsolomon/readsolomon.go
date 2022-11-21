@@ -1,6 +1,7 @@
 package reedsolomon
 
 import (
+	"fmt"
 	"hash"
 
 	"github.com/shogo82148/qrcode/internal/reedsolomon/element"
@@ -35,7 +36,7 @@ func Decode(data []byte, twoS int) error {
 	}
 	sigma, omega, err := poly.EuclideanAlgorithm(poly.NewMonomial(twoS, element.One), syndrome, twoS)
 	if err != nil {
-		return err
+		return fmt.Errorf("reedsolomon: failed to decode: %w", err)
 	}
 	errorLocations := findErrorLocations(sigma)
 	errorMagnitudes := findErrorMagnitudes(omega, errorLocations)
