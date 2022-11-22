@@ -25,7 +25,7 @@ func TestCoder10(t *testing.T) {
 		0b1110_1101, 0b0011_0110, 0b1100_0111, 0b1000_0111,
 		0b0010_1100, 0b0101_0101,
 	}
-	got := w.Sum(make([]byte, 0, 10))
+	got := w.Sum(nil)
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %x, want %#x", got, want)
 	}
@@ -44,7 +44,7 @@ func TestCoder5(t *testing.T) {
 		0b1000_0110, 0b0000_1101, 0b0010_0010, 0b1010_1110,
 		0b0011_0000,
 	}
-	got := w.Sum(make([]byte, 0, 5))
+	got := w.Sum(nil)
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %x, want %#x", got, want)
 	}
@@ -62,7 +62,7 @@ func TestSample(t *testing.T) {
 	want := []byte{
 		42, 159, 74, 221, 244, 169, 239, 150, 138, 70, 237, 85, 224, 96, 74, 219, 61,
 	}
-	got := w.Sum(make([]byte, 0, 17))
+	got := w.Sum(nil)
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %x, want %x", got, want)
 	}
