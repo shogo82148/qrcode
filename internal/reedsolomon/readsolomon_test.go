@@ -134,21 +134,7 @@ func TestDecode_FailCorrection(t *testing.T) {
 		0b0011_0000 ^ 0b0101_0101, /* Error! */
 	}
 
-	if err := Decode(data, 2); err != nil {
-		t.Fatal(err)
-	}
-
-	want := []byte{
-		// data
-		0b0100_0000, 0b0001_1000, 0b1010_1100, 0b1100_0011,
-		0b0000_0000,
-
-		// error correction codes
-		0b1000_0110, 0b0000_1101, 0b0010_0010, 0b1010_1110,
-		0b0011_0000,
-	}
-
-	if !bytes.Equal(data, want) {
-		t.Errorf("got %08b, want %08b", data, want)
+	if err := Decode(data, 2); err == nil {
+		t.Error("want error, but not")
 	}
 }
