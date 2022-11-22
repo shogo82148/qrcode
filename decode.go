@@ -139,7 +139,11 @@ LOOP:
 		}
 		switch Mode(mode) {
 		case ModeNumber:
-			return nil, errors.New("TODO: implement me")
+			seg, err := decodeNumber(version, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
 		case ModeAlphanumeric:
 			seg, err := decodeAlphanumeric(version, stream)
 			if err != nil {
@@ -225,6 +229,67 @@ func decodeFromBits(version Version, level Level, buf []byte) []block {
 		}
 	}
 	return blocks
+}
+
+func decodeNumber(version Version, buf *bitstream.Buffer) (Segment, error) {
+	var n int
+	switch {
+	case version <= 0 || version > 40:
+		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 10
+	case version < 27:
+		n = 12
+	default:
+		n = 14
+	}
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data := make([]byte, 0, length)
+
+	for i := uint64(0); i+2 < length; i += 3 {
+		bits, err := buf.ReadBits(10)
+		if err != nil {
+			return Segment{}, err
+		}
+		if bits >= 1000 {
+			return Segment{}, errors.New("invalid digit")
+		}
+		n1 := bits / 1000
+		n2 := bits / 100 % 10
+		n3 := bits % 10
+		data = append(data, byte(n1+'0'), byte(n2+'0'), byte(n3+'0'))
+	}
+
+	switch len(data) % 3 {
+	case 1:
+		bits, err := buf.ReadBits(4)
+		if err != nil {
+			return Segment{}, err
+		}
+		if bits >= 10 {
+			return Segment{}, errors.New("invalid digit")
+		}
+		data = append(data, byte(bits+'0'))
+	case 2:
+		bits, err := buf.ReadBits(7)
+		if err != nil {
+			return Segment{}, err
+		}
+		if bits >= 100 {
+			return Segment{}, errors.New("invalid digit")
+		}
+		n1 := bits / 10
+		n2 := bits % 10
+		data = append(data, byte(n1+'0'), byte(n2+'0'))
+	}
+
+	return Segment{
+		Mode: ModeNumber,
+		Data: data,
+	}, nil
 }
 
 func decodeAlphanumeric(version Version, buf *bitstream.Buffer) (Segment, error) {
