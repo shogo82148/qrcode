@@ -218,7 +218,7 @@ func decodeFromBits(version Version, level Level, buf []byte) []block {
 	}
 
 	i = 0
-	for _, b := range buf[capacity.Data:] {
+	for _, b := range buf[capacity.Data:capacity.Total] {
 		for {
 			if i/len(blocks) < len(blocks[i%len(blocks)].correction) {
 				blocks[i%len(blocks)].correction[i/len(blocks)] = b
