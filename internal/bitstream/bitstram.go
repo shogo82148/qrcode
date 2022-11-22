@@ -45,6 +45,26 @@ func (b *Buffer) ReadBit() (uint8, error) {
 	return bit, nil
 }
 
+func (b *Buffer) ReadBits(n int) (uint64, error) {
+	if n > 64 {
+		panic("too long bit length: " + strconv.Itoa(n))
+	}
+	if b.offset >= len(b.buf) {
+		return 0, io.EOF
+	}
+
+	var ret uint64
+	for i := 0; i < n; i++ {
+		bit, err := b.ReadBit()
+		if err != nil {
+			ret <<= n - i
+			return ret, nil
+		}
+		ret = (ret << 1) | uint64(bit)
+	}
+	return ret, nil
+}
+
 // WriteBit writes one bit to b.
 func (b *Buffer) WriteBit(bit uint8) error {
 	bit &= 1
@@ -63,7 +83,7 @@ func (b *Buffer) WriteBit(bit uint8) error {
 func (b *Buffer) WriteBitsLSB(bits uint64, n int) error {
 	switch {
 	case n > 64:
-		panic("too long bit length" + strconv.Itoa(n))
+		panic("too long bit length: " + strconv.Itoa(n))
 	case n > 56:
 		bits &= (1 << n) - 1
 		b.writeBitsLSB(uint8(bits>>56), n-56)

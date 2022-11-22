@@ -267,13 +267,14 @@ func (s *Segment) encodeNumber(version Version, buf *bitstream.Buffer) error {
 	return nil
 }
 
+var bitToAlphanumeric = []byte("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
 var alphabets [256]int
 
 func init() {
 	for i := range alphabets {
 		alphabets[i] = -1
 	}
-	for i, ch := range "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:" {
+	for i, ch := range bitToAlphanumeric {
 		alphabets[ch] = i
 	}
 }

@@ -2,7 +2,9 @@ package qrcode
 
 import (
 	"errors"
+	"fmt"
 	"image"
+	"io"
 	"math"
 	"math/bits"
 
@@ -16,8 +18,8 @@ func Decode(img image.Image) (*QRCode, error) {
 
 	bounds := img.Bounds()
 	binimg := binimage.New(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
-	version := (bounds.Dx() - 17) / 4
-	w := 16 + 4*version
+	version := Version((bounds.Dx() - 17) / 4)
+	w := 16 + 4*int(version)
 	for y := 0; y <= w; y++ {
 		for x := 0; x <= w; x++ {
 			c := imageAt(img, float64(x), float64(y))
@@ -42,7 +44,7 @@ func Decode(img image.Image) (*QRCode, error) {
 			rawFormat2 |= 1 << (14 - i)
 		}
 	}
-	_, mask, ok := decodeFormat(rawFormat1)
+	level, mask, ok := decodeFormat(rawFormat1)
 	if !ok {
 		return nil, errors.New("qr code not found")
 	}
@@ -113,16 +115,54 @@ func Decode(img image.Image) (*QRCode, error) {
 		}
 	}
 
-	// TODO: un-interleave
+	// un-interleave
+	blocks := decodeFromBits(version, level, buf.Bytes())
 
-	data := buf.Bytes()
-	if err := reedsolomon.Decode(data, 2); err != nil {
-		return nil, err
+	// error correction
+	var result []byte
+	for _, blk := range blocks {
+		data := append(blk.data, blk.correction...)
+		if err := reedsolomon.Decode(data, 2); err != nil {
+			return nil, err
+		}
+		result = append(result, data[:len(blk.data)]...)
 	}
 
-	// TODO: decode segment
+	// decode segments
+	stream := bitstream.NewBuffer(result)
+	segments := make([]Segment, 0)
+LOOP:
+	for {
+		mode, err := stream.ReadBits(4)
+		if err == io.EOF {
+			break
+		}
+		switch Mode(mode) {
+		case ModeNumber:
+			return nil, errors.New("TODO: implement me")
+		case ModeAlphanumeric:
+			seg, err := decodeAlphanumeric(version, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
+		case ModeBytes:
+			seg, err := decodeBytes(version, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
+		case ModeTerminated:
+			break LOOP
+		}
+	}
 
-	return &QRCode{}, nil
+	return &QRCode{
+		Version:  version,
+		Mask:     mask,
+		Level:    level,
+		Segments: segments,
+	}, nil
 }
 
 func imageAt(img image.Image, x, y float64) binimage.Color {
@@ -147,4 +187,119 @@ func decodeFormat(raw uint) (Level, Mask, bool) {
 		return 0, 0, false
 	}
 	return Level(idx >> 3), Mask(idx & 0b111), true
+}
+
+func decodeFromBits(version Version, level Level, buf []byte) []block {
+	capacity := capacityTable[version][level]
+	blocks := []block{}
+	for _, blockCapacity := range capacity.Blocks {
+		for i := 0; i < blockCapacity.Num; i++ {
+			blocks = append(blocks, block{
+				data:       make([]byte, blockCapacity.Data),
+				correction: make([]byte, blockCapacity.Total-blockCapacity.Data),
+			})
+		}
+	}
+
+	i := 0
+	for _, b := range buf[:capacity.Data] {
+		for {
+			if i/len(blocks) < len(blocks[i%len(blocks)].data) {
+				blocks[i%len(blocks)].data[i/len(blocks)] = b
+				i++
+				break
+			}
+			i++
+		}
+	}
+
+	i = 0
+	for _, b := range buf[capacity.Data:] {
+		for {
+			if i/len(blocks) < len(blocks[i%len(blocks)].correction) {
+				blocks[i%len(blocks)].correction[i/len(blocks)] = b
+				i++
+				break
+			}
+			i++
+		}
+	}
+	return blocks
+}
+
+func decodeAlphanumeric(version Version, buf *bitstream.Buffer) (Segment, error) {
+	var n int
+	switch {
+	case version <= 0 || version > 40:
+		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 9
+	case version < 27:
+		n = 11
+	default:
+		n = 13
+	}
+
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data := make([]byte, 0)
+	for i := uint64(0); i+1 < length; i += 2 {
+		bits, err := buf.ReadBits(11)
+		if err != nil {
+			return Segment{}, err
+		}
+		n1 := int(bits) / 45
+		n2 := int(bits) % 45
+		if n1 >= 45 {
+			return Segment{}, errors.New("invalid digit")
+		}
+		data = append(data, bitToAlphanumeric[n1], bitToAlphanumeric[n2])
+	}
+
+	if length%2 != 0 {
+		bits, err := buf.ReadBits(6)
+		if err != nil {
+			return Segment{}, err
+		}
+		if bits >= 45 {
+			return Segment{}, errors.New("invalid digit")
+		}
+		data = append(data, bitToAlphanumeric[bits])
+	}
+
+	return Segment{
+		Mode: ModeAlphanumeric,
+		Data: data,
+	}, nil
+}
+
+func decodeBytes(version Version, buf *bitstream.Buffer) (Segment, error) {
+	var n int
+	switch {
+	case version <= 0 || version > 40:
+		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 8
+	default:
+		n = 16
+	}
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data := make([]byte, length)
+	for i := uint64(0); i < length; i++ {
+		bits, err := buf.ReadBits(8)
+		if err != nil {
+			return Segment{}, err
+		}
+		data[i] = byte(bits)
+	}
+
+	return Segment{
+		Mode: ModeBytes,
+		Data: data,
+	}, nil
 }
