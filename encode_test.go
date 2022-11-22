@@ -78,6 +78,7 @@ func TestQRCode_Encode2(t *testing.T) {
 	got := img.(*binimage.Binary).Pix
 
 	// from Wikipedia: https://en.wikipedia.org/wiki/QR_code
+	// https://commons.wikimedia.org/wiki/File:Qr-1.png
 	want := []byte{
 		0b11111110, 0b00110011, 0b11111000,
 		0b10000010, 0b10001010, 0b00001000,
