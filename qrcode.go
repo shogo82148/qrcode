@@ -1,5 +1,8 @@
 package qrcode
 
+//go:generate go run genbase/main.go
+//go:generate go run genbch/main.go
+
 import "strconv"
 
 type QRCode struct {
@@ -35,6 +38,20 @@ func (lv Level) String() string {
 }
 
 type Mask int
+
+const (
+	Mask0 Mask = iota
+	Mask1
+	Mask2
+	Mask3
+	Mask4
+	Mask5
+	Mask6
+	Mask7
+	maskMax
+
+	MaskAuto Mask = -1
+)
 
 type Mode uint8
 

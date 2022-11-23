@@ -12,7 +12,7 @@ func TestQRCode_Encode1(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelM,
-		Mask:    0b010,
+		Mask:    Mask2,
 		Segments: []Segment{
 			{
 				Mode: ModeNumber,

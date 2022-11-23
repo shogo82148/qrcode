@@ -72,17 +72,6 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		}
 	}
 
-	// format
-	format := encodedFormat[int(qr.Level)<<3+int(qr.Mask)]
-	for i := 0; i < 8; i++ {
-		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
-		img.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
-
-		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
-		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
-	}
-	img.SetBinary(8, w-7, binimage.Black)
-
 	// version
 	if qr.Version >= 7 {
 		version := encodedVersion[qr.Version]
@@ -93,30 +82,42 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	}
 
 	// mask
-	var f func(i, j int) int
-	switch qr.Mask {
-	case 0b000:
-		f = func(i, j int) int { return (i + j) % 2 }
-	case 0b001:
-		f = func(i, j int) int { return i % 2 }
-	case 0b010:
-		f = func(i, j int) int { return j % 3 }
-	case 0b011:
-		f = func(i, j int) int { return (i + j) % 3 }
-	case 0b100:
-		f = func(i, j int) int { return (i/2 + j/3) % 2 }
-	case 0b101:
-		f = func(i, j int) int { return i*j%2 + i*j%3 }
-	case 0b110:
-		f = func(i, j int) int { return (i*j%2 + i*j%3) % 2 }
-	case 0b111:
-		f = func(i, j int) int { return ((i+j)%2 + i*j%3) % 2 }
-	}
-	for i := 0; i <= w; i++ {
-		for j := 0; j <= w; j++ {
-			img.XorBinary(j, i, !used.BinaryAt(j, i) && f(i, j) == 0)
+	mask := qr.Mask
+	if mask == MaskAuto {
+		var tmp binimage.Binary
+		var minPoint int
+		mask = Mask0
+		for i := Mask0; i < maskMax; i++ {
+			tmp.Mask(img, used, maskList[i])
+			format := encodedFormat[int(qr.Level)<<3+int(i)]
+			for i := 0; i < 8; i++ {
+				tmp.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
+				tmp.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
+
+				tmp.SetBinary(w-i, 8, (format>>i)&1 != 0)
+				tmp.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
+			}
+			tmp.SetBinary(8, w-7, binimage.Black)
+
+			point := tmp.Point()
+			if point < minPoint {
+				minPoint = point
+				mask = i
+			}
 		}
 	}
+
+	// format
+	format := encodedFormat[int(qr.Level)<<3+int(mask)]
+	for i := 0; i < 8; i++ {
+		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
+		img.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
+
+		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
+		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
+	}
+	img.SetBinary(8, w-7, binimage.Black)
+	img.Mask(img, used, maskList[mask])
 
 	return img, nil
 }
