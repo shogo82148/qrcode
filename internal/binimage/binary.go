@@ -83,6 +83,32 @@ func (img *Binary) XorBinary(x, y int, c Color) {
 	}
 }
 
+func (img *Binary) Mask(in, mask, pattern *Binary) *Binary {
+	if !in.Rect.Eq(mask.Rect) {
+		panic("binimage: in and mask must have same bounds")
+	}
+
+	img.Copy(in)
+	dx, dy := img.Rect.Dx(), img.Rect.Dy()
+	edge := byte(int(0xFF00 >> (dx % 8)))
+	dx -= dx % 8
+	for y := 0; y < dy; y++ {
+		for x := 0; x < dx; x += 8 {
+			offset := (y-img.Rect.Min.Y)*img.Stride + (x-img.Rect.Min.X)/8
+			offsetPattern := (y-pattern.Rect.Min.Y)*pattern.Stride + (x-pattern.Rect.Min.X)/8
+			img.Pix[offset] ^= ^mask.Pix[offset] & pattern.Pix[offsetPattern]
+		}
+		if edge != 0 {
+			x := dx
+			offset := (y-img.Rect.Min.Y)*img.Stride + (x-img.Rect.Min.X)/8
+			offsetPattern := (y-pattern.Rect.Min.Y)*pattern.Stride + (x-pattern.Rect.Min.X)/8
+			img.Pix[offset] ^= ^mask.Pix[offset] & pattern.Pix[offsetPattern] & edge
+		}
+	}
+	return img
+}
+
+// Clone returns a clone of img.
 func (img *Binary) Clone() *Binary {
 	pix := append([]byte(nil), img.Pix...)
 	return &Binary{
@@ -92,10 +118,28 @@ func (img *Binary) Clone() *Binary {
 	}
 }
 
+func (img *Binary) Copy(from *Binary) *Binary {
+	img.Pix = append(img.Pix[:0], from.Pix...)
+	img.Stride = from.Stride
+	img.Rect = from.Rect
+	return img
+}
+
+// OnesCount returns the number of 1-pixels (black-pixels).
 func (img *Binary) OnesCount() int {
 	var cnt int
-	for _, b := range img.Pix {
-		cnt += bits.OnesCount8(b)
+	dx := img.Rect.Dx()
+	length := dx / 8
+	dy := img.Rect.Dy()
+	mask := byte(int(0xff00) >> (dx % 8))
+	for y := 0; y < dy; y++ {
+		for x := 0; x < length; x++ {
+			offset := y*img.Stride + x
+			cnt += bits.OnesCount8(img.Pix[offset])
+		}
+		if mask != 0 {
+			cnt += bits.OnesCount8(img.Pix[y*img.Stride+length] & mask)
+		}
 	}
 	return cnt
 }

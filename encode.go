@@ -93,30 +93,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	}
 
 	// mask
-	var f func(i, j int) int
-	switch qr.Mask {
-	case 0b000:
-		f = func(i, j int) int { return (i + j) % 2 }
-	case 0b001:
-		f = func(i, j int) int { return i % 2 }
-	case 0b010:
-		f = func(i, j int) int { return j % 3 }
-	case 0b011:
-		f = func(i, j int) int { return (i + j) % 3 }
-	case 0b100:
-		f = func(i, j int) int { return (i/2 + j/3) % 2 }
-	case 0b101:
-		f = func(i, j int) int { return i*j%2 + i*j%3 }
-	case 0b110:
-		f = func(i, j int) int { return (i*j%2 + i*j%3) % 2 }
-	case 0b111:
-		f = func(i, j int) int { return ((i+j)%2 + i*j%3) % 2 }
-	}
-	for i := 0; i <= w; i++ {
-		for j := 0; j <= w; j++ {
-			img.XorBinary(j, i, !used.BinaryAt(j, i) && f(i, j) == 0)
-		}
-	}
+	img.Mask(img, used, maskList[qr.Mask])
 
 	return img, nil
 }

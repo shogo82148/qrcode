@@ -1,7 +1,6 @@
 package qrcode
 
 import (
-	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -76,14 +75,8 @@ func TestDecode3(t *testing.T) {
 		for x := 0; x <= 29; x++ {
 			X := float64(x)*(150/29) + 39
 			Y := float64(y)*(150/29) + 39
-			if imageAt(img, X, Y) {
-				fmt.Print("*")
-			} else {
-				fmt.Print(" ")
-			}
 			binimg.SetBinary(x, y, imageAt(img, X, Y))
 		}
-		fmt.Println()
 	}
 
 	if _, err := Decode(binimg); err != nil {

@@ -1,5 +1,8 @@
 package qrcode
 
+//go:generate go run genbase/main.go
+//go:generate go run genbch/main.go
+
 import "strconv"
 
 type QRCode struct {
