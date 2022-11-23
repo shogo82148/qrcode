@@ -72,17 +72,6 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		}
 	}
 
-	// format
-	format := encodedFormat[int(qr.Level)<<3+int(qr.Mask)]
-	for i := 0; i < 8; i++ {
-		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
-		img.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
-
-		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
-		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
-	}
-	img.SetBinary(8, w-7, binimage.Black)
-
 	// version
 	if qr.Version >= 7 {
 		version := encodedVersion[qr.Version]
@@ -93,7 +82,42 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	}
 
 	// mask
-	img.Mask(img, used, maskList[qr.Mask])
+	mask := qr.Mask
+	if mask == MaskAuto {
+		var tmp binimage.Binary
+		var minPoint int
+		mask = Mask0
+		for i := Mask0; i < maskMax; i++ {
+			tmp.Mask(img, used, maskList[i])
+			format := encodedFormat[int(qr.Level)<<3+int(i)]
+			for i := 0; i < 8; i++ {
+				tmp.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
+				tmp.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
+
+				tmp.SetBinary(w-i, 8, (format>>i)&1 != 0)
+				tmp.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
+			}
+			tmp.SetBinary(8, w-7, binimage.Black)
+
+			point := tmp.Point()
+			if point < minPoint {
+				minPoint = point
+				mask = i
+			}
+		}
+	}
+
+	// format
+	format := encodedFormat[int(qr.Level)<<3+int(mask)]
+	for i := 0; i < 8; i++ {
+		img.SetBinary(8, skipTimingPattern(i), (format>>i)&1 != 0)
+		img.SetBinary(skipTimingPattern(i), 8, (format>>(14-i))&1 != 0)
+
+		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
+		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
+	}
+	img.SetBinary(8, w-7, binimage.Black)
+	img.Mask(img, used, maskList[mask])
 
 	return img, nil
 }

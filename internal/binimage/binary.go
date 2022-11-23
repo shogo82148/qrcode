@@ -143,3 +143,111 @@ func (img *Binary) OnesCount() int {
 	}
 	return cnt
 }
+
+func (img *Binary) Point() int {
+	return img.finderPattern() + img.longRunLengthCount() + img.blockCount() + img.pointOnesCount()
+}
+
+func (img *Binary) longRunLengthCount() int {
+	var cnt int
+	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
+		var length int
+		c0 := img.BinaryAt(img.Rect.Min.X, y)
+		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
+			c := img.BinaryAt(x, y)
+			if c == c0 {
+				length++
+			} else {
+				if length >= 5 {
+					cnt += length - 5 + 3
+				}
+				c0 = c
+				length = 0
+			}
+		}
+	}
+
+	for x := img.Rect.Min.Y; x < img.Rect.Max.Y; x++ {
+		var length int
+		c0 := img.BinaryAt(x, img.Rect.Min.X)
+		for y := img.Rect.Min.X; y < img.Rect.Max.X; y++ {
+			c := img.BinaryAt(x, y)
+			if c == c0 {
+				length++
+			} else {
+				if length >= 5 {
+					cnt += length - 5 + 3
+				}
+				c0 = c
+				length = 0
+			}
+		}
+	}
+
+	return cnt
+}
+
+func (img *Binary) blockCount() int {
+	var cnt int
+	for y := img.Rect.Min.Y; y < img.Rect.Max.Y-1; y++ {
+		for x := img.Rect.Min.X; x < img.Rect.Max.X-1; x++ {
+			c1 := img.BinaryAt(y, x)
+			c2 := img.BinaryAt(y, x+1)
+			c3 := img.BinaryAt(y+1, x)
+			c4 := img.BinaryAt(y+1, x+1)
+			if c1 == c2 && c1 == c3 && c1 == c4 {
+				cnt++
+			}
+		}
+	}
+	return cnt * 3
+}
+
+func (img *Binary) finderPattern() int {
+	var cnt int
+	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
+		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
+			var c1, c2, c3, c4, c5, c6, c7 Color
+			c1 = img.BinaryAt(x, y-3)
+			c2 = img.BinaryAt(x, y-2)
+			c3 = img.BinaryAt(x, y-1)
+			c4 = img.BinaryAt(x, y)
+			c5 = img.BinaryAt(x, y+1)
+			c6 = img.BinaryAt(x, y+2)
+			c7 = img.BinaryAt(x, y+3)
+			if c1 && !c2 && c3 && c4 && c5 && !c6 && c7 {
+				c := !img.BinaryAt(x, y-4) && !img.BinaryAt(x, y-5) && !img.BinaryAt(x, y-6) && !img.BinaryAt(x, y-7)
+				c = c || !img.BinaryAt(x, y+4) && !img.BinaryAt(x, y+5) && !img.BinaryAt(x, y+6) && !img.BinaryAt(x, y+7)
+				if c {
+					cnt++
+				}
+			}
+
+			c1 = img.BinaryAt(x-3, y)
+			c2 = img.BinaryAt(x-2, y)
+			c3 = img.BinaryAt(x-1, y)
+			c4 = img.BinaryAt(x, y)
+			c5 = img.BinaryAt(x-1, y)
+			c6 = img.BinaryAt(x-2, y)
+			c7 = img.BinaryAt(x-3, y)
+			if c1 && !c2 && c3 && c4 && c5 && !c6 && c7 {
+				c := !img.BinaryAt(x-4, y) && !img.BinaryAt(x-5, y) && !img.BinaryAt(x-6, y) && !img.BinaryAt(x-7, y-7)
+				c = c || !img.BinaryAt(x+4, y) && !img.BinaryAt(x-5, y) && !img.BinaryAt(x+6, y) && !img.BinaryAt(x, y+7)
+				if c {
+					cnt++
+				}
+			}
+		}
+	}
+	return cnt * 40
+}
+
+func (img *Binary) pointOnesCount() int {
+	total := img.Rect.Dx() * img.Rect.Dy()
+	cnt := img.OnesCount()
+	p := float64(cnt)/float64(total) - 0.5
+	if p < 0 {
+		p = -p
+	}
+	return int(p*20) * 10
+}
