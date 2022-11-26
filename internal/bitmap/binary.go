@@ -1,54 +1,50 @@
-package binimage
+package bitmap
 
 import (
 	"image"
-	"image/color"
 	"math/bits"
+
+	"github.com/shogo82148/qrcode/bitmap"
 )
 
-var _ image.Image = (*Binary)(nil)
-
-type Color bool
+type Color = bitmap.Color
 
 const White Color = false
 const Black Color = true
 
-func (c Color) RGBA() (r, g, b, a uint32) {
-	if c {
-		return 0, 0, 0, 0xffff
-	}
-	return 0xffff, 0xffff, 0xffff, 0xffff
-}
-
-// Binary is a binary image.
-type Binary struct {
+// Image is a binary image.
+type Image struct {
 	Pix    []uint8
 	Stride int
 	Rect   image.Rectangle
 }
 
-func New(r image.Rectangle) *Binary {
+func New(r image.Rectangle) *Image {
 	stride := (r.Dx() + 7) / 8
-	return &Binary{
+	return &Image{
 		Pix:    make([]uint8, r.Dy()*stride),
 		Stride: stride,
 		Rect:   r,
 	}
 }
 
-func (img *Binary) ColorModel() color.Model {
-	return color.GrayModel
+func Import(img *bitmap.Image) *Image {
+	return &Image{
+		Pix:    img.Pix,
+		Stride: img.Stride,
+		Rect:   img.Rect,
+	}
 }
 
-func (img *Binary) Bounds() image.Rectangle {
-	return img.Rect
+func (img *Image) Export() *bitmap.Image {
+	return &bitmap.Image{
+		Pix:    img.Pix,
+		Stride: img.Stride,
+		Rect:   img.Rect,
+	}
 }
 
-func (img *Binary) At(x, y int) color.Color {
-	return img.BinaryAt(x, y)
-}
-
-func (img *Binary) BinaryAt(x, y int) Color {
+func (img *Image) BinaryAt(x, y int) Color {
 	if !(image.Point{x, y}).In(img.Rect) {
 		return White
 	}
@@ -57,7 +53,7 @@ func (img *Binary) BinaryAt(x, y int) Color {
 	return Color((img.Pix[offset]>>shift)&0x01 != 0)
 }
 
-func (img *Binary) SetBinary(x, y int, c Color) {
+func (img *Image) SetBinary(x, y int, c Color) {
 	if !(image.Point{x, y}).In(img.Rect) {
 		return
 	}
@@ -71,7 +67,7 @@ func (img *Binary) SetBinary(x, y int, c Color) {
 	}
 }
 
-func (img *Binary) XorBinary(x, y int, c Color) {
+func (img *Image) XorBinary(x, y int, c Color) {
 	if !(image.Point{x, y}).In(img.Rect) {
 		return
 	}
@@ -83,7 +79,7 @@ func (img *Binary) XorBinary(x, y int, c Color) {
 	}
 }
 
-func (img *Binary) Mask(in, mask, pattern *Binary) *Binary {
+func (img *Image) Mask(in, mask, pattern *Image) *Image {
 	if !in.Rect.Eq(mask.Rect) {
 		panic("binimage: in and mask must have same bounds")
 	}
@@ -109,16 +105,16 @@ func (img *Binary) Mask(in, mask, pattern *Binary) *Binary {
 }
 
 // Clone returns a clone of img.
-func (img *Binary) Clone() *Binary {
+func (img *Image) Clone() *Image {
 	pix := append([]byte(nil), img.Pix...)
-	return &Binary{
+	return &Image{
 		Pix:    pix,
 		Stride: img.Stride,
 		Rect:   img.Rect,
 	}
 }
 
-func (img *Binary) Copy(from *Binary) *Binary {
+func (img *Image) Copy(from *Image) *Image {
 	img.Pix = append(img.Pix[:0], from.Pix...)
 	img.Stride = from.Stride
 	img.Rect = from.Rect
@@ -126,7 +122,7 @@ func (img *Binary) Copy(from *Binary) *Binary {
 }
 
 // OnesCount returns the number of 1-pixels (black-pixels).
-func (img *Binary) OnesCount() int {
+func (img *Image) OnesCount() int {
 	var cnt int
 	dx := img.Rect.Dx()
 	length := dx / 8
@@ -144,11 +140,11 @@ func (img *Binary) OnesCount() int {
 	return cnt
 }
 
-func (img *Binary) Point() int {
+func (img *Image) Point() int {
 	return img.finderPattern() + img.longRunLengthCount() + img.blockCount() + img.pointOnesCount()
 }
 
-func (img *Binary) longRunLengthCount() int {
+func (img *Image) longRunLengthCount() int {
 	var cnt int
 	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
 		var length int
@@ -187,7 +183,7 @@ func (img *Binary) longRunLengthCount() int {
 	return cnt
 }
 
-func (img *Binary) blockCount() int {
+func (img *Image) blockCount() int {
 	var cnt int
 	for y := img.Rect.Min.Y; y < img.Rect.Max.Y-1; y++ {
 		for x := img.Rect.Min.X; x < img.Rect.Max.X-1; x++ {
@@ -203,7 +199,7 @@ func (img *Binary) blockCount() int {
 	return cnt * 3
 }
 
-func (img *Binary) finderPattern() int {
+func (img *Image) finderPattern() int {
 	var cnt int
 	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
 		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
@@ -242,7 +238,7 @@ func (img *Binary) finderPattern() int {
 	return cnt * 40
 }
 
-func (img *Binary) pointOnesCount() int {
+func (img *Image) pointOnesCount() int {
 	total := img.Rect.Dx() * img.Rect.Dy()
 	cnt := img.OnesCount()
 	p := float64(cnt)/float64(total) - 0.5

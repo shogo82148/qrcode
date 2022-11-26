@@ -3,30 +3,20 @@ package qrcode
 import (
 	"errors"
 	"fmt"
-	"image"
 	"io"
-	"math"
 	"math/bits"
 
-	"github.com/shogo82148/qrcode/internal/binimage"
+	"github.com/shogo82148/qrcode/bitmap"
+	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
-func Decode(img image.Image) (*QRCode, error) {
-	// TODO: find pattern
-
+func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	bounds := img.Bounds()
-	binimg := binimage.New(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
 	version := Version((bounds.Dx() - 17) / 4)
+	binimg := internalbitmap.Import(img)
 	w := 16 + 4*int(version)
-	for y := 0; y <= w; y++ {
-		for x := 0; x <= w; x++ {
-			c := imageAt(img, float64(x), float64(y))
-			binimg.SetBinary(x, y, c)
-		}
-	}
-
 	// decode format
 	var rawFormat1, rawFormat2 uint
 	for i := 0; i < 8; i++ {
@@ -144,14 +134,6 @@ LOOP:
 		Level:    level,
 		Segments: segments,
 	}, nil
-}
-
-func imageAt(img image.Image, x, y float64) binimage.Color {
-	x = math.Round(x)
-	y = math.Round(y)
-	c := img.At(int(x), int(y))
-	r, g, b, _ := c.RGBA()
-	return (r + g + b) < 128*3
 }
 
 func decodeFormat(raw uint) (Level, Mask, bool) {

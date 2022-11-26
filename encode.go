@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/shogo82148/qrcode/internal/binimage"
+	"github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
@@ -25,7 +25,7 @@ func skipTimingPattern(n int) int {
 	return n + 1
 }
 
-func (qr *QRCode) Encode() (image.Image, error) {
+func (qr *QRCode) EncodeToBitmap() (image.Image, error) {
 	var buf bitstream.Buffer
 	if err := qr.encodeToBits(&buf); err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 	// mask
 	mask := qr.Mask
 	if mask == MaskAuto {
-		var tmp binimage.Binary
+		var tmp bitmap.Image
 		var minPoint int
 		mask = Mask0
 		for i := Mask0; i < maskMax; i++ {
@@ -97,7 +97,7 @@ func (qr *QRCode) Encode() (image.Image, error) {
 				tmp.SetBinary(w-i, 8, (format>>i)&1 != 0)
 				tmp.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
 			}
-			tmp.SetBinary(8, w-7, binimage.Black)
+			tmp.SetBinary(8, w-7, bitmap.Black)
 
 			point := tmp.Point()
 			if point < minPoint {
@@ -116,10 +116,10 @@ func (qr *QRCode) Encode() (image.Image, error) {
 		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
 		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
 	}
-	img.SetBinary(8, w-7, binimage.Black)
+	img.SetBinary(8, w-7, bitmap.Black)
 	img.Mask(img, used, maskList[mask])
 
-	return img, nil
+	return img.Export(), nil
 }
 
 type block struct {

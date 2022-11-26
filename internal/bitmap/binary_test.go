@@ -1,4 +1,4 @@
-package binimage
+package bitmap
 
 import (
 	"bytes"
@@ -57,22 +57,22 @@ func TestMask(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		in := &Binary{
+		in := &Image{
 			Pix:    tt.in,
 			Stride: (tt.w + 7) / 8,
 			Rect:   image.Rect(0, 0, tt.w, tt.h),
 		}
-		mask := &Binary{
+		mask := &Image{
 			Pix:    tt.mask,
 			Stride: (tt.w + 7) / 8,
 			Rect:   image.Rect(0, 0, tt.w, tt.h),
 		}
-		pattern := &Binary{
+		pattern := &Image{
 			Pix:    tt.pattern,
 			Stride: (tt.w + 7) / 8,
 			Rect:   image.Rect(0, 0, tt.w, tt.h),
 		}
-		var img Binary
+		var img Image
 		img.Mask(in, mask, pattern)
 		if !bytes.Equal(img.Pix, tt.want) {
 			t.Errorf("%d: got %08b, want %08b", i, img.Pix, tt.want)
