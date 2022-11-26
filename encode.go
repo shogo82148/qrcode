@@ -37,10 +37,23 @@ type encodeOptions struct {
 	ModuleSize float64
 }
 
+type withModuleSize float64
+
+func (opt withModuleSize) apply(opts *encodeOptions) {
+	opts.ModuleSize = float64(opt)
+}
+
+func WithModuleSize(size float64) EncodeOptions {
+	return withModuleSize(size)
+}
+
 func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	myopts := encodeOptions{
 		QuiteZone:  4,
-		ModuleSize: 16,
+		ModuleSize: 1,
+	}
+	for _, o := range opts {
+		o.apply(&myopts)
 	}
 
 	binimg, err := qr.EncodeToBitmap()
