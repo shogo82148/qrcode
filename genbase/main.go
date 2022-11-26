@@ -34,7 +34,7 @@ func main() {
 	fmt.Fprintf(&buf, "package qrcode\n\n")
 	fmt.Fprintf(&buf, "import (\n")
 	fmt.Fprintf(&buf, "\"image\"\n")
-	fmt.Fprintf(&buf, "\"github.com/shogo82148/qrcode/internal/binimage\"\n")
+	fmt.Fprintf(&buf, "\"github.com/shogo82148/qrcode/internal/bitmap\"\n")
 	fmt.Fprintf(&buf, ")\n\n")
 
 	genMaskList(&buf)
@@ -50,7 +50,7 @@ func main() {
 }
 
 func genMaskList(buf *bytes.Buffer) {
-	fmt.Fprintf(buf, "var maskList = []*binimage.Binary{\n")
+	fmt.Fprintf(buf, "var maskList = []*bitmap.Image{\n")
 	genMask(buf, func(i, j int) int { return (i + j) % 2 })
 	genMask(buf, func(i, j int) int { return i % 2 })
 	genMask(buf, func(i, j int) int { return j % 3 })
@@ -83,7 +83,7 @@ func genBaseList(buf *bytes.Buffer) {
 		usedList = append(usedList, used)
 	}
 
-	fmt.Fprintf(buf, "var baseList = []*binimage.Binary{\n")
+	fmt.Fprintf(buf, "var baseList = []*bitmap.Image{\n")
 	fmt.Fprintf(buf, "nil, // dummy\n")
 	for version := 1; version <= 40; version++ {
 		fmt.Fprintf(buf, "\n// version %d\n", version)
@@ -91,7 +91,7 @@ func genBaseList(buf *bytes.Buffer) {
 	}
 	fmt.Fprintf(buf, "}\n\n")
 
-	fmt.Fprintf(buf, "var usedList = []*binimage.Binary{\n")
+	fmt.Fprintf(buf, "var usedList = []*bitmap.Image{\n")
 	fmt.Fprintf(buf, "nil, // dummy\n")
 	for version := 1; version <= 40; version++ {
 		fmt.Fprintf(buf, "\n// version %d\n", version)
