@@ -3,16 +3,11 @@ package qrcode
 import (
 	"image"
 	"image/png"
-	"math"
 	"os"
 	"testing"
 
 	"github.com/shogo82148/qrcode/bitmap"
 )
-
-func round(x float64) int {
-	return int(math.Round(x))
-}
 
 func TestDecode1(t *testing.T) {
 	// from https://commons.wikimedia.org/wiki/File:Qr-1.png

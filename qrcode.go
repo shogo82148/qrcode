@@ -3,7 +3,10 @@ package qrcode
 //go:generate go run genbase/main.go
 //go:generate go run genbch/main.go
 
-import "strconv"
+import (
+	"math"
+	"strconv"
+)
 
 type QRCode struct {
 	Version  Version
@@ -86,4 +89,8 @@ const (
 type Segment struct {
 	Mode Mode
 	Data []byte
+}
+
+func round(x float64) int {
+	return int(math.Round(x))
 }

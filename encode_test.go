@@ -2,13 +2,36 @@ package qrcode
 
 import (
 	"bytes"
+	"image/png"
+	"os"
 	"testing"
 
-	"github.com/shogo82148/qrcode/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestQRCode_Encode1(t *testing.T) {
+func TestQRCode_Encode(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelM,
+		Mask:    Mask2,
+		Segments: []Segment{
+			{
+				Mode: ModeNumber,
+				Data: []byte("01234567"),
+			},
+		},
+	}
+	img, err := qr.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	png.Encode(&buf, img)
+	os.WriteFile("qr.png", buf.Bytes(), 0644)
+}
+
+func TestQRCode_EncodeToBitmap1(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelM,
@@ -24,8 +47,7 @@ func TestQRCode_Encode1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	got := img.(*bitmap.Image).Pix
+	got := img.Pix
 
 	// X 0510 : 2018
 	// 附属書I (参考)
@@ -58,7 +80,7 @@ func TestQRCode_Encode1(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode2(t *testing.T) {
+func TestQRCode_EncodeToBitmap2(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelH,
@@ -74,8 +96,7 @@ func TestQRCode_Encode2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	got := img.(*bitmap.Image).Pix
+	got := img.Pix
 
 	// from Wikipedia: https://en.wikipedia.org/wiki/QR_code
 	// https://commons.wikimedia.org/wiki/File:Qr-1.png
@@ -107,7 +128,7 @@ func TestQRCode_Encode2(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode3(t *testing.T) {
+func TestQRCode_EncodeToBitmap3(t *testing.T) {
 	qr := &QRCode{
 		Version: 2,
 		Level:   LevelH,
@@ -124,7 +145,7 @@ func TestQRCode_Encode3(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got := img.(*bitmap.Image).Pix
+	got := img.Pix
 
 	// from Wikipedia: https://en.wikipedia.org/wiki/QR_code
 	want := []byte{
@@ -159,7 +180,7 @@ func TestQRCode_Encode3(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode4(t *testing.T) {
+func TestQRCode_EncodeToBitmap4(t *testing.T) {
 	qr := &QRCode{
 		Version: 3,
 		Level:   LevelH,
@@ -175,8 +196,7 @@ func TestQRCode_Encode4(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	got := img.(*bitmap.Image).Pix
+	got := img.Pix
 
 	// from Wikipedia: https://en.wikipedia.org/wiki/QR_code
 	want := []byte{
@@ -215,7 +235,7 @@ func TestQRCode_Encode4(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode5(t *testing.T) {
+func TestQRCode_EncodeToBitmap5(t *testing.T) {
 	qr := &QRCode{
 		Version: 10,
 		Level:   LevelH,
@@ -249,8 +269,7 @@ func TestQRCode_Encode5(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	got := img.(*bitmap.Image).Pix
+	got := img.Pix
 
 	// from Wikipedia: https://en.wikipedia.org/wiki/QR_code
 	// https://commons.wikimedia.org/wiki/File:Qr-code-ver-10.png
@@ -318,7 +337,7 @@ func TestQRCode_Encode5(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode_ErrorTooLong(t *testing.T) {
+func TestQRCode_EncodeToBitmap_ErrorTooLong(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelH,
@@ -336,7 +355,7 @@ func TestQRCode_Encode_ErrorTooLong(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode_ErrorInvalidNumber(t *testing.T) {
+func TestQRCode_EncodeToBitmap_ErrorInvalidNumber(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelM,
@@ -354,7 +373,7 @@ func TestQRCode_Encode_ErrorInvalidNumber(t *testing.T) {
 	}
 }
 
-func TestQRCode_Encode_ErrorInvalidAlphanumeric(t *testing.T) {
+func TestQRCode_EncodeToBitmap_ErrorInvalidAlphanumeric(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,
 		Level:   LevelM,

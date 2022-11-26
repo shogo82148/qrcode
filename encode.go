@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
+	"math"
 
-	"github.com/shogo82148/qrcode/internal/bitmap"
+	bitmap "github.com/shogo82148/qrcode/bitmap"
+	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
@@ -25,7 +28,59 @@ func skipTimingPattern(n int) int {
 	return n + 1
 }
 
-func (qr *QRCode) EncodeToBitmap() (image.Image, error) {
+type EncodeOptions interface {
+	apply(opts *encodeOptions)
+}
+
+type encodeOptions struct {
+	QuiteZone  int
+	ModuleSize float64
+}
+
+func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
+	myopts := encodeOptions{
+		QuiteZone:  4,
+		ModuleSize: 16,
+	}
+
+	binimg, err := qr.EncodeToBitmap()
+	if err != nil {
+		return nil, err
+	}
+
+	w := binimg.Bounds().Dx() + myopts.QuiteZone*2
+	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
+	scale := 1 / myopts.ModuleSize
+	dX := float64(myopts.QuiteZone) * myopts.ModuleSize
+	dY := float64(myopts.QuiteZone) * myopts.ModuleSize
+
+	// create new paletted image
+	palette := color.Palette{
+		color.White, color.Black,
+	}
+	white := uint8(0)
+	black := uint8(1)
+	bounds := image.Rect(0, 0, W, W)
+	img := image.NewPaletted(bounds, palette)
+
+	// convert bitmap to image
+	for Y := bounds.Min.Y; Y < bounds.Max.Y; Y++ {
+		y := round((float64(Y) - dY) * scale)
+		for X := bounds.Min.X; X < bounds.Max.X; X++ {
+			x := round((float64(X) - dX) * scale)
+			c := binimg.BinaryAt(x, y)
+			if c {
+				img.SetColorIndex(X, Y, black)
+			} else {
+				img.SetColorIndex(X, Y, white)
+			}
+		}
+	}
+	return img, nil
+}
+
+// EncodeToBitmap encodes QR Code into bitmap image.
+func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	var buf bitstream.Buffer
 	if err := qr.encodeToBits(&buf); err != nil {
 		return nil, err
@@ -84,7 +139,7 @@ func (qr *QRCode) EncodeToBitmap() (image.Image, error) {
 	// mask
 	mask := qr.Mask
 	if mask == MaskAuto {
-		var tmp bitmap.Image
+		var tmp internalbitmap.Image
 		var minPoint int
 		mask = Mask0
 		for i := Mask0; i < maskMax; i++ {
@@ -97,7 +152,7 @@ func (qr *QRCode) EncodeToBitmap() (image.Image, error) {
 				tmp.SetBinary(w-i, 8, (format>>i)&1 != 0)
 				tmp.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
 			}
-			tmp.SetBinary(8, w-7, bitmap.Black)
+			tmp.SetBinary(8, w-7, internalbitmap.Black)
 
 			point := tmp.Point()
 			if point < minPoint {
@@ -116,7 +171,7 @@ func (qr *QRCode) EncodeToBitmap() (image.Image, error) {
 		img.SetBinary(w-i, 8, (format>>i)&1 != 0)
 		img.SetBinary(8, w-i, (format>>(14-i))&1 != 0)
 	}
-	img.SetBinary(8, w-7, bitmap.Black)
+	img.SetBinary(8, w-7, internalbitmap.Black)
 	img.Mask(img, used, maskList[mask])
 
 	return img.Export(), nil
