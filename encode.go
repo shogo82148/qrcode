@@ -47,6 +47,16 @@ func WithModuleSize(size float64) EncodeOptions {
 	return withModuleSize(size)
 }
 
+type withQuiteZone int
+
+func (opt withQuiteZone) apply(opts *encodeOptions) {
+	opts.QuiteZone = int(opt)
+}
+
+func WithQuiteZone(n int) EncodeOptions {
+	return withQuiteZone(n)
+}
+
 func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	myopts := encodeOptions{
 		QuiteZone:  4,
@@ -63,9 +73,9 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 
 	w := binimg.Bounds().Dx() + myopts.QuiteZone*2
 	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
-	scale := 1 / myopts.ModuleSize
-	dX := float64(myopts.QuiteZone) * myopts.ModuleSize
-	dY := float64(myopts.QuiteZone) * myopts.ModuleSize
+	scale := myopts.ModuleSize
+	dX := float64(myopts.QuiteZone) * scale
+	dY := float64(myopts.QuiteZone) * scale
 
 	// create new paletted image
 	palette := color.Palette{
@@ -78,9 +88,9 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 
 	// convert bitmap to image
 	for Y := bounds.Min.Y; Y < bounds.Max.Y; Y++ {
-		y := round((float64(Y) - dY) * scale)
+		y := int(math.Floor((float64(Y) - dY) / scale))
 		for X := bounds.Min.X; X < bounds.Max.X; X++ {
-			x := round((float64(X) - dX) * scale)
+			x := int(math.Floor((float64(X) - dX) / scale))
 			c := binimg.BinaryAt(x, y)
 			if c {
 				img.SetColorIndex(X, Y, black)

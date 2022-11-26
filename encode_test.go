@@ -21,7 +21,7 @@ func TestQRCode_Encode(t *testing.T) {
 			},
 		},
 	}
-	img, err := qr.Encode()
+	img, err := qr.Encode(WithModuleSize(2), WithQuiteZone(8))
 	if err != nil {
 		t.Fatal(err)
 	}
