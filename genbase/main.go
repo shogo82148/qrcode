@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shogo82148/qrcode/internal/binimage"
+	"github.com/shogo82148/qrcode/internal/bitmap"
 )
 
 func abs(x int) int {
@@ -34,7 +34,7 @@ func main() {
 	fmt.Fprintf(&buf, "package qrcode\n\n")
 	fmt.Fprintf(&buf, "import (\n")
 	fmt.Fprintf(&buf, "\"image\"\n")
-	fmt.Fprintf(&buf, "\"github.com/shogo82148/qrcode/internal/binimage\"\n")
+	fmt.Fprintf(&buf, "\"github.com/shogo82148/qrcode/internal/bitmap\"\n")
 	fmt.Fprintf(&buf, ")\n\n")
 
 	genMaskList(&buf)
@@ -50,7 +50,7 @@ func main() {
 }
 
 func genMaskList(buf *bytes.Buffer) {
-	fmt.Fprintf(buf, "var maskList = []*binimage.Binary{\n")
+	fmt.Fprintf(buf, "var maskList = []*bitmap.Image{\n")
 	genMask(buf, func(i, j int) int { return (i + j) % 2 })
 	genMask(buf, func(i, j int) int { return i % 2 })
 	genMask(buf, func(i, j int) int { return j % 3 })
@@ -64,7 +64,7 @@ func genMaskList(buf *bytes.Buffer) {
 
 func genMask(buf *bytes.Buffer, f func(i, j int) int) {
 	w, h := 184, 177
-	img := binimage.New(image.Rect(0, 0, w, h))
+	img := bitmap.New(image.Rect(0, 0, w, h))
 	for i := 0; i < h; i++ {
 		for j := 0; j < w; j++ {
 			img.SetBinary(j, i, f(i, j) == 0)
@@ -74,8 +74,8 @@ func genMask(buf *bytes.Buffer, f func(i, j int) int) {
 }
 
 func genBaseList(buf *bytes.Buffer) {
-	imgList := []*binimage.Binary{nil}
-	usedList := []*binimage.Binary{nil}
+	imgList := []*bitmap.Image{nil}
+	usedList := []*bitmap.Image{nil}
 
 	for version := 1; version <= 40; version++ {
 		img, used := newBase(version)
@@ -83,7 +83,7 @@ func genBaseList(buf *bytes.Buffer) {
 		usedList = append(usedList, used)
 	}
 
-	fmt.Fprintf(buf, "var baseList = []*binimage.Binary{\n")
+	fmt.Fprintf(buf, "var baseList = []*bitmap.Image{\n")
 	fmt.Fprintf(buf, "nil, // dummy\n")
 	for version := 1; version <= 40; version++ {
 		fmt.Fprintf(buf, "\n// version %d\n", version)
@@ -91,7 +91,7 @@ func genBaseList(buf *bytes.Buffer) {
 	}
 	fmt.Fprintf(buf, "}\n\n")
 
-	fmt.Fprintf(buf, "var usedList = []*binimage.Binary{\n")
+	fmt.Fprintf(buf, "var usedList = []*bitmap.Image{\n")
 	fmt.Fprintf(buf, "nil, // dummy\n")
 	for version := 1; version <= 40; version++ {
 		fmt.Fprintf(buf, "\n// version %d\n", version)
@@ -150,10 +150,10 @@ var positions = [][]int{
 	{6, 30, 58, 86, 114, 142, 170}, // Version 40
 }
 
-func newBase(version int) (*binimage.Binary, *binimage.Binary) {
+func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 	w := 16 + 4*version
-	img := binimage.New(image.Rect(0, 0, w+1, w+1))
-	used := binimage.New(image.Rect(0, 0, w+1, w+1))
+	img := bitmap.New(image.Rect(0, 0, w+1, w+1))
+	used := bitmap.New(image.Rect(0, 0, w+1, w+1))
 
 	// timing pattern
 	for i := 0; i <= w; i++ {
@@ -167,7 +167,7 @@ func newBase(version int) (*binimage.Binary, *binimage.Binary) {
 	for y := 0; y < 8; y++ {
 		for x := 0; x < 8; x++ {
 			d := max(abs(x-3), abs(y-3))
-			c := binimage.Color(d != 2 && d != 4)
+			c := bitmap.Color(d != 2 && d != 4)
 			img.SetBinary(x, y, c)
 			img.SetBinary(w-x, y, c)
 			img.SetBinary(x, w-y, c)
@@ -213,18 +213,18 @@ func newBase(version int) (*binimage.Binary, *binimage.Binary) {
 	return img, used
 }
 
-func drawPositionPattern(img, used *binimage.Binary, cx, cy int) {
+func drawPositionPattern(img, used *bitmap.Image, cx, cy int) {
 	for y := -2; y <= 2; y++ {
 		for x := -2; x <= 2; x++ {
 			d := max(abs(x), abs(y))
-			c := binimage.Color(d != 1)
+			c := bitmap.Color(d != 1)
 			img.SetBinary(x+cx, y+cy, c)
 			used.SetBinary(x+cx, y+cy, true)
 		}
 	}
 }
 
-func writeImage(buf *bytes.Buffer, img *binimage.Binary) {
+func writeImage(buf *bytes.Buffer, img *bitmap.Image) {
 	fmt.Fprintf(buf, "{\n")
 	fmt.Fprintf(buf, "Stride: %d,\n", img.Stride)
 	fmt.Fprintf(buf, "Rect: image.Rect(%d, %d, %d, %d),\n",

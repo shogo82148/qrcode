@@ -39,7 +39,7 @@ func main() {
 			},
 		},
 	}
-	img, err := qr.Encode()
+	img, err := qr.EncodeToBitmap()
 	if err != nil {
 		log.Fatal(err)
 	}

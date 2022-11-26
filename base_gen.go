@@ -3,11 +3,11 @@
 package qrcode
 
 import (
-	"github.com/shogo82148/qrcode/internal/binimage"
+	"github.com/shogo82148/qrcode/internal/bitmap"
 	"image"
 )
 
-var maskList = []*binimage.Binary{
+var maskList = []*bitmap.Image{
 	{
 		Stride: 23,
 		Rect:   image.Rect(0, 0, 184, 177),
@@ -1474,7 +1474,7 @@ var maskList = []*binimage.Binary{
 	},
 }
 
-var baseList = []*binimage.Binary{
+var baseList = []*bitmap.Image{
 	nil, // dummy
 
 	// version 1
@@ -5758,7 +5758,7 @@ var baseList = []*binimage.Binary{
 	},
 }
 
-var usedList = []*binimage.Binary{
+var usedList = []*bitmap.Image{
 	nil, // dummy
 
 	// version 1
