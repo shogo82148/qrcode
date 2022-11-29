@@ -73,6 +73,49 @@ func TestEncode3(t *testing.T) {
 	}
 }
 
+func TestSegment_Length(t *testing.T) {
+	test := func(version Version, s Segment) {
+		t.Helper()
+		l := s.length(version)
+		var buf bitstream.Buffer
+		if err := s.encode(version, &buf); err != nil {
+			t.Fatal(err)
+		}
+		if l != buf.Len() {
+			t.Errorf("length mismatch: want %d, got %d", buf.Len(), l)
+		}
+	}
+
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0'},
+	})
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0', '1'},
+	})
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0', '1', '2'},
+	})
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0', '1', '2', '3'},
+	})
+	test(1, Segment{
+		Mode: ModeAlphanumeric,
+		Data: []byte{'A'},
+	})
+	test(1, Segment{
+		Mode: ModeAlphanumeric,
+		Data: []byte{'A', 'B'},
+	})
+	test(1, Segment{
+		Mode: ModeBytes,
+		Data: []byte{'a'},
+	})
+}
+
 func TestQRCode_EncodeToBitmap1(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,

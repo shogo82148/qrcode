@@ -196,13 +196,18 @@ func New(level Level, data []byte) (*QRCode, error) {
 }
 
 func calcVersion(level Level, segments []Segment) Version {
+LOOP:
 	for version := Version(1); version <= 40; version++ {
+		capacity := capacityTable[version][level].Data * 8
 		length := 0
 		for _, s := range segments {
-			length += s.length(version)
+			l := s.length(version)
+			length += l
+			if length > capacity {
+				continue LOOP
+			}
 		}
-		length += 4 // for ModeTerminated
-		if length < capacityTable[version][level].Data*8 {
+		if length <= capacity {
 			return version
 		}
 	}
@@ -536,11 +541,9 @@ func (s *Segment) length(version Version) int {
 		case version <= 0 || version > 40:
 			panic(fmt.Errorf("qrcode: invalid version: %d", version))
 		case version < 10:
-			n += 9
-		case version < 27:
-			n += 11
+			n += 8
 		default:
-			n += 13
+			n += 16
 		}
 		n += len(s.Data) * 8
 		return n
