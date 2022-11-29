@@ -86,6 +86,29 @@ const (
 	ModeTerminated Mode = 0b0000
 )
 
+func (mode Mode) String() string {
+	switch mode {
+	case ModeECI:
+		return "eci"
+	case ModeNumeric:
+		return "numeric"
+	case ModeAlphanumeric:
+		return "alphanumeric"
+	case ModeBytes:
+		return "bytes"
+	case ModeKanji:
+		return "kanji"
+	case ModeConnected:
+		return "connected"
+	case ModeFNC1_1:
+		return "fcn1-1"
+	case ModeFNC1_2:
+		return "fnc1-2"
+	default:
+		return "(unknown mode: " + strconv.Itoa(int(mode)) + ")"
+	}
+}
+
 type Segment struct {
 	Mode Mode
 	Data []byte

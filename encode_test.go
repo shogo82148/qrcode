@@ -7,13 +7,16 @@ import (
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestEncode(t *testing.T) {
+func TestEncode1(t *testing.T) {
 	qr, err := New(LevelH, []byte("01234567"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if qr.Mask != MaskAuto {
 		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
 	}
 	if len(qr.Segments) != 1 {
 		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
@@ -23,6 +26,50 @@ func TestEncode(t *testing.T) {
 	}
 	if !bytes.Equal(qr.Segments[0].Data, []byte("01234567")) {
 		t.Errorf("got %q, want %q", qr.Segments[0].Data, "01234567")
+	}
+}
+
+func TestEncode2(t *testing.T) {
+	qr, err := New(LevelH, []byte("Ver1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeBytes {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeBytes)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("Ver1")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "Ver1")
+	}
+}
+
+func TestEncode3(t *testing.T) {
+	qr, err := New(LevelH, []byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 10 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 5 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeAlphanumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeBytes)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("VERSION 10 QR CODE")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "VERSION 10 QR CODE")
 	}
 }
 

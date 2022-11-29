@@ -182,11 +182,31 @@ func New(level Level, data []byte) (*QRCode, error) {
 		}
 	}
 
+	version := calcVersion(level, segments)
+	if version == 0 {
+		return nil, errors.New("qrcode: data too large")
+	}
+
 	return &QRCode{
+		Version:  version,
 		Level:    level,
 		Mask:     MaskAuto,
 		Segments: segments,
 	}, nil
+}
+
+func calcVersion(level Level, segments []Segment) Version {
+	for version := Version(1); version <= 40; version++ {
+		length := 0
+		for _, s := range segments {
+			length += s.length(version)
+		}
+		length += 4 // for ModeTerminated
+		if length < capacityTable[version][level].Data*8 {
+			return version
+		}
+	}
+	return 0
 }
 
 func isNumeric(ch byte) bool {
@@ -469,6 +489,63 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 		return s.encodeBytes(version, buf)
 	default:
 		return errors.New("qrcode: unknown mode")
+	}
+}
+
+// length returns the length of s in bits.
+func (s *Segment) length(version Version) int {
+	var n int = 4 // mode indicator
+	switch s.Mode {
+	case ModeNumeric:
+		switch {
+		case version <= 0 || version > 40:
+			panic(fmt.Errorf("qrcode: invalid version: %d", version))
+		case version < 10:
+			n += 10
+		case version < 27:
+			n += 12
+		default:
+			n += 14
+		}
+		n += 10 * (len(s.Data) / 3)
+		switch len(s.Data) % 3 {
+		case 1:
+			n += 4
+		case 2:
+			n += 7
+		}
+		return n
+	case ModeAlphanumeric:
+		switch {
+		case version <= 0 || version > 40:
+			panic(fmt.Errorf("qrcode: invalid version: %d", version))
+		case version < 10:
+			n += 9
+		case version < 27:
+			n += 11
+		default:
+			n += 13
+		}
+		n += 11 * (len(s.Data) / 2)
+		if len(s.Data)%2 != 0 {
+			n += 6
+		}
+		return n
+	case ModeBytes:
+		switch {
+		case version <= 0 || version > 40:
+			panic(fmt.Errorf("qrcode: invalid version: %d", version))
+		case version < 10:
+			n += 9
+		case version < 27:
+			n += 11
+		default:
+			n += 13
+		}
+		n += len(s.Data) * 8
+		return n
+	default:
+		panic(errors.New("qrcode: unknown mode"))
 	}
 }
 
