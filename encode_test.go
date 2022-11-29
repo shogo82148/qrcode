@@ -2,33 +2,28 @@ package qrcode
 
 import (
 	"bytes"
-	"image/png"
-	"os"
 	"testing"
 
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestQRCode_Encode(t *testing.T) {
-	qr := &QRCode{
-		Version: 1,
-		Level:   LevelM,
-		Mask:    Mask2,
-		Segments: []Segment{
-			{
-				Mode: ModeNumber,
-				Data: []byte("01234567"),
-			},
-		},
-	}
-	img, err := qr.Encode(WithModuleSize(2), WithQuiteZone(8))
+func TestEncode(t *testing.T) {
+	qr, err := New(LevelH, []byte("01234567"))
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	var buf bytes.Buffer
-	png.Encode(&buf, img)
-	os.WriteFile("qr.png", buf.Bytes(), 0644)
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("01234567")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "01234567")
+	}
 }
 
 func TestQRCode_EncodeToBitmap1(t *testing.T) {
@@ -38,7 +33,7 @@ func TestQRCode_EncodeToBitmap1(t *testing.T) {
 		Mask:    Mask2,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("01234567"),
 			},
 		},
@@ -344,7 +339,7 @@ func TestQRCode_EncodeToBitmap_ErrorTooLong(t *testing.T) {
 		Mask:    0b010,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("123456789012345678"),
 			},
 		},
@@ -362,7 +357,7 @@ func TestQRCode_EncodeToBitmap_ErrorInvalidNumber(t *testing.T) {
 		Mask:    0b010,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("A"),
 			},
 		},
@@ -397,7 +392,7 @@ func TestQRCode_encodeToBits(t *testing.T) {
 		Level:   LevelM,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("01234567"),
 			},
 		},
@@ -577,7 +572,7 @@ func TestQRCode_encodeSegments(t *testing.T) {
 
 func TestSegment_encodeNumber(t *testing.T) {
 	s := &Segment{
-		Mode: ModeNumber,
+		Mode: ModeNumeric,
 		Data: []byte("01234567"),
 	}
 	var buf bitstream.Buffer
@@ -645,7 +640,7 @@ func BenchmarkEncode(b *testing.B) {
 		Mask:    0b010,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: bytes.Repeat([]byte("9"), 3057),
 			},
 		},

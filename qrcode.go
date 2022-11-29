@@ -62,9 +62,9 @@ const (
 	// ModeECI is ECI(Extended Channel Interpretation) mode.
 	ModeECI Mode = 0b0111
 
-	// ModeNumber is number mode.
+	// ModeNumeric is number mode.
 	// The Data must be ascii characters [0-9].
-	ModeNumber Mode = 0b0001
+	ModeNumeric Mode = 0b0001
 
 	// ModeAlphanumeric is alphabet and number mode.
 	// The Data must be ascii characters [0-9A-Z $%*+\-./:].

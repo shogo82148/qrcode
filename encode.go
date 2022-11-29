@@ -15,8 +15,186 @@ import (
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
-func New(data []byte) (*QRCode, error) {
-	return &QRCode{}, nil
+func New(level Level, data []byte) (*QRCode, error) {
+	if len(data) == 0 {
+		return &QRCode{
+			Version: 1,
+			Level:   level,
+			Mask:    MaskAuto,
+		}, nil
+	}
+
+	const inf = math.MaxInt - 1<<18 // 1<<18 is for avoiding overflow
+	const (
+		modeNumeric byte = iota
+		modeAlphanumeric
+		modeBytes
+		modeInit
+	)
+	type state struct {
+		cost     int // = bit length * 6
+		lastMode byte
+	}
+	states := make([][3]state, len(data))
+	if isNumeric(data[0]) {
+		states[0][modeNumeric] = state{
+			cost:     (4+14)*6 + 20,
+			lastMode: modeInit,
+		}
+	} else {
+		states[0][modeNumeric] = state{
+			cost:     inf,
+			lastMode: modeInit,
+		}
+	}
+	if isAlphanumeric(data[0]) {
+		states[0][modeAlphanumeric] = state{
+			cost:     (4+13)*6 + 33,
+			lastMode: modeInit,
+		}
+	} else {
+		states[0][modeAlphanumeric] = state{
+			cost:     inf,
+			lastMode: modeInit,
+		}
+	}
+	states[0][modeBytes] = state{
+		cost:     (4 + 16 + 8) * 6,
+		lastMode: modeInit,
+	}
+
+	for i := 1; i < len(data); i++ {
+		if isNumeric(data[i]) {
+			// numeric -> numeric
+			minCost := states[i-1][modeNumeric].cost + 20
+			lastMode := modeNumeric
+
+			// alphanumeric -> numeric
+			cost := states[i-1][modeAlphanumeric].cost + (4+14)*6 + 20
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeAlphanumeric
+			}
+
+			// bytes -> numeric
+			cost = states[i-1][modeBytes].cost + (4+14)*6 + 20
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeBytes
+			}
+
+			states[i][modeNumeric] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+			}
+		} else {
+			states[i][modeNumeric] = state{
+				cost:     inf,
+				lastMode: modeInit,
+			}
+		}
+
+		if isAlphanumeric(data[i]) {
+			// numeric -> alphanumeric
+			minCost := states[i-1][modeNumeric].cost + (4+13)*6 + 33
+			lastMode := modeNumeric
+
+			// alphanumeric -> numeric
+			cost := states[i-1][modeAlphanumeric].cost + 33
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeAlphanumeric
+			}
+
+			// bytes -> numeric
+			cost = states[i-1][modeBytes].cost + (4+13)*6 + 33
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeBytes
+			}
+
+			states[i][modeAlphanumeric] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+			}
+		} else {
+			states[i][modeAlphanumeric] = state{
+				cost:     inf,
+				lastMode: modeInit,
+			}
+		}
+
+		// numeric -> bytes
+		minCost := states[i-1][modeNumeric].cost + (4+16+8)*6
+		lastMode := modeNumeric
+
+		// alphanumeric -> bytes
+		cost := states[i-1][modeAlphanumeric].cost + (4+16+8)*6
+		if cost < minCost {
+			minCost = cost
+			lastMode = modeAlphanumeric
+		}
+
+		// bytes -> bytes
+		cost = states[i-1][modeBytes].cost + 8*6
+		if cost < minCost {
+			minCost = cost
+			lastMode = modeBytes
+		}
+		states[i][modeBytes] = state{
+			cost:     minCost,
+			lastMode: lastMode,
+		}
+	}
+
+	best := make([]byte, len(data))
+	minCost := states[len(data)-1][modeNumeric].cost
+	bestMode := modeNumeric
+	if cost := states[len(data)-1][modeAlphanumeric].cost; cost < minCost {
+		minCost = cost
+		bestMode = modeAlphanumeric
+	}
+	if cost := states[len(data)-1][modeBytes].cost; cost < minCost {
+		bestMode = modeBytes
+	}
+	best[len(data)-1] = bestMode
+	for i := len(data) - 1; i > 0; i-- {
+		bestMode = states[i][bestMode].lastMode
+		best[i-1] = bestMode
+	}
+
+	modeList := [...]Mode{ModeNumeric, ModeAlphanumeric, ModeBytes}
+	segments := []Segment{
+		{
+			Mode: modeList[best[0]],
+			Data: []byte{data[0]},
+		},
+	}
+	for i := 1; i < len(data); i++ {
+		mode := modeList[best[i]]
+		if segments[len(segments)-1].Mode == mode {
+			segments[len(segments)-1].Data = append(segments[len(segments)-1].Data, data[i])
+		} else {
+			segments = append(segments, Segment{
+				Mode: mode,
+				Data: []byte{data[i]},
+			})
+		}
+	}
+
+	return &QRCode{
+		Level:    level,
+		Mask:     MaskAuto,
+		Segments: segments,
+	}, nil
+}
+
+func isNumeric(ch byte) bool {
+	return ch >= '0' && ch <= '9'
+}
+
+func isAlphanumeric(ch byte) bool {
+	return alphabets[ch] >= 0
 }
 
 const timingPatternOffset = 6
@@ -283,7 +461,7 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 
 func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 	switch s.Mode {
-	case ModeNumber:
+	case ModeNumeric:
 		return s.encodeNumber(version, buf)
 	case ModeAlphanumeric:
 		return s.encodeAlphabet(version, buf)
@@ -319,7 +497,7 @@ func (s *Segment) encodeNumber(version Version, buf *bitstream.Buffer) error {
 	}
 
 	// mode
-	buf.WriteBitsLSB(uint64(ModeNumber), 4)
+	buf.WriteBitsLSB(uint64(ModeNumeric), 4)
 
 	// data length
 	buf.WriteBitsLSB(uint64(len(s.Data)), n)
