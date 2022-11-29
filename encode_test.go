@@ -2,33 +2,118 @@ package qrcode
 
 import (
 	"bytes"
-	"image/png"
-	"os"
 	"testing"
 
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestQRCode_Encode(t *testing.T) {
-	qr := &QRCode{
-		Version: 1,
-		Level:   LevelM,
-		Mask:    Mask2,
-		Segments: []Segment{
-			{
-				Mode: ModeNumber,
-				Data: []byte("01234567"),
-			},
-		},
-	}
-	img, err := qr.Encode(WithModuleSize(2), WithQuiteZone(8))
+func TestEncode1(t *testing.T) {
+	qr, err := New(LevelH, []byte("01234567"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("01234567")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "01234567")
+	}
+}
 
-	var buf bytes.Buffer
-	png.Encode(&buf, img)
-	os.WriteFile("qr.png", buf.Bytes(), 0644)
+func TestEncode2(t *testing.T) {
+	qr, err := New(LevelH, []byte("Ver1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeBytes {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeBytes)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("Ver1")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "Ver1")
+	}
+}
+
+func TestEncode3(t *testing.T) {
+	qr, err := New(LevelH, []byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 10 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 5 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeAlphanumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeBytes)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("VERSION 10 QR CODE")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "VERSION 10 QR CODE")
+	}
+}
+
+func TestSegment_Length(t *testing.T) {
+	test := func(version Version, s Segment) {
+		t.Helper()
+		l := s.length(version)
+		var buf bitstream.Buffer
+		if err := s.encode(version, &buf); err != nil {
+			t.Fatal(err)
+		}
+		if l != buf.Len() {
+			t.Errorf("length mismatch: want %d, got %d", buf.Len(), l)
+		}
+	}
+
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0'},
+	})
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0', '1'},
+	})
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0', '1', '2'},
+	})
+	test(1, Segment{
+		Mode: ModeNumeric,
+		Data: []byte{'0', '1', '2', '3'},
+	})
+	test(1, Segment{
+		Mode: ModeAlphanumeric,
+		Data: []byte{'A'},
+	})
+	test(1, Segment{
+		Mode: ModeAlphanumeric,
+		Data: []byte{'A', 'B'},
+	})
+	test(1, Segment{
+		Mode: ModeBytes,
+		Data: []byte{'a'},
+	})
 }
 
 func TestQRCode_EncodeToBitmap1(t *testing.T) {
@@ -38,7 +123,7 @@ func TestQRCode_EncodeToBitmap1(t *testing.T) {
 		Mask:    Mask2,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("01234567"),
 			},
 		},
@@ -344,7 +429,7 @@ func TestQRCode_EncodeToBitmap_ErrorTooLong(t *testing.T) {
 		Mask:    0b010,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("123456789012345678"),
 			},
 		},
@@ -362,7 +447,7 @@ func TestQRCode_EncodeToBitmap_ErrorInvalidNumber(t *testing.T) {
 		Mask:    0b010,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("A"),
 			},
 		},
@@ -397,7 +482,7 @@ func TestQRCode_encodeToBits(t *testing.T) {
 		Level:   LevelM,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: []byte("01234567"),
 			},
 		},
@@ -577,7 +662,7 @@ func TestQRCode_encodeSegments(t *testing.T) {
 
 func TestSegment_encodeNumber(t *testing.T) {
 	s := &Segment{
-		Mode: ModeNumber,
+		Mode: ModeNumeric,
 		Data: []byte("01234567"),
 	}
 	var buf bitstream.Buffer
@@ -645,7 +730,7 @@ func BenchmarkEncode(b *testing.B) {
 		Mask:    0b010,
 		Segments: []Segment{
 			{
-				Mode: ModeNumber,
+				Mode: ModeNumeric,
 				Data: bytes.Repeat([]byte("9"), 3057),
 			},
 		},

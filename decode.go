@@ -105,7 +105,7 @@ LOOP:
 			break
 		}
 		switch Mode(mode) {
-		case ModeNumber:
+		case ModeNumeric:
 			seg, err := decodeNumber(version, stream)
 			if err != nil {
 				return nil, err
@@ -246,7 +246,7 @@ func decodeNumber(version Version, buf *bitstream.Buffer) (Segment, error) {
 	}
 
 	return Segment{
-		Mode: ModeNumber,
+		Mode: ModeNumeric,
 		Data: data,
 	}, nil
 }
