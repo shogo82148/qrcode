@@ -11,8 +11,8 @@ func DecodeNumeric(buf *Buffer, data []byte) error {
 		if bits >= 1000 {
 			return errors.New("invalid digit")
 		}
-		n1 := bits / 1000
-		n2 := bits / 100 % 10
+		n1 := bits / 100
+		n2 := bits / 10 % 10
 		n3 := bits % 10
 		data[i+0] = byte(n1 + '0')
 		data[i+1] = byte(n2 + '0')
