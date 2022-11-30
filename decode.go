@@ -235,7 +235,7 @@ func decodeAlphanumeric(version Version, buf *bitstream.Buffer) (Segment, error)
 		return Segment{}, err
 	}
 	data := make([]byte, length)
-	if bitstream.DecodeAlphanumeric(buf, data); err != nil {
+	if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
 		return Segment{}, err
 	}
 
