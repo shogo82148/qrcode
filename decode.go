@@ -207,42 +207,8 @@ func decodeNumber(version Version, buf *bitstream.Buffer) (Segment, error) {
 		return Segment{}, err
 	}
 	data := make([]byte, 0, length)
-
-	for i := uint64(0); i+2 < length; i += 3 {
-		bits, err := buf.ReadBits(10)
-		if err != nil {
-			return Segment{}, err
-		}
-		if bits >= 1000 {
-			return Segment{}, errors.New("invalid digit")
-		}
-		n1 := bits / 1000
-		n2 := bits / 100 % 10
-		n3 := bits % 10
-		data = append(data, byte(n1+'0'), byte(n2+'0'), byte(n3+'0'))
-	}
-
-	switch len(data) % 3 {
-	case 1:
-		bits, err := buf.ReadBits(4)
-		if err != nil {
-			return Segment{}, err
-		}
-		if bits >= 10 {
-			return Segment{}, errors.New("invalid digit")
-		}
-		data = append(data, byte(bits+'0'))
-	case 2:
-		bits, err := buf.ReadBits(7)
-		if err != nil {
-			return Segment{}, err
-		}
-		if bits >= 100 {
-			return Segment{}, errors.New("invalid digit")
-		}
-		n1 := bits / 10
-		n2 := bits % 10
-		data = append(data, byte(n1+'0'), byte(n2+'0'))
+	if err := bitstream.DecodeNumeric(buf, data); err != nil {
+		return Segment{}, err
 	}
 
 	return Segment{
@@ -268,29 +234,9 @@ func decodeAlphanumeric(version Version, buf *bitstream.Buffer) (Segment, error)
 	if err != nil {
 		return Segment{}, err
 	}
-	data := make([]byte, 0)
-	for i := uint64(0); i+1 < length; i += 2 {
-		bits, err := buf.ReadBits(11)
-		if err != nil {
-			return Segment{}, err
-		}
-		n1 := int(bits) / 45
-		n2 := int(bits) % 45
-		if n1 >= 45 {
-			return Segment{}, errors.New("invalid digit")
-		}
-		data = append(data, bitToAlphanumeric[n1], bitToAlphanumeric[n2])
-	}
-
-	if length%2 != 0 {
-		bits, err := buf.ReadBits(6)
-		if err != nil {
-			return Segment{}, err
-		}
-		if bits >= 45 {
-			return Segment{}, errors.New("invalid digit")
-		}
-		data = append(data, bitToAlphanumeric[bits])
+	data := make([]byte, length)
+	if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
+		return Segment{}, err
 	}
 
 	return Segment{

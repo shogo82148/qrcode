@@ -36,7 +36,7 @@ func New(level Level, data []byte) (*QRCode, error) {
 		lastMode byte
 	}
 	states := make([][3]state, len(data))
-	if isNumeric(data[0]) {
+	if bitstream.IsNumeric(data[0]) {
 		states[0][modeNumeric] = state{
 			cost:     (4+14)*6 + 20,
 			lastMode: modeInit,
@@ -47,7 +47,7 @@ func New(level Level, data []byte) (*QRCode, error) {
 			lastMode: modeInit,
 		}
 	}
-	if isAlphanumeric(data[0]) {
+	if bitstream.IsAlphanumeric(data[0]) {
 		states[0][modeAlphanumeric] = state{
 			cost:     (4+13)*6 + 33,
 			lastMode: modeInit,
@@ -64,7 +64,7 @@ func New(level Level, data []byte) (*QRCode, error) {
 	}
 
 	for i := 1; i < len(data); i++ {
-		if isNumeric(data[i]) {
+		if bitstream.IsNumeric(data[i]) {
 			// numeric -> numeric
 			minCost := states[i-1][modeNumeric].cost + 20
 			lastMode := modeNumeric
@@ -94,7 +94,7 @@ func New(level Level, data []byte) (*QRCode, error) {
 			}
 		}
 
-		if isAlphanumeric(data[i]) {
+		if bitstream.IsAlphanumeric(data[i]) {
 			// numeric -> alphanumeric
 			minCost := states[i-1][modeNumeric].cost + (4+13)*6 + 33
 			lastMode := modeNumeric
@@ -212,14 +212,6 @@ LOOP:
 		}
 	}
 	return 0
-}
-
-func isNumeric(ch byte) bool {
-	return ch >= '0' && ch <= '9'
-}
-
-func isAlphanumeric(ch byte) bool {
-	return alphabets[ch] >= 0
 }
 
 const timingPatternOffset = 6
@@ -570,12 +562,6 @@ func (s *Segment) encodeNumber(version Version, buf *bitstream.Buffer) error {
 		return fmt.Errorf("qrcode: data is too long: %d", len(data))
 	}
 
-	for _, ch := range data {
-		if ch < '0' || ch > '9' {
-			return fmt.Errorf("qrcode: invalid character in number mode: %02x", ch)
-		}
-	}
-
 	// mode
 	buf.WriteBitsLSB(uint64(ModeNumeric), 4)
 
@@ -583,37 +569,7 @@ func (s *Segment) encodeNumber(version Version, buf *bitstream.Buffer) error {
 	buf.WriteBitsLSB(uint64(len(s.Data)), n)
 
 	// data
-	for i := 0; i+2 < len(data); i += 3 {
-		n1 := int(data[i+0] - '0')
-		n2 := int(data[i+1] - '0')
-		n3 := int(data[i+2] - '0')
-		bits := n1*100 + n2*10 + n3
-		buf.WriteBitsLSB(uint64(bits), 10)
-	}
-
-	switch len(data) % 3 {
-	case 1:
-		bits := data[len(data)-1] - '0'
-		buf.WriteBitsLSB(uint64(bits), 4)
-	case 2:
-		n1 := int(data[len(data)-2] - '0')
-		n2 := int(data[len(data)-1] - '0')
-		bits := n1*10 + n2
-		buf.WriteBitsLSB(uint64(bits), 7)
-	}
-	return nil
-}
-
-var bitToAlphanumeric = []byte("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
-var alphabets [256]int
-
-func init() {
-	for i := range alphabets {
-		alphabets[i] = -1
-	}
-	for i, ch := range bitToAlphanumeric {
-		alphabets[ch] = i
-	}
+	return bitstream.EncodeNumeric(buf, data)
 }
 
 func (s *Segment) encodeAlphabet(version Version, buf *bitstream.Buffer) error {
@@ -634,31 +590,13 @@ func (s *Segment) encodeAlphabet(version Version, buf *bitstream.Buffer) error {
 		return fmt.Errorf("qrcode: data is too long: %d", len(data))
 	}
 
-	for _, ch := range data {
-		if alphabets[ch] < 0 {
-			return fmt.Errorf("qrcode: invalid character in alphabet mode: %02x", ch)
-		}
-	}
-
 	// mode
 	buf.WriteBitsLSB(uint64(ModeAlphanumeric), 4)
 
 	// data length
 	buf.WriteBitsLSB(uint64(len(data)), n)
 
-	// data
-	for i := 0; i+1 < len(data); i += 2 {
-		n1 := alphabets[data[i+0]]
-		n2 := alphabets[data[i+1]]
-		bits := n1*45 + n2
-		buf.WriteBitsLSB(uint64(bits), 11)
-	}
-
-	if len(data)%2 != 0 {
-		bits := alphabets[data[len(data)-1]]
-		buf.WriteBitsLSB(uint64(bits), 6)
-	}
-	return nil
+	return bitstream.EncodeAlphanumeric(buf, data)
 }
 
 func (s *Segment) encodeBytes(version Version, buf *bitstream.Buffer) error {
