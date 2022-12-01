@@ -160,6 +160,7 @@ func decodeFromBits(version Version, level Level, buf []byte) []block {
 			blocks = append(blocks, block{
 				data:       make([]byte, blockCapacity.Data),
 				correction: make([]byte, blockCapacity.Total-blockCapacity.Data),
+				maxError:   blockCapacity.MaxError,
 			})
 		}
 	}

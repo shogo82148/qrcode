@@ -398,6 +398,7 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 type block struct {
 	data       []byte
 	correction []byte
+	maxError   int
 }
 
 func (qr *QRCode) encodeToBits(ret *bitstream.Buffer) error {
