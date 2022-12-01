@@ -1,7 +1,9 @@
 package bitmap
 
 import (
+	"fmt"
 	"image"
+	"io"
 	"math/bits"
 
 	"github.com/shogo82148/qrcode/bitmap"
@@ -142,6 +144,34 @@ func (img *Image) OnesCount() int {
 
 func (img *Image) Point() int {
 	return img.finderPattern() + img.longRunLengthCount() + img.blockCount() + img.pointOnesCount()
+}
+
+func (img *Image) EncodePBM(w io.Writer) error {
+	if _, err := fmt.Fprintln(w, "P1"); err != nil {
+		return err
+	}
+	dx := img.Rect.Dx()
+	dy := img.Rect.Dy()
+
+	if _, err := fmt.Fprintf(w, "%d %d\n", dx, dy); err != nil {
+		return err
+	}
+	for y := 0; y < dy; y++ {
+		for x := 0; x < dy; x++ {
+			if x != 0 {
+				fmt.Fprint(w, " ")
+			}
+			v := 0
+			if img.BinaryAt(x+img.Rect.Min.X, y+img.Rect.Min.Y) {
+				v = 1
+			}
+			if _, err := fmt.Fprintf(w, "%d", v); err != nil {
+				return err
+			}
+		}
+		fmt.Fprintln(w)
+	}
+	return nil
 }
 
 func (img *Image) longRunLengthCount() int {

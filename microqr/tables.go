@@ -39,6 +39,20 @@ var formatTable = [5][4]int{
 	},
 }
 
+var rawFormatTable = [8]struct {
+	version Version
+	level   Level
+}{
+	{1, LevelCheck},
+	{2, LevelL},
+	{2, LevelM},
+	{3, LevelL},
+	{3, LevelM},
+	{4, LevelL},
+	{4, LevelM},
+	{4, LevelQ},
+}
+
 // X 0510 : 2018
 // 表9 マイクロORコード及びORコードの誤り訂正特性
 var capacityTable = [5][4]capacity{
