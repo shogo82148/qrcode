@@ -3,6 +3,9 @@ package microqr
 import (
 	"bytes"
 	"image"
+	"image/png"
+	"math"
+	"os"
 	"testing"
 
 	bitmap "github.com/shogo82148/qrcode/bitmap"
@@ -38,32 +41,35 @@ func TestDecodeBitmap1(t *testing.T) {
 	}
 }
 
-// func TestDecodeBitmap2(t *testing.T) {
-// 	// from https://www.qrcode.com/codes/microqr.html
-// 	r, err := os.Open("testdata/01.png")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	img, err := png.Decode(r)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+func TestDecodeBitmap2(t *testing.T) {
+	// from https://www.qrcode.com/codes/microqr.html
+	r, err := os.Open("testdata/01.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := png.Decode(r)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	binimg := bitmap.New(image.Rect(0, 0, 15, 15))
-// 	for y := 0; y <= 15; y++ {
-// 		for x := 0; x <= 15; x++ {
-// 			X := float64(x)*(55.0/15.0) + 2
-// 			Y := float64(y)*(55.0/15.0) + 2
-// 			binimg.Set(x, y, img.At(round(X), round(Y)))
-// 		}
-// 	}
+	binimg := bitmap.New(image.Rect(0, 0, 15, 15))
+	for y := 0; y <= 15; y++ {
+		for x := 0; x <= 15; x++ {
+			X := float64(x)*(55.0/15.0) + 2
+			Y := float64(y)*(55.0/15.0) + 2
+			binimg.Set(x, y, img.At(round(X), round(Y)))
+		}
+	}
 
-// 	_, err = DecodeBitmap(binimg)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// }
+	qr, err := DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("MICROQR")) {
+		t.Errorf("want %q, got %q", []byte("MICROQR"), qr.Segments[0].Data)
+	}
+}
 
-// func round(x float64) int {
-// 	return int(math.Round(x))
-// }
+func round(x float64) int {
+	return int(math.Round(x))
+}

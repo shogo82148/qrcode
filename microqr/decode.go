@@ -121,6 +121,9 @@ func decodeVersion1(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
 			}
 			return nil, err
 		}
+		if length == 0 { // terminate pattern
+			break
+		}
 		data := make([]byte, 0, length)
 		if err := bitstream.DecodeNumeric(buf, data); err != nil {
 			return nil, err
@@ -160,6 +163,9 @@ LOOP:
 				}
 				return nil, err
 			}
+			if len(data) == 0 { // terminate pattern
+				break LOOP
+			}
 			data = make([]byte, length)
 			if err := bitstream.DecodeNumeric(buf, data); err != nil {
 				return nil, err
@@ -178,9 +184,6 @@ LOOP:
 			}
 		default:
 			return nil, errors.New("qrcode: unknown mode: " + strconv.Itoa(int(mode)))
-		}
-		if len(data) == 0 {
-			continue
 		}
 		segments = append(segments, Segment{
 			Mode: Mode(mode),
@@ -217,6 +220,9 @@ LOOP:
 				}
 				return nil, err
 			}
+			if len(data) == 0 { // terminate pattern
+				break LOOP
+			}
 			data = make([]byte, length)
 			if err := bitstream.DecodeNumeric(buf, data); err != nil {
 				return nil, err
@@ -247,9 +253,6 @@ LOOP:
 			}
 		default:
 			return nil, errors.New("qrcode: unknown mode: " + strconv.Itoa(int(mode)))
-		}
-		if len(data) == 0 {
-			continue
 		}
 		segments = append(segments, Segment{
 			Mode: Mode(mode),
@@ -285,6 +288,9 @@ LOOP:
 					break LOOP
 				}
 				return nil, err
+			}
+			if len(data) == 0 { // terminate pattern
+				break LOOP
 			}
 			data = make([]byte, length)
 			if err := bitstream.DecodeNumeric(buf, data); err != nil {
