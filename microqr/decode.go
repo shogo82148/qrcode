@@ -2,8 +2,9 @@ package microqr
 
 import (
 	"errors"
-	"log"
+	"io"
 	"math/bits"
+	"strconv"
 
 	"github.com/shogo82148/qrcode/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
@@ -72,12 +73,25 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	}
 
 	data := buf.Bytes()
-	log.Printf("%08b", data)
 	if err := reedsolomon.Decode(data, 2); err != nil {
 		return nil, err
 	}
+	qrCapacity := capacityTable[version][level]
+	data = data[:qrCapacity.Data]
+	buf0 := bitstream.NewBuffer(data)
 
-	return &QRCode{}, nil
+	switch version {
+	case 1:
+		return decodeVersion1(buf0, mask)
+	case 2:
+		return decodeVersion2(buf0, mask)
+	case 3:
+		return decodeVersion3(buf0, mask)
+	case 4:
+		return decodeVersion4(buf0, mask)
+	default:
+		panic("invalid version: " + strconv.Itoa(int(version)))
+	}
 }
 
 func decodeFormat(raw uint) (Version, Level, Mask, bool) {
@@ -95,4 +109,93 @@ func decodeFormat(raw uint) (Version, Level, Mask, bool) {
 	}
 	format := rawFormatTable[idx>>2]
 	return format.version, format.level, Mask(idx & 0b11), true
+}
+
+func decodeVersion1(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+	segments := make([]Segment, 0)
+	for {
+		length, err := buf.ReadBits(3)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, err
+		}
+		data := make([]byte, 0, length)
+		if err := bitstream.DecodeNumeric(buf, data); err != nil {
+			return nil, err
+		}
+		segments = append(segments, Segment{
+			Mode: ModeNumeric,
+			Data: data,
+		})
+	}
+	return &QRCode{
+		Version:  1,
+		Mask:     mask,
+		Segments: segments,
+	}, nil
+}
+
+func decodeVersion2(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+	segments := make([]Segment, 0)
+
+LOOP:
+	for {
+		mode, err := buf.ReadBits(1)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, err
+		}
+
+		var data []byte
+		switch Mode(mode) {
+		case ModeNumeric:
+			length, err := buf.ReadBits(4)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeNumeric(buf, data); err != nil {
+				return nil, err
+			}
+		case ModeAlphanumeric:
+			length, err := buf.ReadBits(3)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
+				return nil, err
+			}
+		}
+		if len(data) == 0 {
+			continue
+		}
+		segments = append(segments, Segment{
+			Mode: Mode(mode),
+			Data: data,
+		})
+	}
+	return &QRCode{
+		Version:  2,
+		Mask:     mask,
+		Segments: segments,
+	}, nil
+}
+
+func decodeVersion3(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+	return nil, nil
+}
+
+func decodeVersion4(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+	return nil, nil
 }

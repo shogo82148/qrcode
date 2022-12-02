@@ -1,6 +1,7 @@
 package microqr
 
 import (
+	"bytes"
 	"image"
 	"testing"
 
@@ -28,9 +29,12 @@ func TestDecodeBitmap1(t *testing.T) {
 		Rect:   image.Rect(0, 0, 13, 13),
 	}
 
-	_, err := DecodeBitmap(binimg)
+	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("01234567")) {
+		t.Errorf("want %q, got %q", []byte("01234567"), qr.Segments[0].Data)
 	}
 }
 
