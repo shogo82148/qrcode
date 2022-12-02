@@ -176,6 +176,8 @@ LOOP:
 			if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
 				return nil, err
 			}
+		default:
+			return nil, errors.New("qrcode: unknown mode: " + strconv.Itoa(int(mode)))
 		}
 		if len(data) == 0 {
 			continue
@@ -193,9 +195,139 @@ LOOP:
 }
 
 func decodeVersion3(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
-	return nil, nil
+	segments := make([]Segment, 0)
+
+LOOP:
+	for {
+		mode, err := buf.ReadBits(2)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, err
+		}
+
+		var data []byte
+		switch Mode(mode) {
+		case ModeNumeric:
+			length, err := buf.ReadBits(5)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeNumeric(buf, data); err != nil {
+				return nil, err
+			}
+		case ModeAlphanumeric:
+			length, err := buf.ReadBits(4)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
+				return nil, err
+			}
+		case ModeBytes:
+			length, err := buf.ReadBits(4)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeBytes(buf, data); err != nil {
+				return nil, err
+			}
+		default:
+			return nil, errors.New("qrcode: unknown mode: " + strconv.Itoa(int(mode)))
+		}
+		if len(data) == 0 {
+			continue
+		}
+		segments = append(segments, Segment{
+			Mode: Mode(mode),
+			Data: data,
+		})
+	}
+	return &QRCode{
+		Version:  3,
+		Mask:     mask,
+		Segments: segments,
+	}, nil
 }
 
 func decodeVersion4(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
-	return nil, nil
+	segments := make([]Segment, 0)
+
+LOOP:
+	for {
+		mode, err := buf.ReadBits(3)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, err
+		}
+
+		var data []byte
+		switch Mode(mode) {
+		case ModeNumeric:
+			length, err := buf.ReadBits(6)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeNumeric(buf, data); err != nil {
+				return nil, err
+			}
+		case ModeAlphanumeric:
+			length, err := buf.ReadBits(5)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
+				return nil, err
+			}
+		case ModeBytes:
+			length, err := buf.ReadBits(5)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data = make([]byte, length)
+			if err := bitstream.DecodeBytes(buf, data); err != nil {
+				return nil, err
+			}
+		default:
+			return nil, errors.New("qrcode: unknown mode: " + strconv.Itoa(int(mode)))
+		}
+		if len(data) == 0 {
+			continue
+		}
+		segments = append(segments, Segment{
+			Mode: Mode(mode),
+			Data: data,
+		})
+	}
+	return &QRCode{
+		Version:  4,
+		Mask:     mask,
+		Segments: segments,
+	}, nil
 }

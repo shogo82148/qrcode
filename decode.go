@@ -261,12 +261,8 @@ func decodeBytes(version Version, buf *bitstream.Buffer) (Segment, error) {
 		return Segment{}, err
 	}
 	data := make([]byte, length)
-	for i := uint64(0); i < length; i++ {
-		bits, err := buf.ReadBits(8)
-		if err != nil {
-			return Segment{}, err
-		}
-		data[i] = byte(bits)
+	if err := bitstream.DecodeBytes(buf, data); err != nil {
+		return Segment{}, err
 	}
 
 	return Segment{
