@@ -81,11 +81,33 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 			return err
 		}
 	}
+
+	// terminate pattern
+	switch qr.Version {
+	case 1:
+		buf.WriteBitsLSB(0, 3)
+	case 2:
+		buf.WriteBitsLSB(0, 5)
+	case 3:
+		buf.WriteBitsLSB(0, 7)
+	case 4:
+		buf.WriteBitsLSB(0, 8)
+	}
+
 	l := buf.Len()
 	buf.WriteBitsLSB(0x00, int(8-l%8))
-
 	capacity := capacityTable[qr.Version][qr.Level]
-	n := capacity.Total - capacity.Data
+
+	// add padding.
+	for i := 0; buf.Len() < capacity.Data*8; i++ {
+		if i%2 == 0 {
+			buf.WriteBitsLSB(0b1110_1100, 8)
+		} else {
+			buf.WriteBitsLSB(0b0001_0001, 8)
+		}
+	}
+
+	n := capacity.Correction
 	rs := reedsolomon.New(n)
 	rs.Write(buf.Bytes())
 	correction := rs.Sum(make([]byte, 0, n))
@@ -131,11 +153,11 @@ func (s *Segment) encodeNumeric(version Version, buf *bitstream.Buffer) error {
 	// mode
 	switch version {
 	case 2:
-		buf.WriteBitsLSB(uint64(ModeBytes), 1)
+		buf.WriteBitsLSB(uint64(ModeNumeric), 1)
 	case 3:
-		buf.WriteBitsLSB(uint64(ModeBytes), 2)
+		buf.WriteBitsLSB(uint64(ModeNumeric), 2)
 	case 4:
-		buf.WriteBitsLSB(uint64(ModeBytes), 3)
+		buf.WriteBitsLSB(uint64(ModeNumeric), 3)
 	}
 
 	// data length
@@ -166,11 +188,11 @@ func (s *Segment) encodeAlphanumeric(version Version, buf *bitstream.Buffer) err
 	// mode
 	switch version {
 	case 2:
-		buf.WriteBitsLSB(uint64(ModeBytes), 1)
+		buf.WriteBitsLSB(uint64(ModeAlphanumeric), 1)
 	case 3:
-		buf.WriteBitsLSB(uint64(ModeBytes), 2)
+		buf.WriteBitsLSB(uint64(ModeAlphanumeric), 2)
 	case 4:
-		buf.WriteBitsLSB(uint64(ModeBytes), 3)
+		buf.WriteBitsLSB(uint64(ModeAlphanumeric), 3)
 	}
 
 	// data length

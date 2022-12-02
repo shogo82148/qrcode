@@ -73,3 +73,14 @@ func DecodeAlphanumeric(buf *Buffer, data []byte) error {
 	}
 	return nil
 }
+
+func DecodeBytes(buf *Buffer, data []byte) error {
+	for i := range data {
+		bits, err := buf.ReadBits(8)
+		if err != nil {
+			return err
+		}
+		data[i] = byte(bits)
+	}
+	return nil
+}
