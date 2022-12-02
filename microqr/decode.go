@@ -72,11 +72,11 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 		}
 	}
 
+	qrCapacity := capacityTable[version][level]
 	data := buf.Bytes()
-	if err := reedsolomon.Decode(data, 2); err != nil {
+	if err := reedsolomon.Decode(data, qrCapacity.MaxError); err != nil {
 		return nil, err
 	}
-	qrCapacity := capacityTable[version][level]
 	data = data[:qrCapacity.Data]
 	buf0 := bitstream.NewBuffer(data)
 
@@ -163,7 +163,7 @@ LOOP:
 				}
 				return nil, err
 			}
-			if len(data) == 0 { // terminate pattern
+			if length == 0 { // terminate pattern
 				break LOOP
 			}
 			data = make([]byte, length)
@@ -220,7 +220,7 @@ LOOP:
 				}
 				return nil, err
 			}
-			if len(data) == 0 { // terminate pattern
+			if length == 0 { // terminate pattern
 				break LOOP
 			}
 			data = make([]byte, length)
@@ -289,7 +289,7 @@ LOOP:
 				}
 				return nil, err
 			}
-			if len(data) == 0 { // terminate pattern
+			if length == 0 { // terminate pattern
 				break LOOP
 			}
 			data = make([]byte, length)

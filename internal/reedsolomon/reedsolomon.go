@@ -43,12 +43,16 @@ func Decode(data []byte, twoS int) error {
 
 	for i := range errorLocations {
 		pos := len(data) - 1 - element.Log(errorLocations[i])
+		if pos < 0 {
+			return fmt.Errorf("reedsolomon: bad location: %d", pos)
+		}
 		data[pos] = byte(element.Add(element.Element(data[pos]), errorMagnitudes[i]))
 	}
 	return nil
 }
 
 func findErrorLocations(sigma poly.Poly) []element.Element {
+	// from  https://github.com/zxing/zxing/blob/99e9b34f5afc21fdaeead283d5ed0bc1314cbec1/core/src/main/java/com/google/zxing/common/reedsolomon/ReedSolomonDecoder.java#L143-L161
 	ret := []element.Element{}
 	for i := 1; i < 256; i++ {
 		e := element.Element(i)
@@ -60,6 +64,7 @@ func findErrorLocations(sigma poly.Poly) []element.Element {
 }
 
 func findErrorMagnitudes(omega poly.Poly, errorLocations []element.Element) []element.Element {
+	// from https://github.com/zxing/zxing/blob/99e9b34f5afc21fdaeead283d5ed0bc1314cbec1/core/src/main/java/com/google/zxing/common/reedsolomon/ReedSolomonDecoder.java#L163-L188
 	ret := make([]element.Element, len(errorLocations))
 	for i, loc1 := range errorLocations {
 		xiInverse := element.Inv(loc1)

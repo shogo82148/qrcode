@@ -45,3 +45,38 @@ func TestEncodeToBitmap1(t *testing.T) {
 		t.Errorf("got %08b, want %08b", got, want)
 	}
 }
+
+func TestEncodeToBitmap2(t *testing.T) {
+	qr := &QRCode{
+		Version: 3,
+		Level:   LevelM,
+		Mask:    Mask3,
+		Segments: []Segment{
+			{
+				Mode: ModeAlphanumeric,
+				Data: []byte("MICROQR"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101010, 0b10000010,
+		0b11011110, 0b10111010, 0b10111100,
+		0b10111010, 0b10011010, 0b10111010,
+		0b00000110, 0b10000010, 0b00010100,
+		0b11111110, 0b01001010, 0b00000000,
+		0b00101000, 0b10001001, 0b10101010,
+		0b01000001, 0b10011010, 0b11111111,
+		0b10001000, 0b00010101, 0b11000010,
+		0b10100110, 0b11001100, 0b01111100,
+		0b11010100, 0b11000100, 0b11011100,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}

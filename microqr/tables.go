@@ -1,10 +1,5 @@
 package microqr
 
-type capacity struct {
-	Total int // number of total code words
-	Data  int // number of data code words
-}
-
 var formatTable = [5][4]int{
 	{}, // dummy
 
@@ -53,6 +48,14 @@ var rawFormatTable = [8]struct {
 	{4, LevelQ},
 }
 
+type capacity struct {
+	Total      int // number of total code words
+	Data       int // number of data code words
+	Correction int // number of correction code words
+	MaxError   int // maximum number of code word errors
+	Reserved   int // number of code words reserved for error detection
+}
+
 // X 0510 : 2018
 // 表9 マイクロORコード及びORコードの誤り訂正特性
 var capacityTable = [5][4]capacity{
@@ -61,48 +64,72 @@ var capacityTable = [5][4]capacity{
 	// version 1
 	{
 		LevelCheck: {
-			Total: 5,
-			Data:  3,
+			Total:      5,
+			Data:       3,
+			Correction: 2,
+			Reserved:   2,
+			MaxError:   0,
 		},
 	},
 
 	// version 2
 	{
 		LevelL: {
-			Total: 10,
-			Data:  5,
+			Total:      10,
+			Data:       5,
+			Correction: 5,
+			Reserved:   3,
+			MaxError:   1,
 		},
 		LevelM: {
-			Total: 10,
-			Data:  4,
+			Total:      10,
+			Data:       4,
+			Correction: 6,
+			Reserved:   2,
+			MaxError:   2,
 		},
 	},
 
 	// version 3
 	{
 		LevelL: {
-			Total: 17,
-			Data:  11,
+			Total:      17,
+			Data:       11,
+			Correction: 6,
+			Reserved:   2,
+			MaxError:   2,
 		},
 		LevelM: {
-			Total: 17,
-			Data:  9,
+			Total:      17,
+			Data:       9,
+			Correction: 8,
+			Reserved:   2,
+			MaxError:   4,
 		},
 	},
 
 	// version 4
 	{
 		LevelL: {
-			Total: 24,
-			Data:  16,
+			Total:      24,
+			Data:       16,
+			Correction: 8,
+			Reserved:   2,
+			MaxError:   3,
 		},
 		LevelM: {
-			Total: 24,
-			Data:  14,
+			Total:      24,
+			Data:       14,
+			Correction: 10,
+			Reserved:   0,
+			MaxError:   5,
 		},
 		LevelQ: {
-			Total: 24,
-			Data:  10,
+			Total:      24,
+			Data:       10,
+			Correction: 14,
+			Reserved:   0,
+			MaxError:   7,
 		},
 	},
 }
