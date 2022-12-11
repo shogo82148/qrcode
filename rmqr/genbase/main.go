@@ -133,6 +133,12 @@ func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 		used.SetBinary(i, 0, bitmap.Black)
 		used.SetBinary(i, h, bitmap.Black)
 	}
+	for i := 0; i <= h; i++ {
+		img.SetBinary(0, i, i%2 == 0)
+		img.SetBinary(w, i, i%2 == 0)
+		used.SetBinary(0, i, bitmap.Black)
+		used.SetBinary(w, i, bitmap.Black)
+	}
 
 	// finder pattern
 	for y := 0; y < 8; y++ {
@@ -165,6 +171,18 @@ func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 			}
 		}
 	}
+
+	// format information
+	for i := 0; i < 18; i++ {
+		// around finder pattern
+		used.SetBinary(8+i/5, 1+i%5, bitmap.Black)
+
+		// around sub-finder pattern
+		used.SetBinary(w-7+i/5, h-5+i%5, bitmap.Black)
+	}
+	used.SetBinary(w-4, h-5, bitmap.Black)
+	used.SetBinary(w-3, h-5, bitmap.Black)
+	used.SetBinary(w-2, h-5, bitmap.Black)
 
 	return img, used
 }

@@ -19,7 +19,6 @@ func main() {
 	p := parameter{
 		in:    6,
 		check: 12,
-		mask:  0b01_1111_1010_1011_0010,
 		g:     1<<12 + 1<<11 + 1<<10 + 1<<9 + 1<<8 + 1<<5 + 1<<2 + 1,
 	}
 	fmt.Fprintln(&buf, "var encodedVersion = [...]uint{")
