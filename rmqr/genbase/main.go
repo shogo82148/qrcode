@@ -84,6 +84,7 @@ func main() {
 	fmt.Fprintf(&buf, "\"github.com/shogo82148/qrcode/internal/bitmap\"\n")
 	fmt.Fprintf(&buf, ")\n\n")
 
+	genMaskList(&buf)
 	genBaseList(&buf)
 
 	out, err := format.Source(buf.Bytes())
@@ -93,6 +94,23 @@ func main() {
 	if err := os.WriteFile("base_gen.go", out, 0o644); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func genMaskList(buf *bytes.Buffer) {
+	fmt.Fprintf(buf, "var precomputedMask = &bitmap.Image{\n")
+	genMask(buf, func(i, j int) int { return (i/2 + j/3) % 2 })
+	fmt.Fprintf(buf, "}\n\n")
+}
+
+func genMask(buf *bytes.Buffer, f func(i, j int) int) {
+	w, h := 144, 17
+	img := bitmap.New(image.Rect(0, 0, w, h))
+	for i := 0; i < h; i++ {
+		for j := 0; j < w; j++ {
+			img.SetBinary(j, i, f(i, j) == 0)
+		}
+	}
+	writeImageContents(buf, img)
 }
 
 func genBaseList(buf *bytes.Buffer) {
@@ -133,11 +151,11 @@ func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 		used.SetBinary(i, 0, bitmap.Black)
 		used.SetBinary(i, h, bitmap.Black)
 	}
-	for i := 0; i <= h; i++ {
-		img.SetBinary(0, i, i%2 == 0)
-		img.SetBinary(w, i, i%2 == 0)
-		used.SetBinary(0, i, bitmap.Black)
-		used.SetBinary(w, i, bitmap.Black)
+	for _, pos := range append([]int{0, w}, alignmentPatternPositions[w+1]...) {
+		for i := 0; i <= h; i++ {
+			img.SetBinary(pos, i, i%2 == 0)
+			used.SetBinary(pos, i, bitmap.Black)
+		}
 	}
 
 	// finder pattern
@@ -189,6 +207,11 @@ func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 
 func writeImage(buf *bytes.Buffer, img *bitmap.Image) {
 	fmt.Fprintf(buf, "{\n")
+	writeImageContents(buf, img)
+	fmt.Fprintf(buf, "},\n")
+}
+
+func writeImageContents(buf *bytes.Buffer, img *bitmap.Image) {
 	fmt.Fprintf(buf, "Stride: %d,\n", img.Stride)
 	fmt.Fprintf(buf, "Rect: image.Rect(%d, %d, %d, %d),\n",
 		img.Rect.Min.X, img.Rect.Min.Y, img.Rect.Max.X, img.Rect.Max.Y)
@@ -199,6 +222,5 @@ func writeImage(buf *bytes.Buffer, img *bitmap.Image) {
 		}
 		fmt.Fprintln(buf)
 	}
-	fmt.Fprintf(buf, "},\n")
 	fmt.Fprintf(buf, "},\n")
 }

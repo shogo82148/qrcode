@@ -49,11 +49,15 @@ func TestDecode2(t *testing.T) {
 	}
 
 	binimg := bitmap.New(image.Rect(0, 0, 43, 7))
-	for y := 0; y <= 7; y++ {
-		for x := 0; x <= 43; x++ {
+	for y := 0; y < 7; y++ {
+		for x := 0; x < 43; x++ {
 			X := float64(x)*(335/43.0) + 29
 			Y := float64(y)*(50/7.0) + 30
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
+	}
+	_, err = DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
