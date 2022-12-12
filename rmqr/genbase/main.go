@@ -201,6 +201,7 @@ func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 	used.SetBinary(w-4, h-5, bitmap.Black)
 	used.SetBinary(w-3, h-5, bitmap.Black)
 	used.SetBinary(w-2, h-5, bitmap.Black)
+	used.SetBinary(w-1, h-5, bitmap.Black)
 
 	return img, used
 }
