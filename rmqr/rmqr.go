@@ -36,31 +36,26 @@ func (lv Level) String() string {
 type Mode uint8
 
 const (
-	// ModeECI is ECI(Extended Channel Interpretation) mode.
-	ModeECI Mode = 0b0111
-
 	// ModeNumeric is number mode.
 	// The Data must be ascii characters [0-9].
-	ModeNumeric Mode = 0b0001
+	ModeNumeric Mode = 0b001
 
 	// ModeAlphanumeric is alphabet and number mode.
 	// The Data must be ascii characters [0-9A-Z $%*+\-./:].
-	ModeAlphanumeric Mode = 0b0010
+	ModeAlphanumeric Mode = 0b010
 
 	// ModeBytes is 8-bit bytes mode.
 	// The Data can include any bytes.
-	ModeBytes Mode = 0b0100
+	ModeBytes Mode = 0b011
 
 	// ModeKanji is Japanese Kanji mode.
-	ModeKanji Mode = 0b1000
+	ModeKanji Mode = 0b100
 
 	ModeTerminated Mode = 0b0000
 )
 
 func (mode Mode) String() string {
 	switch mode {
-	case ModeECI:
-		return "eci"
 	case ModeNumeric:
 		return "numeric"
 	case ModeAlphanumeric:

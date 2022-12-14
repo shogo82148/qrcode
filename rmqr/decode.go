@@ -3,12 +3,12 @@ package rmqr
 
 import (
 	"errors"
+	"log"
 	"math/bits"
 
 	"github.com/shogo82148/qrcode/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
-	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
@@ -66,10 +66,25 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 		}
 	}
 
-	data := buf.Bytes()
-	if err := reedsolomon.Decode(data, 2); err != nil {
+	// data := buf.Bytes()
+	// if err := reedsolomon.Decode(data, 2); err != nil {
+	// 	return nil, err
+	// }
+
+	mode, err := buf.ReadBits(3)
+	if err != nil {
 		return nil, err
 	}
+	_ = mode
+	length, err := buf.ReadBits(4)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]byte, length)
+	if err := bitstream.DecodeNumeric(&buf, data); err != nil {
+		return nil, err
+	}
+	log.Println(string(data))
 
 	return &QRCode{}, nil
 }

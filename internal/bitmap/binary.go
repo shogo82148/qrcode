@@ -157,7 +157,7 @@ func (img *Image) EncodePBM(w io.Writer) error {
 		return err
 	}
 	for y := 0; y < dy; y++ {
-		for x := 0; x < dy; x++ {
+		for x := 0; x < dx; x++ {
 			if x != 0 {
 				fmt.Fprint(w, " ")
 			}
