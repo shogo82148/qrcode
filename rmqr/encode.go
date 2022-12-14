@@ -22,7 +22,7 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	img := baseList[qr.Version].Clone()
 
 	dy := -1
-	x, y := w-1, h-4
+	x, y := w-1, h-5
 	for {
 		if !used.BinaryAt(x, y) {
 			bit, err := buf.ReadBit()
@@ -57,6 +57,12 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	for i := 0; i < 18; i++ {
 		img.SetBinary(8+i/5, 1+i%5, ((encodedFormat^0b011111101010110010)>>i)&1 != 0)
 	}
+	for i := 0; i < 15; i++ {
+		img.SetBinary(w-7+i/5, h-5+i%5, ((encodedFormat^0b100000101001111011)>>i)&1 != 0)
+	}
+	img.SetBinary(w-4, h-5, ((encodedFormat^0b100000101001111011)>>15)&1 != 0)
+	img.SetBinary(w-3, h-5, ((encodedFormat^0b100000101001111011)>>16)&1 != 0)
+	img.SetBinary(w-2, h-5, ((encodedFormat^0b100000101001111011)>>17)&1 != 0)
 
 	img.Mask(img, used, precomputedMask)
 

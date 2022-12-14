@@ -35,7 +35,7 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 
 	var buf bitstream.Buffer
 	dy := -1
-	x, y := w-1, h-4
+	x, y := w-1, h-5
 	for {
 		if !used.BinaryAt(x, y) {
 			if binimg.BinaryAt(x, y) {
