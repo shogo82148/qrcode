@@ -4,7 +4,6 @@ package rmqr
 import (
 	"errors"
 	"io"
-	"log"
 	"math/bits"
 
 	"github.com/shogo82148/qrcode/bitmap"
@@ -106,8 +105,6 @@ LOOP:
 			break LOOP
 		}
 	}
-
-	log.Println(string(segments[0].Data))
 
 	return &QRCode{
 		Version:  version,
