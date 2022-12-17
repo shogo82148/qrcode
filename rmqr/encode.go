@@ -17,9 +17,10 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 		return nil, err
 	}
 
-	h, w := 7-1, 43-1 // TODO: calculate from version.
 	used := usedList[qr.Version]
 	img := baseList[qr.Version].Clone()
+	bounds := img.Rect
+	w, h := bounds.Dx()-1, bounds.Dy()-1
 
 	dy := -1
 	x, y := w-1, h-5
@@ -53,6 +54,7 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 		}
 	}
 
+	// fill format information
 	encodedFormat := encodedVersion[uint(qr.Version)|uint(qr.Level)<<5]
 	for i := 0; i < 18; i++ {
 		img.SetBinary(8+i/5, 1+i%5, ((encodedFormat^0b011111101010110010)>>i)&1 != 0)
