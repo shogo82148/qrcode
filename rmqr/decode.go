@@ -1,8 +1,8 @@
-package qrcode
+// Package rmqr handles rMRQ Codes.
+package rmqr
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"math/bits"
 
@@ -13,29 +13,23 @@ import (
 )
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
-	bounds := img.Bounds()
-	version := Version((bounds.Dx() - 17) / 4)
 	binimg := internalbitmap.Import(img)
+	bounds := img.Bounds()
+	w := bounds.Dx() - 1
+	h := bounds.Dy() - 1
 
-	level, mask, err := decodeFormat(binimg)
+	version, level, err := decodeFormat(binimg)
+	_ = level
 	if err != nil {
 		return nil, err
 	}
-	w := 16 + 4*int(version)
-
-	// mask
 	used := usedList[version]
-	binimg.Mask(binimg, used, maskList[mask])
+	binimg.Mask(binimg, used, precomputedMask)
 
 	var buf bitstream.Buffer
 	dy := -1
-	x, y := w, w
+	x, y := w-1, h-5
 	for {
-		if x == timingPatternOffset {
-			// skip timing pattern
-			x--
-			continue
-		}
 		if !used.BinaryAt(x, y) {
 			if binimg.BinaryAt(x, y) {
 				buf.WriteBit(1)
@@ -44,7 +38,7 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 			}
 		}
 		x--
-		if x < 0 {
+		if x < 1 { // +1 is for avoiding time pattern
 			break
 		}
 
@@ -56,11 +50,11 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 			}
 		}
 		x, y = x+1, y+dy
-		if y < 0 || y > w {
+		if y < +1 || y > h-1 { // +1 and -1 are for avoiding time pattern
 			dy *= -1
 			x, y = x-2, y+dy
 		}
-		if x < 0 {
+		if x < 1 { // +1 is for avoiding time pattern
 			break
 		}
 	}
@@ -81,27 +75,28 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	// decode segments
 	stream := bitstream.NewBuffer(result)
 	segments := make([]Segment, 0)
+	bitLength := capacityTable[version][level].BitLength
 LOOP:
 	for {
-		mode, err := stream.ReadBits(4)
+		mode, err := stream.ReadBits(3)
 		if err == io.EOF {
 			break
 		}
 		switch Mode(mode) {
 		case ModeNumeric:
-			seg, err := decodeNumber(version, stream)
+			seg, err := decodeNumber(bitLength, stream)
 			if err != nil {
 				return nil, err
 			}
 			segments = append(segments, seg)
 		case ModeAlphanumeric:
-			seg, err := decodeAlphanumeric(version, stream)
+			seg, err := decodeAlphanumeric(bitLength, stream)
 			if err != nil {
 				return nil, err
 			}
 			segments = append(segments, seg)
 		case ModeBytes:
-			seg, err := decodeBytes(version, stream)
+			seg, err := decodeBytes(bitLength, stream)
 			if err != nil {
 				return nil, err
 			}
@@ -113,59 +108,66 @@ LOOP:
 
 	return &QRCode{
 		Version:  version,
-		Mask:     mask,
 		Level:    level,
 		Segments: segments,
 	}, nil
 }
 
-func decodeFormat(img *internalbitmap.Image) (Level, Mask, error) {
-	w := img.Rect.Dx() - 1
+func decodeFormat(img *internalbitmap.Image) (Version, Level, error) {
+	bounds := img.Rect
+	w := bounds.Dx() - 1
+	h := bounds.Dy() - 1
 
-	// decode format
-	var rawFormat1, rawFormat2 uint
-	for i := 0; i < 8; i++ {
-		if img.BinaryAt(8, skipTimingPattern(i)) {
-			rawFormat1 |= 1 << i
-		}
-		if img.BinaryAt(skipTimingPattern(i), 8) {
-			rawFormat1 |= 1 << (14 - i)
-		}
-
-		if img.BinaryAt(w-i, 8) {
-			rawFormat2 |= 1 << i
-		}
-		if img.BinaryAt(8, w-i) {
-			rawFormat2 |= 1 << (14 - i)
+	// search version info around finder pattern
+	var rawVersion uint
+	for i := 0; i < 18; i++ {
+		if img.BinaryAt(8+i/5, 1+i%5) {
+			rawVersion |= 1 << i
 		}
 	}
-	level, mask, ok := decodeFormat0(rawFormat1)
+	version, level, ok := decodeFormat0(rawVersion ^ 0b011111101010110010)
+	if !ok {
+		return version, level, nil
+	}
+
+	// search version info around sub-finder pattern
+	rawVersion = 0
+	for i := 0; i < 15; i++ {
+		if img.BinaryAt(w-7+i/5, h-5+i%5) {
+			rawVersion |= 1 << i
+		}
+	}
+	if img.BinaryAt(w-4, h-5) {
+		rawVersion |= 1 << 15
+	}
+	if img.BinaryAt(w-3, h-5) {
+		rawVersion |= 1 << 16
+	}
+	if img.BinaryAt(w-2, h-5) {
+		rawVersion |= 1 << 17
+	}
+	version, level, ok = decodeFormat0(rawVersion ^ 0b100000101001111011)
 	if ok {
-		return level, mask, nil
+		return version, level, nil
 	}
 
-	level, mask, ok = decodeFormat0(rawFormat2)
-	if ok {
-		return level, mask, nil
-	}
-
-	return 0, 0, errors.New("qrcode: QRCode not found")
+	return 0, 0, errors.New("rmqr: rMRQ not found")
 }
 
-func decodeFormat0(raw uint) (Level, Mask, bool) {
-	idx := 0
-	min := bits.OnesCount(encodedFormat[0] ^ raw)
-	for i, pattern := range encodedFormat {
-		count := bits.OnesCount(pattern ^ raw)
-		if count < min {
+func decodeFormat0(data uint) (Version, Level, bool) {
+	var idx, min int
+	min = bits.OnesCount(encodedVersion[0] ^ data)
+	for i, v := range encodedVersion {
+		diff := bits.OnesCount(v ^ data)
+		if diff < min {
 			idx = i
-			min = count
+			min = diff
 		}
 	}
 	if min >= 3 {
 		return 0, 0, false
 	}
-	return Level(idx >> 3), Mask(idx & 0b111), true
+	return Version(idx & 0x1f), Level((idx >> 6) & 1), true
 }
 
 func decodeFromBits(version Version, level Level, buf []byte) []block {
@@ -207,18 +209,8 @@ func decodeFromBits(version Version, level Level, buf []byte) []block {
 	return blocks
 }
 
-func decodeNumber(version Version, buf *bitstream.Buffer) (Segment, error) {
-	var n int
-	switch {
-	case version <= 0 || version > 40:
-		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
-	case version < 10:
-		n = 10
-	case version < 27:
-		n = 12
-	default:
-		n = 14
-	}
+func decodeNumber(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeNumeric]
 	length, err := buf.ReadBits(n)
 	if err != nil {
 		return Segment{}, err
@@ -234,19 +226,8 @@ func decodeNumber(version Version, buf *bitstream.Buffer) (Segment, error) {
 	}, nil
 }
 
-func decodeAlphanumeric(version Version, buf *bitstream.Buffer) (Segment, error) {
-	var n int
-	switch {
-	case version <= 0 || version > 40:
-		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
-	case version < 10:
-		n = 9
-	case version < 27:
-		n = 11
-	default:
-		n = 13
-	}
-
+func decodeAlphanumeric(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeAlphanumeric]
 	length, err := buf.ReadBits(n)
 	if err != nil {
 		return Segment{}, err
@@ -262,16 +243,8 @@ func decodeAlphanumeric(version Version, buf *bitstream.Buffer) (Segment, error)
 	}, nil
 }
 
-func decodeBytes(version Version, buf *bitstream.Buffer) (Segment, error) {
-	var n int
-	switch {
-	case version <= 0 || version > 40:
-		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
-	case version < 10:
-		n = 8
-	default:
-		n = 16
-	}
+func decodeBytes(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeBytes]
 	length, err := buf.ReadBits(n)
 	if err != nil {
 		return Segment{}, err
