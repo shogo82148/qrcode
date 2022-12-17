@@ -160,19 +160,23 @@ func newBase(version int) (*bitmap.Image, *bitmap.Image) {
 
 	// corner finder pattern
 	// bottom left
+	img.SetBinary(1, h-0, bitmap.Black)
 	img.SetBinary(0, h-0, bitmap.Black)
 	img.SetBinary(0, h-1, bitmap.Black)
-	img.SetBinary(0, h-2, bitmap.Black)
-
-	img.SetBinary(0, h, bitmap.Black)
-	img.SetBinary(1, h, bitmap.Black)
-	img.SetBinary(2, h, bitmap.Black)
+	img.SetBinary(1, h-1, bitmap.White)
+	used.SetBinary(1, h-0, bitmap.Black)
+	used.SetBinary(0, h-0, bitmap.Black)
+	used.SetBinary(0, h-1, bitmap.Black)
+	used.SetBinary(1, h-1, bitmap.Black)
 
 	// Top right
 	img.SetBinary(w-1, 0, bitmap.Black)
 	img.SetBinary(w-0, 0, bitmap.Black)
 	img.SetBinary(w-0, 1, bitmap.Black)
 	img.SetBinary(w-1, 1, bitmap.White)
+	used.SetBinary(w-1, 0, bitmap.Black)
+	used.SetBinary(w-0, 0, bitmap.Black)
+	used.SetBinary(w-0, 1, bitmap.Black)
 	used.SetBinary(w-1, 1, bitmap.Black)
 
 	// finder pattern

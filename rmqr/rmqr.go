@@ -4,6 +4,7 @@
 package rmqr
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -15,6 +16,11 @@ type QRCode struct {
 }
 
 type Version int
+
+func (version Version) String() string {
+	base := baseList[version]
+	return fmt.Sprintf("R%dx%d", base.Rect.Dy(), base.Rect.Dx())
+}
 
 type Level int
 
