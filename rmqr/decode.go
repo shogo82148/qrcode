@@ -3,12 +3,14 @@ package rmqr
 
 import (
 	"errors"
+	"io"
 	"log"
 	"math/bits"
 
 	"github.com/shogo82148/qrcode/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
+	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
@@ -17,41 +19,11 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	w := bounds.Dx() - 1
 	h := bounds.Dy() - 1
 
-	var rawVersion uint
-
-	for i := 0; i < 15; i++ {
-		if binimg.BinaryAt(w-7+i/5, h-5+i%5) {
-			rawVersion |= 1 << i
-		}
+	version, level, err := decodeFormat(binimg)
+	_ = level
+	if err != nil {
+		return nil, err
 	}
-	if binimg.BinaryAt(w-4, h-5) {
-		rawVersion |= 1 << 15
-	}
-	if binimg.BinaryAt(w-3, h-5) {
-		rawVersion |= 1 << 16
-	}
-	if binimg.BinaryAt(w-2, h-5) {
-		rawVersion |= 1 << 17
-	}
-	version, level, ok := decodeFormat(rawVersion ^ 0b100000101001111011)
-	if !ok {
-		// return nil, errors.New("rmqr: rMQR not found")
-	}
-	log.Println(version, level)
-
-	rawVersion = 0
-	for i := 0; i < 18; i++ {
-		if binimg.BinaryAt(8+i/5, 1+i%5) {
-			rawVersion |= 1 << i
-		}
-	}
-	version, level, ok = decodeFormat(rawVersion ^ 0b011111101010110010)
-	if !ok {
-		return nil, errors.New("rmqr: rMQR not found")
-	}
-	log.Println(version, level)
-	// TODO: check around sub-finder pattern
-
 	used := usedList[version]
 	binimg.Mask(binimg, used, precomputedMask)
 
@@ -88,42 +60,205 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 		}
 	}
 
-	// data := buf.Bytes()
-	// if err := reedsolomon.Decode(data, 2); err != nil {
-	// 	return nil, err
-	// }
+	// un-interleave
+	blocks := decodeFromBits(version, level, buf.Bytes())
 
-	mode, err := buf.ReadBits(3)
-	if err != nil {
-		return nil, err
+	// error correction
+	var result []byte
+	for _, blk := range blocks {
+		data := append(blk.data, blk.correction...)
+		if err := reedsolomon.Decode(data, 2); err != nil {
+			return nil, err
+		}
+		result = append(result, data[:len(blk.data)]...)
 	}
-	_ = mode
-	length, err := buf.ReadBits(4)
-	if err != nil {
-		return nil, err
-	}
-	data := make([]byte, length)
-	if err := bitstream.DecodeNumeric(&buf, data); err != nil {
-		return nil, err
-	}
-	log.Println(string(data))
 
-	return &QRCode{}, nil
+	// decode segments
+	stream := bitstream.NewBuffer(result)
+	segments := make([]Segment, 0)
+	bitLength := capacityTable[version][level].BitLength
+LOOP:
+	for {
+		mode, err := stream.ReadBits(3)
+		if err == io.EOF {
+			break
+		}
+		switch Mode(mode) {
+		case ModeNumeric:
+			seg, err := decodeNumber(bitLength, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
+		case ModeAlphanumeric:
+			seg, err := decodeAlphanumeric(bitLength, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
+		case ModeBytes:
+			seg, err := decodeBytes(bitLength, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
+		case ModeTerminated:
+			break LOOP
+		}
+	}
+
+	log.Println(string(segments[0].Data))
+
+	return &QRCode{
+		Version:  version,
+		Level:    level,
+		Segments: segments,
+	}, nil
 }
 
-func decodeFormat(data uint) (Version, Level, bool) {
-	var version, min int
+func decodeFormat(img *internalbitmap.Image) (Version, Level, error) {
+	bounds := img.Rect
+	w := bounds.Dx() - 1
+	h := bounds.Dy() - 1
+
+	// search version info around finder pattern
+	var rawVersion uint
+	for i := 0; i < 18; i++ {
+		if img.BinaryAt(8+i/5, 1+i%5) {
+			rawVersion |= 1 << i
+		}
+	}
+	version, level, ok := decodeFormat0(rawVersion ^ 0b011111101010110010)
+	if !ok {
+		return version, level, nil
+	}
+
+	// search version info around sub-finder pattern
+	rawVersion = 0
+	for i := 0; i < 15; i++ {
+		if img.BinaryAt(w-7+i/5, h-5+i%5) {
+			rawVersion |= 1 << i
+		}
+	}
+	if img.BinaryAt(w-4, h-5) {
+		rawVersion |= 1 << 15
+	}
+	if img.BinaryAt(w-3, h-5) {
+		rawVersion |= 1 << 16
+	}
+	if img.BinaryAt(w-2, h-5) {
+		rawVersion |= 1 << 17
+	}
+	version, level, ok = decodeFormat0(rawVersion ^ 0b100000101001111011)
+	if ok {
+		return version, level, nil
+	}
+
+	return 0, 0, errors.New("rmqr: rMRQ not found")
+}
+
+func decodeFormat0(data uint) (Version, Level, bool) {
+	var idx, min int
 	min = bits.OnesCount(encodedVersion[0] ^ data)
 	for i, v := range encodedVersion {
 		diff := bits.OnesCount(v ^ data)
 		if diff < min {
-			version = i
+			idx = i
 			min = diff
 		}
 	}
 	if min >= 3 {
 		return 0, 0, false
 	}
-	log.Printf("min: %d, 0b%b", min, version)
-	return Version(version & 0x1f), Level((version >> 6) & 1), true
+	return Version(idx & 0x1f), Level((idx >> 6) & 1), true
+}
+
+func decodeFromBits(version Version, level Level, buf []byte) []block {
+	capacity := capacityTable[version][level]
+	blocks := []block{}
+	for _, blockCapacity := range capacity.Blocks {
+		for i := 0; i < blockCapacity.Num; i++ {
+			blocks = append(blocks, block{
+				data:       make([]byte, blockCapacity.Data),
+				correction: make([]byte, blockCapacity.Total-blockCapacity.Data),
+				maxError:   blockCapacity.MaxError,
+			})
+		}
+	}
+
+	i := 0
+	for _, b := range buf[:capacity.Data] {
+		for {
+			if i/len(blocks) < len(blocks[i%len(blocks)].data) {
+				blocks[i%len(blocks)].data[i/len(blocks)] = b
+				i++
+				break
+			}
+			i++
+		}
+	}
+
+	i = 0
+	for _, b := range buf[capacity.Data:capacity.Total] {
+		for {
+			if i/len(blocks) < len(blocks[i%len(blocks)].correction) {
+				blocks[i%len(blocks)].correction[i/len(blocks)] = b
+				i++
+				break
+			}
+			i++
+		}
+	}
+	return blocks
+}
+
+func decodeNumber(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeNumeric]
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data := make([]byte, length)
+	if err := bitstream.DecodeNumeric(buf, data); err != nil {
+		return Segment{}, err
+	}
+
+	return Segment{
+		Mode: ModeNumeric,
+		Data: data,
+	}, nil
+}
+
+func decodeAlphanumeric(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeAlphanumeric]
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data := make([]byte, length)
+	if err := bitstream.DecodeAlphanumeric(buf, data); err != nil {
+		return Segment{}, err
+	}
+
+	return Segment{
+		Mode: ModeAlphanumeric,
+		Data: data,
+	}, nil
+}
+
+func decodeBytes(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeBytes]
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data := make([]byte, length)
+	if err := bitstream.DecodeBytes(buf, data); err != nil {
+		return Segment{}, err
+	}
+
+	return Segment{
+		Mode: ModeBytes,
+		Data: data,
+	}, nil
 }

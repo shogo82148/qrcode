@@ -16,32 +16,15 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	bounds := img.Bounds()
 	version := Version((bounds.Dx() - 17) / 4)
 	binimg := internalbitmap.Import(img)
+
+	level, mask, err := decodeFormat(binimg)
+	if err != nil {
+		return nil, err
+	}
 	w := 16 + 4*int(version)
-	// decode format
-	var rawFormat1, rawFormat2 uint
-	for i := 0; i < 8; i++ {
-		if binimg.BinaryAt(8, skipTimingPattern(i)) {
-			rawFormat1 |= 1 << i
-		}
-		if binimg.BinaryAt(skipTimingPattern(i), 8) {
-			rawFormat1 |= 1 << (14 - i)
-		}
-
-		if binimg.BinaryAt(w-i, 8) {
-			rawFormat2 |= 1 << i
-		}
-		if binimg.BinaryAt(8, w-i) {
-			rawFormat2 |= 1 << (14 - i)
-		}
-	}
-	level, mask, ok := decodeFormat(rawFormat1)
-	if !ok {
-		return nil, errors.New("qr code not found")
-	}
-
-	used := usedList[version]
 
 	// mask
+	used := usedList[version]
 	binimg.Mask(binimg, used, maskList[mask])
 
 	var buf bitstream.Buffer
@@ -136,7 +119,40 @@ LOOP:
 	}, nil
 }
 
-func decodeFormat(raw uint) (Level, Mask, bool) {
+func decodeFormat(img *internalbitmap.Image) (Level, Mask, error) {
+	w := img.Rect.Dx() - 1
+
+	// decode format
+	var rawFormat1, rawFormat2 uint
+	for i := 0; i < 8; i++ {
+		if img.BinaryAt(8, skipTimingPattern(i)) {
+			rawFormat1 |= 1 << i
+		}
+		if img.BinaryAt(skipTimingPattern(i), 8) {
+			rawFormat1 |= 1 << (14 - i)
+		}
+
+		if img.BinaryAt(w-i, 8) {
+			rawFormat2 |= 1 << i
+		}
+		if img.BinaryAt(8, w-i) {
+			rawFormat2 |= 1 << (14 - i)
+		}
+	}
+	level, mask, ok := decodeFormat0(rawFormat1)
+	if ok {
+		return level, mask, nil
+	}
+
+	level, mask, ok = decodeFormat0(rawFormat2)
+	if ok {
+		return level, mask, nil
+	}
+
+	return 0, 0, errors.New("qrcode: QRCode not found")
+}
+
+func decodeFormat0(raw uint) (Level, Mask, bool) {
 	idx := 0
 	min := bits.OnesCount(encodedFormat[0] ^ raw)
 	for i, pattern := range encodedFormat {
@@ -207,7 +223,7 @@ func decodeNumber(version Version, buf *bitstream.Buffer) (Segment, error) {
 	if err != nil {
 		return Segment{}, err
 	}
-	data := make([]byte, 0, length)
+	data := make([]byte, length)
 	if err := bitstream.DecodeNumeric(buf, data); err != nil {
 		return Segment{}, err
 	}
