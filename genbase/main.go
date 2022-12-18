@@ -57,7 +57,7 @@ func genMaskList(buf *bytes.Buffer) {
 	genMask(buf, func(i, j int) int { return (i + j) % 3 })
 	genMask(buf, func(i, j int) int { return (i/2 + j/3) % 2 })
 	genMask(buf, func(i, j int) int { return i*j%2 + i*j%3 })
-	genMask(buf, func(i, j int) int { return (i*j%2 + i*j%3) % 2 })
+	genMask(buf, func(i, j int) int { return ((i*j)%2 + (i*j)%3) % 2 })
 	genMask(buf, func(i, j int) int { return ((i+j)%2 + (i*j)%3) % 2 })
 	fmt.Fprintf(buf, "}\n\n")
 }

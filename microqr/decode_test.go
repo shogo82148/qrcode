@@ -70,6 +70,66 @@ func TestDecodeBitmap2(t *testing.T) {
 	}
 }
 
+func TestDecodeBitmap3(t *testing.T) {
+	// from https://www.qrcode.com/img/rmqr/gra2.jpg
+	r, err := os.Open("testdata/02.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := png.Decode(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	binimg := bitmap.New(image.Rect(0, 0, 13, 13))
+	for y := 0; y < 13; y++ {
+		for x := 0; x < 13; x++ {
+			X := float64(x)*(21.0/13.0) + 5.5
+			Y := float64(y)*(21.0/13.0) + 5.0
+			binimg.Set(x, y, img.At(round(X), round(Y)))
+		}
+	}
+
+	qr, err := DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("12345")) {
+		t.Errorf("want %q, got %q", []byte("12345"), qr.Segments[0].Data)
+	}
+}
+
+func TestDecodeBitmap4(t *testing.T) {
+	t.Skip("TODO: fix me. I don't know why it fails. ???")
+
+	// from https://www.qrcode.com/img/rmqr/gra2.jpg
+	r, err := os.Open("testdata/03.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := png.Decode(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	binimg := bitmap.New(image.Rect(0, 0, 15, 15))
+	for y := 0; y < 15; y++ {
+		for x := 0; x < 15; x++ {
+			X := float64(x)*(26.0/15.0) + 5.0
+			Y := float64(y)*(27.0/15.0) + 5.0
+			binimg.Set(x, y, img.At(round(X), round(Y)))
+		}
+	}
+
+	qr, err := DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("1haicso")) {
+		t.Errorf("want %q, got %q", []byte("1haicso"), qr.Segments[0].Data)
+	}
+}
+
 func round(x float64) int {
 	return int(math.Round(x))
 }
