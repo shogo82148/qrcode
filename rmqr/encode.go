@@ -4,12 +4,213 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 
 	"github.com/shogo82148/qrcode/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
+
+func New(level Level, data []byte) (*QRCode, error) {
+	if len(data) == 0 {
+		return &QRCode{
+			Version: 0,
+			Level:   level,
+		}, nil
+	}
+
+	const inf = math.MaxInt - 1<<18 // 1<<18 is for avoiding overflow
+	const (
+		modeNumeric byte = iota
+		modeAlphanumeric
+		modeBytes
+		modeInit
+	)
+	type state struct {
+		cost     int // = bit length * 6
+		lastMode byte
+	}
+	states := make([][3]state, len(data))
+	if bitstream.IsNumeric(data[0]) {
+		states[0][modeNumeric] = state{
+			cost:     (3+9)*6 + 20,
+			lastMode: modeInit,
+		}
+	} else {
+		states[0][modeNumeric] = state{
+			cost:     inf,
+			lastMode: modeInit,
+		}
+	}
+	if bitstream.IsAlphanumeric(data[0]) {
+		states[0][modeAlphanumeric] = state{
+			cost:     (3+8)*6 + 33,
+			lastMode: modeInit,
+		}
+	} else {
+		states[0][modeAlphanumeric] = state{
+			cost:     inf,
+			lastMode: modeInit,
+		}
+	}
+	states[0][modeBytes] = state{
+		cost:     (3 + 8 + 8) * 6,
+		lastMode: modeInit,
+	}
+
+	for i := 1; i < len(data); i++ {
+		if bitstream.IsNumeric(data[i]) {
+			// numeric -> numeric
+			minCost := states[i-1][modeNumeric].cost + 20
+			lastMode := modeNumeric
+
+			// alphanumeric -> numeric
+			cost := states[i-1][modeAlphanumeric].cost + (3+9)*6 + 20
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeAlphanumeric
+			}
+
+			// bytes -> numeric
+			cost = states[i-1][modeBytes].cost + (3+9)*6 + 20
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeBytes
+			}
+
+			states[i][modeNumeric] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+			}
+		} else {
+			states[i][modeNumeric] = state{
+				cost:     inf,
+				lastMode: modeInit,
+			}
+		}
+
+		if bitstream.IsAlphanumeric(data[i]) {
+			// numeric -> alphanumeric
+			minCost := states[i-1][modeNumeric].cost + (3+8)*6 + 33
+			lastMode := modeNumeric
+
+			// alphanumeric -> numeric
+			cost := states[i-1][modeAlphanumeric].cost + 33
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeAlphanumeric
+			}
+
+			// bytes -> numeric
+			cost = states[i-1][modeBytes].cost + (3+8)*6 + 33
+			if cost < minCost {
+				minCost = cost
+				lastMode = modeBytes
+			}
+
+			states[i][modeAlphanumeric] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+			}
+		} else {
+			states[i][modeAlphanumeric] = state{
+				cost:     inf,
+				lastMode: modeInit,
+			}
+		}
+
+		// numeric -> bytes
+		minCost := states[i-1][modeNumeric].cost + (3+8+8)*6
+		lastMode := modeNumeric
+
+		// alphanumeric -> bytes
+		cost := states[i-1][modeAlphanumeric].cost + (3+8+8)*6
+		if cost < minCost {
+			minCost = cost
+			lastMode = modeAlphanumeric
+		}
+
+		// bytes -> bytes
+		cost = states[i-1][modeBytes].cost + 8*6
+		if cost < minCost {
+			minCost = cost
+			lastMode = modeBytes
+		}
+		states[i][modeBytes] = state{
+			cost:     minCost,
+			lastMode: lastMode,
+		}
+	}
+
+	best := make([]byte, len(data))
+	minCost := states[len(data)-1][modeNumeric].cost
+	bestMode := modeNumeric
+	if cost := states[len(data)-1][modeAlphanumeric].cost; cost < minCost {
+		minCost = cost
+		bestMode = modeAlphanumeric
+	}
+	if cost := states[len(data)-1][modeBytes].cost; cost < minCost {
+		bestMode = modeBytes
+	}
+	best[len(data)-1] = bestMode
+	for i := len(data) - 1; i > 0; i-- {
+		bestMode = states[i][bestMode].lastMode
+		best[i-1] = bestMode
+	}
+
+	modeList := [...]Mode{ModeNumeric, ModeAlphanumeric, ModeBytes}
+	segments := []Segment{
+		{
+			Mode: modeList[best[0]],
+			Data: []byte{data[0]},
+		},
+	}
+	for i := 1; i < len(data); i++ {
+		mode := modeList[best[i]]
+		if segments[len(segments)-1].Mode == mode {
+			segments[len(segments)-1].Data = append(segments[len(segments)-1].Data, data[i])
+		} else {
+			segments = append(segments, Segment{
+				Mode: mode,
+				Data: []byte{data[i]},
+			})
+		}
+	}
+
+	version, ok := calcVersion(level, segments)
+	if !ok {
+		return nil, errors.New("qrcode: data too large")
+	}
+
+	return &QRCode{
+		Version:  version,
+		Level:    level,
+		Segments: segments,
+	}, nil
+}
+
+func calcVersion(level Level, segments []Segment) (Version, bool) {
+LOOP:
+	for _, version := range capacityOrder {
+		capacity := capacityTable[version][level].Data * 8
+		length := 0
+		for _, s := range segments {
+			l, ok := s.length(version, level)
+			if !ok {
+				continue LOOP
+			}
+			length += l
+			if length > capacity {
+				continue LOOP
+			}
+		}
+		if length <= capacity {
+			return version, true
+		}
+	}
+	return 0, false
+}
 
 func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	var buf bitstream.Buffer
@@ -153,6 +354,47 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 		}
 	}
 	return nil
+}
+
+// length returns the length of s in bits.
+func (s *Segment) length(version Version, level Level) (int, bool) {
+	if int(version) >= len(capacityTable) {
+		return 0, false
+	}
+	if int(level) >= len(capacityTable[version]) {
+		return 0, false
+	}
+
+	capacity := capacityTable[version][level]
+
+	// mode indicator
+	var n int = 3
+
+	switch s.Mode {
+	case ModeNumeric:
+		n += capacity.BitLength[ModeNumeric]
+		n += 10 * (len(s.Data) / 3)
+		switch len(s.Data) % 3 {
+		case 1:
+			n += 4
+		case 2:
+			n += 7
+		}
+		return n, true
+	case ModeAlphanumeric:
+		n += capacity.BitLength[ModeAlphanumeric]
+		n += 11 * (len(s.Data) / 2)
+		if len(s.Data)%2 != 0 {
+			n += 6
+		}
+		return n, true
+	case ModeBytes:
+		n += capacity.BitLength[ModeBytes]
+		n += len(s.Data) * 8
+		return n, true
+	default:
+		return 0, false
+	}
 }
 
 func (s *Segment) encode(bitLength [5]int, buf *bitstream.Buffer) error {

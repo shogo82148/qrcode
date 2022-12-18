@@ -17,9 +17,56 @@ type QRCode struct {
 
 type Version int
 
+const (
+	R7x43   Version = 0b00000
+	R7x59   Version = 0b00001
+	R7x77   Version = 0b00010
+	R7x99   Version = 0b00011
+	R7x139  Version = 0b00100
+	R9x43   Version = 0b00101
+	R9x59   Version = 0b00110
+	R9x77   Version = 0b00111
+	R9x99   Version = 0b01000
+	R9x139  Version = 0b01001
+	R11x27  Version = 0b01010
+	R11x43  Version = 0b01011
+	R11x59  Version = 0b01100
+	R11x77  Version = 0b01101
+	R11x99  Version = 0b01110
+	R11x139 Version = 0b01111
+	R13x27  Version = 0b10000
+	R13x43  Version = 0b10001
+	R13x59  Version = 0b10010
+	R13x77  Version = 0b10011
+	R13x99  Version = 0b10100
+	R13x139 Version = 0b10101
+	R15x43  Version = 0b10110
+	R15x59  Version = 0b10111
+	R15x77  Version = 0b11000
+	R15x99  Version = 0b11001
+	R15x139 Version = 0b11010
+	R17x43  Version = 0b11011
+	R17x59  Version = 0b11100
+	R17x77  Version = 0b11101
+	R17x99  Version = 0b11110
+	R17x139 Version = 0b11111
+)
+
 func (version Version) String() string {
 	base := baseList[version]
 	return fmt.Sprintf("R%dx%d", base.Rect.Dy(), base.Rect.Dx())
+}
+
+// Width returns the width of version.
+func (version Version) Width() int {
+	base := baseList[version]
+	return base.Rect.Dx()
+}
+
+// Height returns the width of version.
+func (version Version) Height() int {
+	base := baseList[version]
+	return base.Rect.Dy()
 }
 
 type Level int
