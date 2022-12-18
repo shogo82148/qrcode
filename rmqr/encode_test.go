@@ -5,9 +5,28 @@ import (
 	"testing"
 )
 
+func TestNew1(t *testing.T) {
+	qr, err := New(LevelM, []byte("123456789012"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Version != R7x43 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, R7x43)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("123456789012")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "123456789012")
+	}
+}
+
 func TestEncodeToBitmap1(t *testing.T) {
 	qr := &QRCode{
-		Version: 0,
+		Version: R7x43,
 		Level:   LevelM,
 		Segments: []Segment{
 			{

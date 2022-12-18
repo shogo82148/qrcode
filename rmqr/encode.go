@@ -178,17 +178,38 @@ func New(level Level, data []byte) (*QRCode, error) {
 		}
 	}
 
-	// TODO: implement calcVersion
-	// version := calcVersion(level, segments)
-	// if version == 0 {
-	// 	return nil, errors.New("qrcode: data too large")
-	// }
+	version, ok := calcVersion(level, segments)
+	if !ok {
+		return nil, errors.New("qrcode: data too large")
+	}
 
 	return &QRCode{
-		// Version:  version,
+		Version:  version,
 		Level:    level,
 		Segments: segments,
 	}, nil
+}
+
+func calcVersion(level Level, segments []Segment) (Version, bool) {
+LOOP:
+	for _, version := range capacityOrder {
+		capacity := capacityTable[version][level].Data * 8
+		length := 0
+		for _, s := range segments {
+			l, ok := s.length(version, level)
+			if !ok {
+				continue LOOP
+			}
+			length += l
+			if length > capacity {
+				continue LOOP
+			}
+		}
+		if length <= capacity {
+			return version, true
+		}
+	}
+	return 0, false
 }
 
 func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
@@ -333,6 +354,47 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 		}
 	}
 	return nil
+}
+
+// length returns the length of s in bits.
+func (s *Segment) length(version Version, level Level) (int, bool) {
+	if int(version) >= len(capacityTable) {
+		return 0, false
+	}
+	if int(level) >= len(capacityTable[version]) {
+		return 0, false
+	}
+
+	capacity := capacityTable[version][level]
+
+	// mode indicator
+	var n int = 3
+
+	switch s.Mode {
+	case ModeNumeric:
+		n += capacity.BitLength[ModeNumeric]
+		n += 10 * (len(s.Data) / 3)
+		switch len(s.Data) % 3 {
+		case 1:
+			n += 4
+		case 2:
+			n += 7
+		}
+		return n, true
+	case ModeAlphanumeric:
+		n += capacity.BitLength[ModeAlphanumeric]
+		n += 11 * (len(s.Data) / 2)
+		if len(s.Data)%2 != 0 {
+			n += 6
+		}
+		return n, true
+	case ModeBytes:
+		n += capacity.BitLength[ModeBytes]
+		n += len(s.Data) * 8
+		return n, true
+	default:
+		return 0, false
+	}
 }
 
 func (s *Segment) encode(bitLength [5]int, buf *bitstream.Buffer) error {
