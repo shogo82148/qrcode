@@ -7,7 +7,7 @@ import (
 	"github.com/shogo82148/qrcode/internal/bitstream"
 )
 
-func TestEncode1(t *testing.T) {
+func TestNew1(t *testing.T) {
 	qr, err := New(LevelH, []byte("01234567"))
 	if err != nil {
 		t.Fatal(err)
@@ -29,7 +29,7 @@ func TestEncode1(t *testing.T) {
 	}
 }
 
-func TestEncode2(t *testing.T) {
+func TestNew2(t *testing.T) {
 	qr, err := New(LevelH, []byte("Ver1"))
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +51,7 @@ func TestEncode2(t *testing.T) {
 	}
 }
 
-func TestEncode3(t *testing.T) {
+func TestNew3(t *testing.T) {
 	qr, err := New(LevelH, []byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"))
 	if err != nil {
 		t.Fatal(err)
