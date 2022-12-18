@@ -3,6 +3,7 @@ package rmqr
 import (
 	"image"
 	"image/png"
+	"log"
 	"os"
 	"testing"
 
@@ -405,6 +406,8 @@ func TestDecode12(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+	log.Printf("%08b", binimg.Pix)
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
