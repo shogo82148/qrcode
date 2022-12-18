@@ -623,8 +623,5 @@ func (s *Segment) encodeBytes(version Version, buf *bitstream.Buffer) error {
 	buf.WriteBitsLSB(uint64(len(data)), n)
 
 	// data
-	for _, bits := range data {
-		buf.WriteBitsLSB(uint64(bits), 8)
-	}
-	return nil
+	return bitstream.EncodeBytes(buf, data)
 }
