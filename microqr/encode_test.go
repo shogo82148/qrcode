@@ -5,6 +5,28 @@ import (
 	"testing"
 )
 
+func TestEncode1(t *testing.T) {
+	qr, err := New(LevelL, []byte("MICROQR"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 3)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeAlphanumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeAlphanumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("MICROQR")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "MICROQR")
+	}
+}
+
 func TestEncodeToBitmap1(t *testing.T) {
 	qr := &QRCode{
 		Version: 2,
