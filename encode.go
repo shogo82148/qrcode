@@ -230,6 +230,19 @@ type EncodeOptions interface {
 type encodeOptions struct {
 	QuiteZone  int
 	ModuleSize float64
+	Level      Level
+}
+
+func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
+	myopts := encodeOptions{
+		QuiteZone:  4,
+		ModuleSize: 1,
+		Level:      LevelQ,
+	}
+	for _, o := range opts {
+		o.apply(&myopts)
+	}
+	return myopts
 }
 
 type withModuleSize float64
@@ -252,14 +265,28 @@ func WithQuiteZone(n int) EncodeOptions {
 	return withQuiteZone(n)
 }
 
+type withLevel Level
+
+func (opt withLevel) apply(opts *encodeOptions) {
+	opts.Level = Level(opt)
+}
+
+func WithLevel(lv Level) EncodeOptions {
+	return withLevel(lv)
+}
+
+func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
+	myopts := newEncodeOptions(opts...)
+
+	qr, err := New(myopts.Level, data)
+	if err != nil {
+		return nil, err
+	}
+	return qr.Encode(opts...)
+}
+
 func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
-	myopts := encodeOptions{
-		QuiteZone:  4,
-		ModuleSize: 1,
-	}
-	for _, o := range opts {
-		o.apply(&myopts)
-	}
+	myopts := newEncodeOptions(opts...)
 
 	binimg, err := qr.EncodeToBitmap()
 	if err != nil {
