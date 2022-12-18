@@ -183,6 +183,7 @@ func TestEncodeToBitmap4(t *testing.T) {
 	}
 	got := img.Pix
 
+	// from https://www.qrcode.com/img/rmqr/gra2.jpg
 	want := []byte{
 		0b11111110, 0b10101010,
 		0b10000010, 0b00111110,

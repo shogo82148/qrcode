@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"image"
 	"image/png"
-	"log"
 	"math"
 	"os"
 	"testing"
@@ -72,7 +71,7 @@ func TestDecodeBitmap2(t *testing.T) {
 }
 
 func TestDecodeBitmap3(t *testing.T) {
-	// from https://www.qrcode.com/codes/microqr.html
+	// from https://www.qrcode.com/img/rmqr/gra2.jpg
 	r, err := os.Open("testdata/02.png")
 	if err != nil {
 		t.Fatal(err)
@@ -101,7 +100,7 @@ func TestDecodeBitmap3(t *testing.T) {
 }
 
 func TestDecodeBitmap4(t *testing.T) {
-	// from https://www.qrcode.com/codes/microqr.html
+	// from https://www.qrcode.com/img/rmqr/gra2.jpg
 	r, err := os.Open("testdata/03.png")
 	if err != nil {
 		t.Fatal(err)
@@ -119,7 +118,6 @@ func TestDecodeBitmap4(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
-	log.Printf("%08b", binimg.Pix)
 
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
