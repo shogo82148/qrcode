@@ -3,6 +3,8 @@ package microqr
 import (
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
 	"math"
 
 	bitmap "github.com/shogo82148/qrcode/bitmap"
@@ -210,6 +212,80 @@ LOOP:
 		}
 	}
 	return 0
+}
+
+type EncodeOptions interface {
+	apply(opts *encodeOptions)
+}
+
+type encodeOptions struct {
+	QuiteZone  int
+	ModuleSize float64
+}
+
+type withModuleSize float64
+
+func (opt withModuleSize) apply(opts *encodeOptions) {
+	opts.ModuleSize = float64(opt)
+}
+
+func WithModuleSize(size float64) EncodeOptions {
+	return withModuleSize(size)
+}
+
+type withQuiteZone int
+
+func (opt withQuiteZone) apply(opts *encodeOptions) {
+	opts.QuiteZone = int(opt)
+}
+
+func WithQuiteZone(n int) EncodeOptions {
+	return withQuiteZone(n)
+}
+
+func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
+	myopts := encodeOptions{
+		QuiteZone:  2,
+		ModuleSize: 1,
+	}
+	for _, o := range opts {
+		o.apply(&myopts)
+	}
+
+	binimg, err := qr.EncodeToBitmap()
+	if err != nil {
+		return nil, err
+	}
+
+	w := binimg.Bounds().Dx() + myopts.QuiteZone*2
+	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
+	scale := myopts.ModuleSize
+	dX := float64(myopts.QuiteZone) * scale
+	dY := float64(myopts.QuiteZone) * scale
+
+	// create new paletted image
+	palette := color.Palette{
+		color.White, color.Black,
+	}
+	white := uint8(0)
+	black := uint8(1)
+	bounds := image.Rect(0, 0, W, W)
+	img := image.NewPaletted(bounds, palette)
+
+	// convert bitmap to image
+	for Y := bounds.Min.Y; Y < bounds.Max.Y; Y++ {
+		y := int(math.Floor((float64(Y) - dY) / scale))
+		for X := bounds.Min.X; X < bounds.Max.X; X++ {
+			x := int(math.Floor((float64(X) - dX) / scale))
+			c := binimg.BinaryAt(x, y)
+			if c {
+				img.SetColorIndex(X, Y, black)
+			} else {
+				img.SetColorIndex(X, Y, white)
+			}
+		}
+	}
+	return img, nil
 }
 
 // EncodeToBitmap encodes QR Code into bitmap image.

@@ -2,10 +2,11 @@ package microqr
 
 import (
 	"bytes"
+	"image/png"
 	"testing"
 )
 
-func TestEncode1(t *testing.T) {
+func TestNew1(t *testing.T) {
 	qr, err := New(LevelL, []byte("MICROQR"))
 	if err != nil {
 		t.Fatal(err)
@@ -24,6 +25,29 @@ func TestEncode1(t *testing.T) {
 	}
 	if !bytes.Equal(qr.Segments[0].Data, []byte("MICROQR")) {
 		t.Errorf("got %q, want %q", qr.Segments[0].Data, "MICROQR")
+	}
+}
+
+func TestEncode1(t *testing.T) {
+	qr := &QRCode{
+		Version: 2,
+		Level:   LevelL,
+		Mask:    Mask1,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: []byte("01234567"),
+			},
+		},
+	}
+	img, err := qr.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		t.Fatal(err)
 	}
 }
 
