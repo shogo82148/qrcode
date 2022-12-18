@@ -367,6 +367,7 @@ func TestDecode11(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
