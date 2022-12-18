@@ -126,3 +126,81 @@ func TestEncodeToBitmap2(t *testing.T) {
 		t.Errorf("got %08b, want %08b", got, want)
 	}
 }
+
+func TestEncodeToBitmap3(t *testing.T) {
+	qr := &QRCode{
+		Version: 2,
+		Level:   LevelM,
+		Mask:    Mask0,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: []byte("12345"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101000,
+		0b10000010, 0b10000000,
+		0b10111010, 0b11101000,
+		0b10111010, 0b00011000,
+		0b10111010, 0b01110000,
+		0b10000010, 0b10001000,
+		0b11111110, 0b00101000,
+		0b00000000, 0b01011000,
+		0b11100111, 0b10000000,
+		0b01111001, 0b01100000,
+		0b11100000, 0b01110000,
+		0b01001000, 0b10101000,
+		0b11111110, 0b10011000,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestEncodeToBitmap4(t *testing.T) {
+	qr := &QRCode{
+		Version: 3,
+		Level:   LevelM,
+		Mask:    Mask2,
+		Segments: []Segment{
+			{
+				Mode: ModeBytes,
+				Data: []byte("1haicso"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101010,
+		0b10000010, 0b00111110,
+		0b10111010, 0b00011110,
+		0b10111010, 0b01100110,
+		0b10111010, 0b00010010,
+		0b10000010, 0b11101010,
+		0b11111110, 0b11001100,
+		0b00000000, 0b01000010,
+		0b10001100, 0b11101000,
+		0b00011100, 0b00110010,
+		0b10111000, 0b01001100,
+		0b00010001, 0b00100000,
+		0b11001001, 0b10011000,
+		0b00100000, 0b01110010,
+		0b11011110, 0b01011110,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}

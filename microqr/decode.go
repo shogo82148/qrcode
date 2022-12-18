@@ -28,12 +28,12 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 			rawFormat |= 1 << (14 - i)
 		}
 	}
-	_, level, mask, ok := decodeFormat(rawFormat)
+	version, level, mask, ok := decodeFormat(rawFormat)
 	if !ok {
 		return nil, errors.New("qr code not found")
 	}
-	_ = level
 
+	w = 8 + 2*int(version)
 	used := usedList[version]
 
 	// mask
