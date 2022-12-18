@@ -1,11 +1,9 @@
 package rmqr
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"math"
-	"os"
 
 	"github.com/shogo82148/qrcode/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
@@ -269,10 +267,6 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 
 	img.Mask(img, used, precomputedMask)
 
-	var hoge bytes.Buffer
-	img.EncodePBM(&hoge)
-	os.WriteFile("rmqr.pbm", hoge.Bytes(), 0o644)
-
 	return img.Export(), nil
 }
 
@@ -401,6 +395,10 @@ func (s *Segment) encode(bitLength [5]int, buf *bitstream.Buffer) error {
 	switch s.Mode {
 	case ModeNumeric:
 		return s.encodeNumber(bitLength[ModeNumeric], buf)
+	case ModeAlphanumeric:
+		return s.encodeAlphanumeric(bitLength[ModeAlphanumeric], buf)
+	case ModeBytes:
+		return s.encodeBytes(bitLength[ModeBytes], buf)
 	default:
 		return errors.New("qrcode: unknown mode")
 	}
@@ -419,4 +417,34 @@ func (s *Segment) encodeNumber(n int, buf *bitstream.Buffer) error {
 
 	// data
 	return bitstream.EncodeNumeric(buf, s.Data)
+}
+
+func (s *Segment) encodeAlphanumeric(n int, buf *bitstream.Buffer) error {
+	if len(s.Data) >= 1<<n {
+		return fmt.Errorf("rmqr: data is too long: %d", len(s.Data))
+	}
+
+	// mode
+	buf.WriteBitsLSB(uint64(ModeAlphanumeric), 3)
+
+	// data length
+	buf.WriteBitsLSB(uint64(len(s.Data)), n)
+
+	// data
+	return bitstream.EncodeAlphanumeric(buf, s.Data)
+}
+
+func (s *Segment) encodeBytes(n int, buf *bitstream.Buffer) error {
+	if len(s.Data) >= 1<<n {
+		return fmt.Errorf("rmqr: data is too long: %d", len(s.Data))
+	}
+
+	// mode
+	buf.WriteBitsLSB(uint64(ModeBytes), 3)
+
+	// data length
+	buf.WriteBitsLSB(uint64(len(s.Data)), n)
+
+	// data
+	return bitstream.EncodeBytes(buf, s.Data)
 }

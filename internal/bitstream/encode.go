@@ -77,3 +77,11 @@ func EncodeAlphanumeric(buf *Buffer, data []byte) error {
 
 	return nil
 }
+
+func EncodeBytes(buf *Buffer, data []byte) error {
+	for _, bits := range data {
+		buf.WriteBitsLSB(uint64(bits), 8)
+	}
+
+	return nil
+}

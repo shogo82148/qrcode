@@ -19,7 +19,6 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	h := bounds.Dy() - 1
 
 	version, level, err := decodeFormat(binimg)
-	_ = level
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +125,7 @@ func decodeFormat(img *internalbitmap.Image) (Version, Level, error) {
 		}
 	}
 	version, level, ok := decodeFormat0(rawVersion ^ 0b011111101010110010)
-	if !ok {
+	if ok {
 		return version, level, nil
 	}
 

@@ -3,6 +3,7 @@ package rmqr
 import (
 	"image"
 	"image/png"
+	"log"
 	"os"
 	"testing"
 
@@ -21,12 +22,27 @@ func TestDecode1(t *testing.T) {
 	}
 
 	binimg := bitmap.New(image.Rect(0, 0, 59, 15))
-	for y := 0; y <= 15; y++ {
-		for x := 0; x <= 59; x++ {
-			X := float64(x)*(164/59.0) + 9
-			Y := float64(y)*(46/15.0) + 9
+	for y := 0; y < 15; y++ {
+		for x := 0; x < 59; x++ {
+			X := float64(x)*(158/59.0) + 9
+			Y := float64(y)*(40/15.0) + 9
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
+	}
+
+	qr, err := DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(qr.Segments) != 1 {
+		t.Errorf("unexpected number of segments: got %d, want 1", len(qr.Segments))
+	}
+	seg := qr.Segments[0]
+	if seg.Mode != ModeBytes {
+		t.Errorf("unexpected mode: got %d, want %d", seg.Mode, ModeNumeric)
+	}
+	if string(seg.Data) != "Rectangular Micro QR Code (rMQR)" {
+		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), "Rectangular Micro QR Code (rMQR)")
 	}
 }
 
@@ -147,6 +163,7 @@ func TestDecode5(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
@@ -158,8 +175,10 @@ func TestDecode5(t *testing.T) {
 	if seg.Mode != ModeNumeric {
 		t.Errorf("unexpected mode: got %d, want %d", seg.Mode, ModeNumeric)
 	}
-	if string(seg.Data) != "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567" {
-		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456")
+	want := "123456789012345678901234567890123456789012345678901234567890" +
+		"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567"
+	if string(seg.Data) != want {
+		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), want)
 	}
 }
 
@@ -182,6 +201,7 @@ func TestDecode6(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
@@ -217,6 +237,7 @@ func TestDecode7(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
@@ -229,7 +250,9 @@ func TestDecode7(t *testing.T) {
 		t.Errorf("unexpected mode: got %d, want %d", seg.Mode, ModeNumeric)
 	}
 
-	want := "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678"
+	want := "12345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+		"123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
+		"1234567890123456789012345678"
 	if string(seg.Data) != want {
 		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), want)
 	}
@@ -281,6 +304,7 @@ func TestDecode9(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
@@ -344,6 +368,7 @@ func TestDecode11(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
@@ -381,6 +406,8 @@ func TestDecode12(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
+	log.Printf("%08b", binimg.Pix)
+
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
