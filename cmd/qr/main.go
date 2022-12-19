@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/shogo82148/qrcode"
+	"github.com/shogo82148/qrcode/microqr"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 
 	if !micro && !rmqr {
 		encodeQR(level, filename)
+	} else if micro {
+		encodeMicroQR(level, filename)
 	}
 }
 
@@ -43,6 +46,34 @@ func encodeQR(level, filename string) {
 		log.Fatal(err)
 	}
 	img, err := qrcode.Encode(data, qrcode.WithLevel(lv))
+	if err != nil {
+		log.Fatal(err)
+	}
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.WriteFile(filename, buf.Bytes(), 0o644); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func encodeMicroQR(level, filename string) {
+	var lv microqr.Level
+	switch level {
+	case "l", "L":
+		lv = microqr.LevelL
+	case "m", "M":
+		lv = microqr.LevelM
+	case "q", "Q", "":
+		lv = microqr.LevelQ
+	}
+
+	data, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	img, err := microqr.Encode(data, microqr.WithLevel(lv))
 	if err != nil {
 		log.Fatal(err)
 	}

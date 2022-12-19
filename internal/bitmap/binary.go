@@ -142,10 +142,6 @@ func (img *Image) OnesCount() int {
 	return cnt
 }
 
-func (img *Image) Point() int {
-	return img.finderPattern() + img.longRunLengthCount() + img.blockCount() + img.pointOnesCount()
-}
-
 func (img *Image) EncodePBM(w io.Writer) error {
 	if _, err := fmt.Fprintln(w, "P1"); err != nil {
 		return err
@@ -172,6 +168,28 @@ func (img *Image) EncodePBM(w io.Writer) error {
 		fmt.Fprintln(w)
 	}
 	return nil
+}
+
+func (img *Image) Point() int {
+	return img.finderPattern() + img.longRunLengthCount() + img.blockCount() + img.pointOnesCount()
+}
+
+func (img *Image) PointMicro() int {
+	var sum1, sum2 int
+	for x := img.Rect.Min.X + 1; x < img.Rect.Max.X; x++ {
+		if img.BinaryAt(x, img.Rect.Max.Y-1) {
+			sum1++
+		}
+	}
+	for y := img.Rect.Min.Y + 1; y < img.Rect.Max.Y; y++ {
+		if img.BinaryAt(img.Rect.Max.X-1, y) {
+			sum2++
+		}
+	}
+	if sum1 > sum2 {
+		sum1, sum2 = sum2, sum1
+	}
+	return sum1*16 + sum2
 }
 
 func (img *Image) longRunLengthCount() int {
