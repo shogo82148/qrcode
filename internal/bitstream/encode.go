@@ -85,3 +85,34 @@ func EncodeBytes(buf *Buffer, data []byte) error {
 
 	return nil
 }
+
+func EncodeKanji(buf *Buffer, data []byte) error {
+	for _, r := range string(data) {
+		code, ok := encodeKanji(r)
+		if !ok {
+			return fmt.Errorf("qrcode: invalid character in kanji mode: %x", r)
+		}
+		buf.WriteBitsLSB(code, 13)
+	}
+	return nil
+}
+
+func encodeKanji(r rune) (uint64, bool) {
+	var code int16
+	switch {
+	case encode0Low <= r && r <= encode0High:
+		code = encode0[r-encode0Low]
+	case encode1Low <= r && r <= encode1High:
+		code = encode1[r-encode1Low]
+	case encode2Low <= r && r <= encode2High:
+		code = encode2[r-encode2Low]
+	case encode3Low <= r && r <= encode3High:
+		code = encode3[r-encode3Low]
+	case encode4Low <= r && r <= encode4High:
+		code = encode4[r-encode4Low]
+	}
+	if code < 0 {
+		return 0, false
+	}
+	return uint64(code), true
+}

@@ -512,6 +512,8 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 		return s.encodeAlphabet(version, buf)
 	case ModeBytes:
 		return s.encodeBytes(version, buf)
+	case ModeKanji:
+		return s.encodeKanji(version, buf)
 	default:
 		return errors.New("qrcode: unknown mode")
 	}
@@ -645,6 +647,34 @@ func (s *Segment) encodeBytes(version Version, buf *bitstream.Buffer) error {
 
 	// mode
 	buf.WriteBitsLSB(uint64(ModeBytes), 4)
+
+	// data length
+	buf.WriteBitsLSB(uint64(len(data)), n)
+
+	// data
+	return bitstream.EncodeBytes(buf, data)
+}
+
+func (s *Segment) encodeKanji(version Version, buf *bitstream.Buffer) error {
+	// validation
+	var n int
+	data := s.Data
+	switch {
+	case version <= 0 || version > 40:
+		return fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 8
+	case version < 27:
+		n = 10
+	default:
+		n = 12
+	}
+	if len(data) >= 1<<n {
+		return fmt.Errorf("qrcode: data is too long: %d", len(data))
+	}
+
+	// mode
+	buf.WriteBitsLSB(uint64(ModeKanji), 4)
 
 	// data length
 	buf.WriteBitsLSB(uint64(len(data)), n)

@@ -112,3 +112,31 @@ func TestEncodeAlphanumeric(t *testing.T) {
 		}
 	}
 }
+
+func TestEncodeKanji(t *testing.T) {
+	tests := []struct {
+		in   []byte
+		want []byte
+	}{
+		{
+			in:   []byte("点"),
+			want: []byte{0b01101100, 0b11111000},
+		},
+		{
+			in:   []byte("茗"),
+			want: []byte{0b11010101, 0b01010000},
+		},
+	}
+
+	for i, tt := range tests {
+		var buf Buffer
+		if err := EncodeKanji(&buf, tt.in); err != nil {
+			t.Errorf("%d: %v", i, err)
+			continue
+		}
+		got := buf.Bytes()
+		if !bytes.Equal(tt.want, got) {
+			t.Errorf("%d: got %08b, want %08b", i, got, tt.want)
+		}
+	}
+}
