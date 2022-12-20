@@ -8,6 +8,7 @@ import (
 	"math"
 
 	bitmap "github.com/shogo82148/qrcode/bitmap"
+	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
@@ -221,6 +222,19 @@ type EncodeOptions interface {
 type encodeOptions struct {
 	QuiteZone  int
 	ModuleSize float64
+	Level      Level
+}
+
+func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
+	myopts := encodeOptions{
+		QuiteZone:  4,
+		ModuleSize: 1,
+		Level:      LevelQ,
+	}
+	for _, o := range opts {
+		o.apply(&myopts)
+	}
+	return myopts
 }
 
 type withModuleSize float64
@@ -241,6 +255,26 @@ func (opt withQuiteZone) apply(opts *encodeOptions) {
 
 func WithQuiteZone(n int) EncodeOptions {
 	return withQuiteZone(n)
+}
+
+type withLevel Level
+
+func (opt withLevel) apply(opts *encodeOptions) {
+	opts.Level = Level(opt)
+}
+
+func WithLevel(lv Level) EncodeOptions {
+	return withLevel(lv)
+}
+
+func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
+	myopts := newEncodeOptions(opts...)
+
+	qr, err := New(myopts.Level, data)
+	if err != nil {
+		return nil, err
+	}
+	return qr.Encode(opts...)
 }
 
 func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
@@ -343,6 +377,19 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	}
 
 	mask := qr.Mask
+	if mask == MaskAuto {
+		var tmp internalbitmap.Image
+		var minPoint int
+		mask = Mask0
+		for i := Mask0; i < maskMax; i++ {
+			tmp.Mask(img, used, maskList[i])
+			point := tmp.Point()
+			if point < minPoint {
+				minPoint = point
+				mask = i
+			}
+		}
+	}
 	encoded := encodedFormat[(format<<2)|int(mask)]
 	for i := 0; i < 8; i++ {
 		img.SetBinary(8, i+1, (encoded>>i)&1 != 0)
