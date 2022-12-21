@@ -1,6 +1,9 @@
 package bitstream
 
-import "errors"
+import (
+	"bytes"
+	"errors"
+)
 
 func DecodeNumeric(buf *Buffer, data []byte) error {
 	for i := 0; i+2 < len(data); i += 3 {
@@ -83,4 +86,17 @@ func DecodeBytes(buf *Buffer, data []byte) error {
 		data[i] = byte(bits)
 	}
 	return nil
+}
+
+func DecodeKanji(buf *Buffer, length int) ([]byte, error) {
+	var ret bytes.Buffer
+	ret.Grow(length * 3)
+	for i := 0; i < length; i++ {
+		bits, err := buf.ReadBits(13)
+		if err != nil {
+			return nil, err
+		}
+		ret.WriteRune(rune(decode[bits]))
+	}
+	return ret.Bytes(), nil
 }

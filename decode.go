@@ -106,6 +106,12 @@ LOOP:
 				return nil, err
 			}
 			segments = append(segments, seg)
+		case ModeKanji:
+			seg, err := decodeKanji(version, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
 		case ModeTerminated:
 			break LOOP
 		}
@@ -284,5 +290,32 @@ func decodeBytes(version Version, buf *bitstream.Buffer) (Segment, error) {
 	return Segment{
 		Mode: ModeBytes,
 		Data: data,
+	}, nil
+}
+
+func decodeKanji(version Version, buf *bitstream.Buffer) (Segment, error) {
+	var n int
+	switch {
+	case version <= 0 || version > 40:
+		return Segment{}, fmt.Errorf("qrcode: invalid version: %d", version)
+	case version < 10:
+		n = 8
+	case version < 27:
+		n = 10
+	default:
+		n = 12
+	}
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data, err := bitstream.DecodeKanji(buf, int(length))
+	if err != nil {
+		return Segment{}, err
+	}
+
+	return Segment{
+		Mode: ModeBytes,
+		Data: []byte(data),
 	}, nil
 }
