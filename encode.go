@@ -969,7 +969,8 @@ func (s *Segment) encodeKanji(version Version, buf *bitstream.Buffer) error {
 	default:
 		n = 12
 	}
-	if len(data) >= 1<<n {
+	count := utf8.RuneCount(data)
+	if count >= 1<<n {
 		return fmt.Errorf("qrcode: data is too long: %d", len(data))
 	}
 
@@ -977,8 +978,8 @@ func (s *Segment) encodeKanji(version Version, buf *bitstream.Buffer) error {
 	buf.WriteBitsLSB(uint64(ModeKanji), 4)
 
 	// data length
-	buf.WriteBitsLSB(uint64(len(data)), n)
+	buf.WriteBitsLSB(uint64(count), n)
 
 	// data
-	return bitstream.EncodeBytes(buf, data)
+	return bitstream.EncodeKanji(buf, data)
 }
