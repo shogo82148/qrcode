@@ -19,8 +19,6 @@ func main() {
 		log.Fatal(err)
 	}
 	encodeJIS0208 := reverse(decodeJIS0208)
-	encodeQR := createEncodeTable(encodeJIS0208)
-	encodeTables := optimizeEncodeTable(encodeQR)
 
 	var buf bytes.Buffer
 	w := &buf
@@ -28,6 +26,9 @@ func main() {
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "package bitstream")
 
+	// generate encode tables.
+	encodeQR := createEncodeTable(encodeJIS0208)
+	encodeTables := optimizeEncodeTable(encodeQR)
 	for i, t := range encodeTables {
 		fmt.Fprintf(w, "const encode%dLow, encode%dHigh = %d, %d\n", i, i, t.min, t.max)
 		fmt.Fprintf(w, "var encode%d = [...]int16{", i)
@@ -43,6 +44,21 @@ func main() {
 		}
 		fmt.Fprintf(w, "\n}\n\n")
 	}
+
+	// generate decode tables
+	decodeQR := createDecodeTable(decodeJIS0208)
+	codes := make([]uint16, 0, len(decodeQR))
+	for code := range decodeQR {
+		codes = append(codes, code)
+	}
+	sort.Slice(codes, func(i, j int) bool { return codes[i] < codes[j] })
+
+	fmt.Fprintf(w, "var decode = [...]uint16{\n")
+	for _, code := range codes {
+		fmt.Fprintf(w, "0x%04x: 0x%04x, // %c\n", code, decodeQR[code], decodeQR[code])
+	}
+	fmt.Fprintf(w, "}\n")
+
 	out, err := format.Source(buf.Bytes())
 	if err != nil {
 		log.Fatal(err)
@@ -200,4 +216,16 @@ func optimizeEncodeTable(encode map[rune]uint16) []encodeTable {
 		last = key
 	}
 	return tables
+}
+
+func createDecodeTable(decode map[int]rune) map[uint16]rune {
+	ret := make(map[uint16]rune)
+	for code, ch := range decode {
+		qr, ok := encodeQR(code)
+		if !ok {
+			continue
+		}
+		ret[qr] = ch
+	}
+	return ret
 }
