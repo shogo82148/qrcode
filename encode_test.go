@@ -63,7 +63,73 @@ func TestNew3(t *testing.T) {
 		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
 	}
 	if len(qr.Segments) != 5 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 5)
+	}
+	if qr.Segments[0].Mode != ModeAlphanumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeAlphanumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("VERSION 10 QR CODE")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "VERSION 10 QR CODE")
+	}
+}
+
+func TestNewFromKanji1(t *testing.T) {
+	qr, err := NewFromKanji(LevelH, []byte("点茗"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
 		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeKanji {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeKanji)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("点茗")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "点茗")
+	}
+}
+
+func TestNewFromKanji2(t *testing.T) {
+	qr, err := NewFromKanji(LevelH, []byte("点"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeKanji {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeKanji)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("点")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "点")
+	}
+}
+
+func TestNewFromKanji3(t *testing.T) {
+	qr, err := NewFromKanji(LevelH, []byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 10 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 5 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 5)
 	}
 	if qr.Segments[0].Mode != ModeAlphanumeric {
 		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeBytes)

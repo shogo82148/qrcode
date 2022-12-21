@@ -12,6 +12,11 @@ func IsAlphanumeric(ch byte) bool {
 	return alphabets[ch] >= 0
 }
 
+func IsKanji(ch rune) bool {
+	_, ok := encodeKanji(ch)
+	return ok
+}
+
 func EncodeNumeric(buf *Buffer, data []byte) error {
 	// validate
 	for _, ch := range data {
