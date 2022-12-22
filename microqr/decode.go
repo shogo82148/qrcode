@@ -39,6 +39,7 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	// mask
 	binimg.Mask(binimg, used, maskList[mask])
 
+	qrCapacity := capacityTable[version][level]
 	var buf bitstream.Buffer
 	dy := -1
 	x, y := w, w
@@ -70,9 +71,13 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 		if x < 0 {
 			break
 		}
+		if buf.Len() == qrCapacity.DataBits {
+			for buf.Len()%8 != 0 {
+				buf.WriteBit(0)
+			}
+		}
 	}
 
-	qrCapacity := capacityTable[version][level]
 	data := buf.Bytes()
 	if err := reedsolomon.Decode(data, qrCapacity.MaxError); err != nil {
 		return nil, err
