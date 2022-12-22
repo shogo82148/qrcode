@@ -111,16 +111,21 @@ func TestEncodeToBitmap2(t *testing.T) {
 	got := img.Pix
 
 	want := []byte{
-		0b11111110, 0b10101010, 0b10000010,
-		0b11011110, 0b10111010, 0b10111100,
-		0b10111010, 0b10011010, 0b10111010,
-		0b00000110, 0b10000010, 0b00010100,
-		0b11111110, 0b01001010, 0b00000000,
-		0b00101000, 0b10001001, 0b10101010,
-		0b01000001, 0b10011010, 0b11111111,
-		0b10001000, 0b00010101, 0b11000010,
-		0b10100110, 0b11001100, 0b01111100,
-		0b11010100, 0b11000100, 0b11011100,
+		0b11111110, 0b10101010,
+		0b10000010, 0b10011110,
+		0b10111010, 0b10111100,
+		0b10111010, 0b11111010,
+		0b10111010, 0b00000110,
+		0b10000010, 0b01110100,
+		0b11111110, 0b01001010,
+		0b00000000, 0b01001000,
+		0b10001001, 0b10101010,
+		0b00111100, 0b00011010,
+		0b10100000, 0b10001000,
+		0b00101111, 0b01000010,
+		0b10110001, 0b01001100,
+		0b01110010, 0b11010100,
+		0b10110111, 0b11011100,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)
@@ -166,7 +171,6 @@ func TestEncodeToBitmap3(t *testing.T) {
 }
 
 func TestEncodeToBitmap4(t *testing.T) {
-	t.Skip("TODO: fix me. I don't know why it fails. ???")
 	qr := &QRCode{
 		Version: 3,
 		Level:   LevelM,
@@ -201,6 +205,50 @@ func TestEncodeToBitmap4(t *testing.T) {
 		0b11001001, 0b10011000,
 		0b00100000, 0b01110010,
 		0b11011110, 0b01011110,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestEncodeToBitmap5(t *testing.T) {
+	qr := &QRCode{
+		Version: 3,
+		Level:   LevelL,
+		Mask:    Mask1,
+		Segments: []Segment{
+			{
+				Mode: ModeAlphanumeric,
+				Data: []byte("AINIX"),
+			},
+			{
+				Mode: ModeNumeric,
+				Data: []byte("12345"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101010,
+		0b10000010, 0b11000010,
+		0b10111010, 0b11110110,
+		0b10111010, 0b11100100,
+		0b10111010, 0b11101110,
+		0b10000010, 0b00101110,
+		0b11111110, 0b00011100,
+		0b00000000, 0b11111010,
+		0b11110011, 0b00001100,
+		0b00110010, 0b00010100,
+		0b11101010, 0b01101110,
+		0b00110001, 0b11100000,
+		0b10011111, 0b10000010,
+		0b01101101, 0b00000010,
+		0b10011111, 0b00101100,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)

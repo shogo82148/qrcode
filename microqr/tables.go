@@ -49,11 +49,12 @@ var rawFormatTable = [8]struct {
 }
 
 type capacity struct {
-	Total      int // number of total code words
-	Data       int // number of data code words
-	Correction int // number of correction code words
-	MaxError   int // maximum number of code word errors
-	Reserved   int // number of code words reserved for error detection
+	Total      int // number of total code words.
+	Data       int // number of data code words.
+	DataBits   int // number of bit for data.
+	Correction int // number of correction code words.
+	MaxError   int // maximum number of code word errors.
+	Reserved   int // number of code words reserved for error detection.
 }
 
 // X 0510 : 2018
@@ -66,6 +67,7 @@ var capacityTable = [5][4]capacity{
 		LevelCheck: {
 			Total:      5,
 			Data:       3,
+			DataBits:   20,
 			Correction: 2,
 			Reserved:   2,
 			MaxError:   0,
@@ -77,6 +79,7 @@ var capacityTable = [5][4]capacity{
 		LevelL: {
 			Total:      10,
 			Data:       5,
+			DataBits:   40,
 			Correction: 5,
 			Reserved:   3,
 			MaxError:   1,
@@ -84,6 +87,7 @@ var capacityTable = [5][4]capacity{
 		LevelM: {
 			Total:      10,
 			Data:       4,
+			DataBits:   32,
 			Correction: 6,
 			Reserved:   2,
 			MaxError:   2,
@@ -95,6 +99,7 @@ var capacityTable = [5][4]capacity{
 		LevelL: {
 			Total:      17,
 			Data:       11,
+			DataBits:   84,
 			Correction: 6,
 			Reserved:   2,
 			MaxError:   2,
@@ -102,6 +107,7 @@ var capacityTable = [5][4]capacity{
 		LevelM: {
 			Total:      17,
 			Data:       9,
+			DataBits:   68,
 			Correction: 8,
 			Reserved:   2,
 			MaxError:   4,
@@ -113,6 +119,7 @@ var capacityTable = [5][4]capacity{
 		LevelL: {
 			Total:      24,
 			Data:       16,
+			DataBits:   128,
 			Correction: 8,
 			Reserved:   2,
 			MaxError:   3,
@@ -120,6 +127,7 @@ var capacityTable = [5][4]capacity{
 		LevelM: {
 			Total:      24,
 			Data:       14,
+			DataBits:   128,
 			Correction: 10,
 			Reserved:   0,
 			MaxError:   5,
@@ -127,6 +135,7 @@ var capacityTable = [5][4]capacity{
 		LevelQ: {
 			Total:      24,
 			Data:       10,
+			DataBits:   128,
 			Correction: 14,
 			Reserved:   0,
 			MaxError:   7,

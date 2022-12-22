@@ -100,8 +100,6 @@ func TestDecodeBitmap3(t *testing.T) {
 }
 
 func TestDecodeBitmap4(t *testing.T) {
-	t.Skip("TODO: fix me. I don't know why it fails. ???")
-
 	// from https://www.qrcode.com/img/rmqr/gra2.jpg
 	r, err := os.Open("testdata/03.png")
 	if err != nil {
@@ -127,6 +125,46 @@ func TestDecodeBitmap4(t *testing.T) {
 	}
 	if !bytes.Equal(qr.Segments[0].Data, []byte("1haicso")) {
 		t.Errorf("want %q, got %q", []byte("1haicso"), qr.Segments[0].Data)
+	}
+}
+
+func TestDecodeBitmap5(t *testing.T) {
+	r, err := os.Open("testdata/04.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := png.Decode(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	binimg := bitmap.New(image.Rect(0, 0, 15, 15))
+	for y := 0; y < 15; y++ {
+		for x := 0; x < 15; x++ {
+			X := float64(x)*(89.0/14.0) + 15
+			Y := float64(y)*(81.0/14.0) + 18
+			binimg.Set(x, y, img.At(round(X), round(Y)))
+		}
+	}
+
+	qr, err := DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %d, want %d", qr.Version, 3)
+	}
+	if qr.Level != LevelL {
+		t.Errorf("unexpected level: got %d, want %d", qr.Level, LevelL)
+	}
+	if qr.Mask != Mask1 {
+		t.Errorf("unexpected mask: got %d, want %d", qr.Mask, Mask1)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("AINIX")) {
+		t.Errorf("want %q, got %q", []byte("AINIX"), qr.Segments[0].Data)
+	}
+	if !bytes.Equal(qr.Segments[1].Data, []byte("12345")) {
+		t.Errorf("want %q, got %q", []byte("12345"), qr.Segments[1].Data)
 	}
 }
 

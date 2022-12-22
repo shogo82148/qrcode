@@ -346,8 +346,11 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 
 	dy := -1
 	x, y := w, w
+	readBits := 0
+	capacity := capacityTable[qr.Version][qr.Level]
 	for {
 		if !used.BinaryAt(x, y) {
+			readBits++
 			bit, err := buf.ReadBit()
 			if err != nil {
 				break
@@ -360,6 +363,7 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 		}
 
 		if !used.BinaryAt(x, y) {
+			readBits++
 			bit, err := buf.ReadBit()
 			if err != nil {
 				break
@@ -373,6 +377,12 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 		}
 		if x < 0 {
 			break
+		}
+		if readBits == capacity.DataBits {
+			for readBits%8 != 0 {
+				readBits++
+				buf.ReadBit()
+			}
 		}
 	}
 
@@ -408,30 +418,45 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 		}
 	}
 
+	capacity := capacityTable[qr.Version][qr.Level]
+	if buf.Len() > capacity.DataBits {
+		return errors.New("qrcode: data too large")
+	}
+
 	// terminate pattern
+	left := capacity.DataBits - buf.Len()
+	var terminate int
 	switch qr.Version {
 	case 1:
-		buf.WriteBitsLSB(0, 3)
+		terminate = 3
 	case 2:
-		buf.WriteBitsLSB(0, 5)
+		terminate = 5
 	case 3:
-		buf.WriteBitsLSB(0, 7)
+		terminate = 7
 	case 4:
-		buf.WriteBitsLSB(0, 8)
+		terminate = 8
+	}
+	if terminate < left {
+		left = terminate
 	}
 
-	l := buf.Len()
-	buf.WriteBitsLSB(0x00, int(8-l%8))
-	capacity := capacityTable[qr.Version][qr.Level]
+	buf.WriteBitsLSB(0x00, left)
+	buf.WriteBitsLSB(0x00, int(8-buf.Len()%8))
 
 	// add padding.
-	for i := 0; buf.Len() < capacity.Data*8; i++ {
-		if i%2 == 0 {
-			buf.WriteBitsLSB(0b1110_1100, 8)
-		} else {
-			buf.WriteBitsLSB(0b0001_0001, 8)
+	for i := 0; buf.Len() < capacity.DataBits; i++ {
+		switch i % 4 {
+		case 0:
+			buf.WriteBitsLSB(0b1110, 4)
+		case 1:
+			buf.WriteBitsLSB(0b1100, 4)
+		case 2:
+			buf.WriteBitsLSB(0b0001, 4)
+		case 3:
+			buf.WriteBitsLSB(0b0001, 4)
 		}
 	}
+	buf.WriteBitsLSB(0, capacity.Data*8-buf.Len())
 
 	n := capacity.Correction
 	rs := reedsolomon.New(n)
