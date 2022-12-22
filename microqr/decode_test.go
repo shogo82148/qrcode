@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/png"
+	"log"
 	"math"
 	"os"
 	"testing"
@@ -165,6 +166,46 @@ func TestDecodeBitmap5(t *testing.T) {
 	}
 	if !bytes.Equal(qr.Segments[1].Data, []byte("12345")) {
 		t.Errorf("want %q, got %q", []byte("12345"), qr.Segments[1].Data)
+	}
+}
+
+func TestDecodeBitmap6(t *testing.T) {
+	// from https://docs.esko.com/docs/ja-jp/dynamicbarcodes-for-ai/12/userguide/assets/bar/ss_bar_Micro_QR.png
+	// https://docs.esko.com/docs/ja-jp/dynamicbarcodes-for-ai/12/userguide/ja-jp/common/bar/reference/re_bar_MicroQR.html
+	r, err := os.Open("testdata/05.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := png.Decode(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	binimg := bitmap.New(image.Rect(0, 0, 11, 11))
+	for y := 0; y < 11; y++ {
+		for x := 0; x < 11; x++ {
+			X := float64(x)*(28.0/10.0) + 5
+			Y := float64(y)*(28.0/10.0) + 6
+			binimg.Set(x, y, img.At(round(X), round(Y)))
+		}
+	}
+	log.Printf("%08b", binimg.Pix)
+
+	qr, err := DecodeBitmap(binimg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %d, want %d", qr.Version, 3)
+	}
+	if qr.Level != LevelCheck {
+		t.Errorf("unexpected level: got %d, want %d", qr.Level, LevelCheck)
+	}
+	if qr.Mask != Mask2 {
+		t.Errorf("unexpected mask: got %d, want %d", qr.Mask, Mask2)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("0000")) {
+		t.Errorf("want %q, got %q", []byte("0000"), qr.Segments[0].Data)
 	}
 }
 

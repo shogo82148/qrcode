@@ -456,8 +456,8 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 				buf.WriteBitsLSB(0b0001, 4)
 			}
 		}
-		buf.WriteBitsLSB(0, capacity.Data*8-buf.Len())
 	}
+	buf.WriteBitsLSB(0, capacity.Data*8-buf.Len())
 
 	n := capacity.Correction
 	rs := reedsolomon.New(n)
