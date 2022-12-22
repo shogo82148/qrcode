@@ -129,7 +129,7 @@ func decodeVersion1(buf *bitstream.Buffer, mask Mask, level Level) (*QRCode, err
 		if length == 0 { // terminate pattern
 			break
 		}
-		data := make([]byte, 0, length)
+		data := make([]byte, length)
 		if err := bitstream.DecodeNumeric(buf, data); err != nil {
 			return nil, err
 		}

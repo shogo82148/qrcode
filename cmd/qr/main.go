@@ -64,11 +64,13 @@ func encodeQR(level, filename string) {
 func encodeMicroQR(level, filename string) {
 	var lv microqr.Level
 	switch level {
+	case "":
+		lv = microqr.LevelCheck
 	case "l", "L":
 		lv = microqr.LevelL
 	case "m", "M":
 		lv = microqr.LevelM
-	case "q", "Q", "":
+	case "q", "Q":
 		lv = microqr.LevelQ
 	}
 

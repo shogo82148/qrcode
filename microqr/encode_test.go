@@ -28,6 +28,105 @@ func TestNew1(t *testing.T) {
 	}
 }
 
+func TestNew2(t *testing.T) {
+	// Maximum size for Version M4
+	qr, err := New(LevelL, []byte("12345678901234567890123456789012345"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 4 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 4)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("12345678901234567890123456789012345")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "12345678901234567890123456789012345")
+	}
+}
+
+func TestNew3(t *testing.T) {
+	qr, err := New(LevelL, []byte("123456789012345678901234"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 4 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 4)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("123456789012345678901234")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "123456789012345678901234")
+	}
+}
+
+func TestNew4(t *testing.T) {
+	// maximum size for Version M3
+	qr, err := New(LevelL, []byte("12345678901234567890123"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 3)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("12345678901234567890123")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "12345678901234567890123")
+	}
+}
+
+func TestNew5(t *testing.T) {
+	_, err := New(LevelL, []byte("123456789012345678901234567890123456"))
+	if err == nil {
+		t.Fatal("want error, but not")
+	}
+}
+
+func TestNew6(t *testing.T) {
+	// maximum size for Version M1
+	qr, err := New(LevelCheck, []byte("12345"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("12345")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "12345")
+	}
+}
+
 func TestEncode1(t *testing.T) {
 	qr := &QRCode{
 		Version: 2,
@@ -249,6 +348,42 @@ func TestEncodeToBitmap5(t *testing.T) {
 		0b10011111, 0b10000010,
 		0b01101101, 0b00000010,
 		0b10011111, 0b00101100,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestEncodeToBitmap6(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelCheck,
+		Mask:    Mask2,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: []byte("0000"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10100000,
+		0b10000010, 0b10000000,
+		0b10111010, 0b11100000,
+		0b10111010, 0b00100000,
+		0b10111010, 0b11000000,
+		0b10000010, 0b00100000,
+		0b11111110, 0b11100000,
+		0b00000000, 0b00000000,
+		0b11001110, 0b01100000,
+		0b01011101, 0b00100000,
+		0b10100111, 0b11100000,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)

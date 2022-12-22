@@ -195,8 +195,8 @@ func New(level Level, data []byte) (*QRCode, error) {
 
 func calcVersion(level Level, segments []Segment) Version {
 LOOP:
-	for version := Version(1); version <= 40; version++ {
-		capacity := capacityTable[version][level].Data * 8
+	for version := Version(1); version <= 4; version++ {
+		capacity := capacityTable[version][level].DataBits
 		length := 0
 		for _, s := range segments {
 			l, ok := s.length(version)
@@ -439,21 +439,22 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 	if terminate < left {
 		left = terminate
 	}
-
 	buf.WriteBitsLSB(0x00, left)
-	buf.WriteBitsLSB(0x00, int(8-buf.Len()%8))
 
 	// add padding.
-	for i := 0; buf.Len() < capacity.DataBits; i++ {
-		switch i % 4 {
-		case 0:
-			buf.WriteBitsLSB(0b1110, 4)
-		case 1:
-			buf.WriteBitsLSB(0b1100, 4)
-		case 2:
-			buf.WriteBitsLSB(0b0001, 4)
-		case 3:
-			buf.WriteBitsLSB(0b0001, 4)
+	if buf.Len() < capacity.DataBits {
+		buf.WriteBitsLSB(0x00, int(8-buf.Len()%8))
+		for i := 0; buf.Len() < capacity.DataBits; i++ {
+			switch i % 4 {
+			case 0:
+				buf.WriteBitsLSB(0b1110, 4)
+			case 1:
+				buf.WriteBitsLSB(0b1100, 4)
+			case 2:
+				buf.WriteBitsLSB(0b0001, 4)
+			case 3:
+				buf.WriteBitsLSB(0b0001, 4)
+			}
 		}
 	}
 	buf.WriteBitsLSB(0, capacity.Data*8-buf.Len())
