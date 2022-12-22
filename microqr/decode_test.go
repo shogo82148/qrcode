@@ -151,8 +151,20 @@ func TestDecodeBitmap5(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %d, want %d", qr.Version, 3)
+	}
+	if qr.Level != LevelL {
+		t.Errorf("unexpected level: got %d, want %d", qr.Level, LevelL)
+	}
+	if qr.Mask != Mask1 {
+		t.Errorf("unexpected mask: got %d, want %d", qr.Mask, Mask1)
+	}
 	if !bytes.Equal(qr.Segments[0].Data, []byte("AINIX")) {
 		t.Errorf("want %q, got %q", []byte("AINIX"), qr.Segments[0].Data)
+	}
+	if !bytes.Equal(qr.Segments[1].Data, []byte("12345")) {
+		t.Errorf("want %q, got %q", []byte("12345"), qr.Segments[1].Data)
 	}
 }
 

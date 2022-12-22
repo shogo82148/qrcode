@@ -87,13 +87,13 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 
 	switch version {
 	case 1:
-		return decodeVersion1(buf0, mask)
+		return decodeVersion1(buf0, mask, level)
 	case 2:
-		return decodeVersion2(buf0, mask)
+		return decodeVersion2(buf0, mask, level)
 	case 3:
-		return decodeVersion3(buf0, mask)
+		return decodeVersion3(buf0, mask, level)
 	case 4:
-		return decodeVersion4(buf0, mask)
+		return decodeVersion4(buf0, mask, level)
 	default:
 		panic("invalid version: " + strconv.Itoa(int(version)))
 	}
@@ -116,7 +116,7 @@ func decodeFormat(raw uint) (Version, Level, Mask, bool) {
 	return format.version, format.level, Mask(idx & 0b11), true
 }
 
-func decodeVersion1(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+func decodeVersion1(buf *bitstream.Buffer, mask Mask, level Level) (*QRCode, error) {
 	segments := make([]Segment, 0)
 	for {
 		length, err := buf.ReadBits(3)
@@ -140,12 +140,13 @@ func decodeVersion1(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
 	}
 	return &QRCode{
 		Version:  1,
+		Level:    level,
 		Mask:     mask,
 		Segments: segments,
 	}, nil
 }
 
-func decodeVersion2(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+func decodeVersion2(buf *bitstream.Buffer, mask Mask, level Level) (*QRCode, error) {
 	segments := make([]Segment, 0)
 
 LOOP:
@@ -197,12 +198,13 @@ LOOP:
 	}
 	return &QRCode{
 		Version:  2,
+		Level:    level,
 		Mask:     mask,
 		Segments: segments,
 	}, nil
 }
 
-func decodeVersion3(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+func decodeVersion3(buf *bitstream.Buffer, mask Mask, level Level) (*QRCode, error) {
 	segments := make([]Segment, 0)
 
 LOOP:
@@ -266,12 +268,13 @@ LOOP:
 	}
 	return &QRCode{
 		Version:  3,
+		Level:    level,
 		Mask:     mask,
 		Segments: segments,
 	}, nil
 }
 
-func decodeVersion4(buf *bitstream.Buffer, mask Mask) (*QRCode, error) {
+func decodeVersion4(buf *bitstream.Buffer, mask Mask, level Level) (*QRCode, error) {
 	segments := make([]Segment, 0)
 
 LOOP:
@@ -338,6 +341,7 @@ LOOP:
 	}
 	return &QRCode{
 		Version:  4,
+		Level:    level,
 		Mask:     mask,
 		Segments: segments,
 	}, nil

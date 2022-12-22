@@ -418,21 +418,30 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 		}
 	}
 
-	// terminate pattern
-	switch qr.Version {
-	case 1:
-		buf.WriteBitsLSB(0, 3)
-	case 2:
-		buf.WriteBitsLSB(0, 5)
-	case 3:
-		buf.WriteBitsLSB(0, 7)
-	case 4:
-		buf.WriteBitsLSB(0, 8)
+	capacity := capacityTable[qr.Version][qr.Level]
+	if buf.Len() > capacity.DataBits {
+		return errors.New("qrcode: data too large")
 	}
 
-	l := buf.Len()
-	buf.WriteBitsLSB(0x00, int(8-l%8))
-	capacity := capacityTable[qr.Version][qr.Level]
+	// terminate pattern
+	left := capacity.DataBits - buf.Len()
+	var terminate int
+	switch qr.Version {
+	case 1:
+		terminate = 3
+	case 2:
+		terminate = 5
+	case 3:
+		terminate = 7
+	case 4:
+		terminate = 8
+	}
+	if terminate < left {
+		left = terminate
+	}
+
+	buf.WriteBitsLSB(0x00, left)
+	buf.WriteBitsLSB(0x00, int(8-buf.Len()%8))
 
 	// add padding.
 	for i := 0; buf.Len() < capacity.DataBits; i++ {

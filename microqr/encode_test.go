@@ -210,3 +210,47 @@ func TestEncodeToBitmap4(t *testing.T) {
 		t.Errorf("got %08b, want %08b", got, want)
 	}
 }
+
+func TestEncodeToBitmap5(t *testing.T) {
+	qr := &QRCode{
+		Version: 3,
+		Level:   LevelL,
+		Mask:    Mask1,
+		Segments: []Segment{
+			{
+				Mode: ModeAlphanumeric,
+				Data: []byte("AINIX"),
+			},
+			{
+				Mode: ModeNumeric,
+				Data: []byte("12345"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101010,
+		0b10000010, 0b11000010,
+		0b10111010, 0b11110110,
+		0b10111010, 0b11100100,
+		0b10111010, 0b11101110,
+		0b10000010, 0b00101110,
+		0b11111110, 0b00011100,
+		0b00000000, 0b11111010,
+		0b11110011, 0b00001100,
+		0b00110010, 0b00010100,
+		0b11101010, 0b01101110,
+		0b00110001, 0b11100000,
+		0b10011111, 0b10000010,
+		0b01101101, 0b00000010,
+		0b10011111, 0b00101100,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
