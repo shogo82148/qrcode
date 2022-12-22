@@ -127,7 +127,7 @@ var capacityTable = [5][4]capacity{
 		LevelM: {
 			Total:      24,
 			Data:       14,
-			DataBits:   128,
+			DataBits:   112,
 			Correction: 10,
 			Reserved:   0,
 			MaxError:   5,
@@ -135,7 +135,7 @@ var capacityTable = [5][4]capacity{
 		LevelQ: {
 			Total:      24,
 			Data:       10,
-			DataBits:   128,
+			DataBits:   80,
 			Correction: 14,
 			Reserved:   0,
 			MaxError:   7,
