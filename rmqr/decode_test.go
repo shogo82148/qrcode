@@ -3,7 +3,6 @@ package rmqr
 import (
 	"image"
 	"image/png"
-	"log"
 	"os"
 	"testing"
 
@@ -119,7 +118,6 @@ func TestDecode3(t *testing.T) {
 }
 
 func TestDecode4(t *testing.T) {
-	t.Skip("fix: me")
 	// from https://www.qrcode.com/img/rmqr/graph.jpg
 	r, err := os.Open("testdata/r9x43.png")
 	if err != nil {
@@ -133,14 +131,26 @@ func TestDecode4(t *testing.T) {
 	binimg := bitmap.New(image.Rect(0, 0, 43, 9))
 	for y := 0; y < 9; y++ {
 		for x := 0; x < 43; x++ {
-			X := float64(x)*(120/43.0) + 7
-			Y := float64(y)*(25/9.0) + 7
+			X := float64(x)*(115/42.0) + 7
+			Y := float64(y)*(21/8.0) + 8
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
-	_, err = DecodeBitmap(binimg)
+	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if len(qr.Segments) != 1 {
+		t.Errorf("unexpected number of segments: got %d, want 1", len(qr.Segments))
+	}
+	seg := qr.Segments[0]
+	if seg.Mode != ModeNumeric {
+		t.Errorf("unexpected mode: got %d, want %d", seg.Mode, ModeNumeric)
+	}
+
+	want := "12345678901234567890123456"
+	if string(seg.Data) != want {
+		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), want)
 	}
 }
 
@@ -274,8 +284,8 @@ func TestDecode8(t *testing.T) {
 	binimg := bitmap.New(image.Rect(0, 0, 27, 13))
 	for y := 0; y < 13; y++ {
 		for x := 0; x < 27; x++ {
-			X := float64(x)*(74/27.0) + 9
-			Y := float64(y)*(35/13.0) + 9
+			X := float64(x)*(72/26.0) + 9
+			Y := float64(y)*(34/12.0) + 9
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
@@ -324,7 +334,6 @@ func TestDecode9(t *testing.T) {
 }
 
 func TestDecode10(t *testing.T) {
-	t.Skip("TODO: fix me")
 	// from https://www.qrcode.com/img/rmqr/graph.jpg
 	r, err := os.Open("testdata/r15x139.png")
 	if err != nil {
@@ -338,14 +347,31 @@ func TestDecode10(t *testing.T) {
 	binimg := bitmap.New(image.Rect(0, 0, 139, 15))
 	for y := 0; y < 15; y++ {
 		for x := 0; x < 139; x++ {
-			X := float64(x)*(390/139.0) + 7
-			Y := float64(y)*(40/15.0) + 8
+			X := float64(x)*(383/138.0) + 7
+			Y := float64(y)*(38/14.0) + 8
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
-	_, err = DecodeBitmap(binimg)
+
+	qr, err := DecodeBitmap(binimg)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if len(qr.Segments) != 1 {
+		t.Errorf("unexpected number of segments: got %d, want 1", len(qr.Segments))
+	}
+	seg := qr.Segments[0]
+	if seg.Mode != ModeNumeric {
+		t.Errorf("unexpected mode: got %d, want %d", seg.Mode, ModeNumeric)
+	}
+
+	want := "12345678901234567890123456789012345678901234567890123456789" +
+		"012345678901234567890123456789012345678901234567890123456789" +
+		"012345678901234567890123456789012345678901234567890123456789" +
+		"012345678901234567890123456789012345678901234567890123456789" +
+		"01234567890123456789012345678901234567890123456789012345678901"
+	if string(seg.Data) != want {
+		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), want)
 	}
 }
 
@@ -406,7 +432,6 @@ func TestDecode12(t *testing.T) {
 			binimg.Set(x, y, img.At(round(X), round(Y)))
 		}
 	}
-	log.Printf("%08b", binimg.Pix)
 
 	qr, err := DecodeBitmap(binimg)
 	if err != nil {
