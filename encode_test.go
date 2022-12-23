@@ -126,7 +126,7 @@ func TestNewFromKanji3(t *testing.T) {
 		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
 	}
 	if qr.Version != 10 {
-		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 10)
 	}
 	if len(qr.Segments) != 5 {
 		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 5)
@@ -136,6 +136,28 @@ func TestNewFromKanji3(t *testing.T) {
 	}
 	if !bytes.Equal(qr.Segments[0].Data, []byte("VERSION 10 QR CODE")) {
 		t.Errorf("got %q, want %q", qr.Segments[0].Data, "VERSION 10 QR CODE")
+	}
+}
+
+func TestNewFromKanji4(t *testing.T) {
+	qr, err := NewFromKanji(LevelH, []byte("1234567"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 2)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("1234567")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "1234567")
 	}
 }
 

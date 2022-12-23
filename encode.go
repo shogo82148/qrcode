@@ -238,7 +238,7 @@ func NewFromKanji(level Level, data []byte) (*QRCode, error) {
 			cost := states[i][modeNumeric].cost + 20
 			if cost < minCost {
 				minCost = cost
-				lastMode = modeAlphanumeric
+				lastMode = modeNumeric
 			}
 
 			// alphanumeric -> numeric
@@ -285,7 +285,7 @@ func NewFromKanji(level Level, data []byte) (*QRCode, error) {
 			cost := states[i][modeNumeric].cost + (4+13)*6 + 33
 			if cost < minCost {
 				minCost = cost
-				lastMode = modeAlphanumeric
+				lastMode = modeNumeric
 			}
 
 			// alphanumeric -> alphanumeric
