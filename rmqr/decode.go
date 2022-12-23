@@ -3,6 +3,7 @@ package rmqr
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"math/bits"
 
@@ -102,6 +103,8 @@ LOOP:
 			segments = append(segments, seg)
 		case ModeTerminated:
 			break LOOP
+		default:
+			return nil, fmt.Errorf("rmqr: unknown mode: %d", mode)
 		}
 	}
 
