@@ -24,6 +24,31 @@ func TestNew1(t *testing.T) {
 	}
 }
 
+func TestNew2(t *testing.T) {
+	qr, err := New(LevelM, []byte("000A0a0000Aa"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Version != R7x77 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, R7x77)
+	}
+	if len(qr.Segments) != 2 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("000")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "000")
+	}
+	if qr.Segments[1].Mode != ModeBytes {
+		t.Errorf("got %v, want %v", qr.Segments[1].Mode, ModeBytes)
+	}
+	if !bytes.Equal(qr.Segments[1].Data, []byte("A0a0000Aa")) {
+		t.Errorf("got %q, want %q", qr.Segments[1].Data, "A0a0000Aa")
+	}
+}
+
 func TestEncodeToBitmap1(t *testing.T) {
 	qr := &QRCode{
 		Version: R15x59,
@@ -422,6 +447,37 @@ func TestEncodeToBitmap12(t *testing.T) {
 		0b10101110, 0b00111001, 0b01101011, 0b10111111, 0b11010100, 0b01000000, 0b00011111, 0b11011111, 0b10000010, 0b01101110, 0b00111000, 0b00011110, 0b10010000, 0b00001111, 0b10011100, 0b00001101, 0b11110110, 0b10100000,
 		0b10101001, 0b10101011, 0b00101110, 0b10101000, 0b00110111, 0b00111001, 0b00111010, 0b11010011, 0b10010010, 0b10001110, 0b10101110, 0b10110001, 0b00010111, 0b00100010, 0b10101011, 0b11001000, 0b01000110, 0b00100000,
 		0b11101010, 0b10101010, 0b10101010, 0b10111010, 0b10101010, 0b10101010, 0b10101011, 0b10101010, 0b10101010, 0b10101010, 0b10111010, 0b10101010, 0b10101010, 0b10101011, 0b10101010, 0b10101010, 0b10101011, 0b11100000,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestEncodeToBitmap13(t *testing.T) {
+	qr := &QRCode{
+		Version: R7x43,
+		Level:   LevelM,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: []byte("00"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101010, 0b10101110, 0b10101010, 0b10101010, 0b11100000,
+		0b10000010, 0b01010110, 0b10111010, 0b01110011, 0b10011000, 0b10100000,
+		0b10111010, 0b10110100, 0b10101111, 0b10011100, 0b01111111, 0b11100000,
+		0b10111010, 0b01100101, 0b11100001, 0b11101000, 0b01000010, 0b00100000,
+		0b10111010, 0b00100101, 0b11101111, 0b01011011, 0b10010010, 0b10100000,
+		0b10000010, 0b11101011, 0b01111010, 0b10001101, 0b11011010, 0b00100000,
+		0b11111110, 0b10101010, 0b10101110, 0b10101010, 0b10101011, 0b11100000,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)

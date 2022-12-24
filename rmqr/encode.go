@@ -442,7 +442,19 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 		}
 	}
 	l := buf.Len()
-	buf.WriteBitsLSB(0x00, int(8-l%8))
+	if l > capacity.Data*8 {
+		return errors.New("qrcode: data is too large")
+	}
+
+	// terminate pattern
+	if capacity.Data*8-l > 3 {
+		buf.WriteBitsLSB(uint64(ModeTerminated), 3)
+	}
+
+	// align to bytes
+	if mod := buf.Len() % 8; mod != 0 {
+		buf.WriteBitsLSB(0x00, int(8-mod))
+	}
 
 	// add padding.
 	for i := 0; buf.Len() < capacity.Data*8; i++ {
@@ -466,31 +478,37 @@ func (s *Segment) length(version Version, level Level) (int, bool) {
 
 	capacity := capacityTable[version][level]
 
-	// mode indicator
-	var n int = 3
-
 	switch s.Mode {
 	case ModeNumeric:
-		n += capacity.BitLength[ModeNumeric]
-		n += 10 * (len(s.Data) / 3)
+		n := capacity.BitLength[ModeNumeric]
+		if len(s.Data) >= 1<<n {
+			return 0, false
+		}
+		m := 10 * (len(s.Data) / 3)
 		switch len(s.Data) % 3 {
 		case 1:
 			n += 4
 		case 2:
 			n += 7
 		}
-		return n, true
+		return 3 + n + m, true
 	case ModeAlphanumeric:
-		n += capacity.BitLength[ModeAlphanumeric]
-		n += 11 * (len(s.Data) / 2)
-		if len(s.Data)%2 != 0 {
-			n += 6
+		n := capacity.BitLength[ModeAlphanumeric]
+		if len(s.Data) >= 1<<n {
+			return 0, false
 		}
-		return n, true
+		m := 11 * (len(s.Data) / 2)
+		if len(s.Data)%2 != 0 {
+			m += 6
+		}
+		return 3 + n + m, true
 	case ModeBytes:
-		n += capacity.BitLength[ModeBytes]
-		n += len(s.Data) * 8
-		return n, true
+		n := capacity.BitLength[ModeBytes]
+		if len(s.Data) >= 1<<n {
+			return 0, false
+		}
+		m := len(s.Data) * 8
+		return 3 + n + m, true
 	default:
 		return 0, false
 	}
@@ -511,7 +529,7 @@ func (s *Segment) encode(bitLength [5]int, buf *bitstream.Buffer) error {
 
 func (s *Segment) encodeNumber(n int, buf *bitstream.Buffer) error {
 	if len(s.Data) >= 1<<n {
-		return fmt.Errorf("rmqr: data is too long: %d", len(s.Data))
+		return fmt.Errorf("rmqr: data is too long for number mode: %d", len(s.Data))
 	}
 
 	// mode
@@ -526,7 +544,7 @@ func (s *Segment) encodeNumber(n int, buf *bitstream.Buffer) error {
 
 func (s *Segment) encodeAlphanumeric(n int, buf *bitstream.Buffer) error {
 	if len(s.Data) >= 1<<n {
-		return fmt.Errorf("rmqr: data is too long: %d", len(s.Data))
+		return fmt.Errorf("rmqr: data is too long for alphanumeric mode: %d", len(s.Data))
 	}
 
 	// mode
@@ -541,7 +559,7 @@ func (s *Segment) encodeAlphanumeric(n int, buf *bitstream.Buffer) error {
 
 func (s *Segment) encodeBytes(n int, buf *bitstream.Buffer) error {
 	if len(s.Data) >= 1<<n {
-		return fmt.Errorf("rmqr: data is too long: %d", len(s.Data))
+		return fmt.Errorf("rmqr: data is too long for bytes: %d", len(s.Data))
 	}
 
 	// mode
