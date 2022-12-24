@@ -696,6 +696,9 @@ func (qr *QRCode) encodeSegments(buf *bitstream.Buffer) error {
 	if buf.Len() > capacity.Data*8 {
 		return errors.New("qrcode: data is too large")
 	}
+
+	buf.WriteBitsLSB(uint64(ModeTerminated), 4)
+
 	l := buf.Len()
 	buf.WriteBitsLSB(0x00, int(8-l%8))
 

@@ -557,6 +557,52 @@ func TestQRCode_EncodeToBitmap6(t *testing.T) {
 	}
 }
 
+func TestQRCode_EncodeToBitmap7(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelH,
+		Mask:    Mask0,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: []byte("000000000"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101011, 0b11111000,
+		0b10000010, 0b00010010, 0b00001000,
+		0b10111010, 0b00100010, 0b11101000,
+		0b10111010, 0b10100010, 0b11101000,
+		0b10111010, 0b01111010, 0b11101000,
+		0b10000010, 0b01001010, 0b00001000,
+		0b11111110, 0b10101011, 0b11111000,
+		0b00000000, 0b01100000, 0b00000000,
+		0b00101110, 0b11110100, 0b01001000,
+		0b01010101, 0b11101010, 0b01010000,
+		0b10001111, 0b00100110, 0b10101000,
+		0b00010000, 0b00010000, 0b01010000,
+		0b11111011, 0b10001100, 0b10101000,
+		0b00000000, 0b11011111, 0b01010000,
+		0b11111110, 0b00101001, 0b00111000,
+		0b10000010, 0b11100101, 0b11011000,
+		0b10111010, 0b10011101, 0b00101000,
+		0b10111010, 0b01001011, 0b01010000,
+		0b10111010, 0b11100100, 0b10101000,
+		0b10000010, 0b00000111, 0b01000000,
+		0b11111110, 0b01000100, 0b10101000,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
 func TestQRCode_EncodeToBitmap_ErrorTooLong(t *testing.T) {
 	qr := &QRCode{
 		Version: 1,

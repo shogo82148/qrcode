@@ -315,7 +315,7 @@ func decodeKanji(version Version, buf *bitstream.Buffer) (Segment, error) {
 	}
 
 	return Segment{
-		Mode: ModeBytes,
+		Mode: ModeKanji,
 		Data: []byte(data),
 	}, nil
 }
