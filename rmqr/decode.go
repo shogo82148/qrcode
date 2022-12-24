@@ -73,9 +73,10 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	}
 
 	// decode segments
-	stream := bitstream.NewBuffer(result)
+	capacity := capacityTable[version][level]
+	stream := bitstream.NewBuffer(result[:capacity.Data])
 	segments := make([]Segment, 0)
-	bitLength := capacityTable[version][level].BitLength
+	bitLength := capacity.BitLength
 LOOP:
 	for {
 		mode, err := stream.ReadBits(3)
@@ -169,7 +170,7 @@ func decodeFormat0(data uint) (Version, Level, bool) {
 	if min >= 3 {
 		return 0, 0, false
 	}
-	return Version(idx & 0x1f), Level((idx >> 6) & 1), true
+	return Version(idx & 0x1f), Level((idx >> 5) & 1), true
 }
 
 func decodeFromBits(version Version, level Level, buf []byte) []block {
