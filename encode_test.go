@@ -126,7 +126,7 @@ func TestNewFromKanji3(t *testing.T) {
 		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
 	}
 	if qr.Version != 10 {
-		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 10)
 	}
 	if len(qr.Segments) != 5 {
 		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 5)
@@ -136,6 +136,28 @@ func TestNewFromKanji3(t *testing.T) {
 	}
 	if !bytes.Equal(qr.Segments[0].Data, []byte("VERSION 10 QR CODE")) {
 		t.Errorf("got %q, want %q", qr.Segments[0].Data, "VERSION 10 QR CODE")
+	}
+}
+
+func TestNewFromKanji4(t *testing.T) {
+	qr, err := NewFromKanji(LevelH, []byte("1234567"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 1 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 1)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 2)
+	}
+	if qr.Segments[0].Mode != ModeNumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("1234567")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "1234567")
 	}
 }
 
@@ -529,6 +551,52 @@ func TestQRCode_EncodeToBitmap6(t *testing.T) {
 		0b10111010, 0b11110100, 0b11100000,
 		0b10000010, 0b00000001, 0b10100000,
 		0b11111110, 0b11010100, 0b11101000,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestQRCode_EncodeToBitmap7(t *testing.T) {
+	qr := &QRCode{
+		Version: 1,
+		Level:   LevelH,
+		Mask:    Mask0,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: []byte("000000000"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10000011, 0b11111000,
+		0b10000010, 0b00010010, 0b00001000,
+		0b10111010, 0b01111010, 0b11101000,
+		0b10111010, 0b10111010, 0b11101000,
+		0b10111010, 0b01101010, 0b11101000,
+		0b10000010, 0b01100010, 0b00001000,
+		0b11111110, 0b10101011, 0b11111000,
+		0b00000000, 0b01011000, 0b00000000,
+		0b00101110, 0b11001100, 0b01001000,
+		0b01010100, 0b10111001, 0b01010000,
+		0b00110110, 0b01100001, 0b00101000,
+		0b01101000, 0b00100111, 0b11010000,
+		0b11001111, 0b10111111, 0b00101000,
+		0b00000000, 0b10011000, 0b01010000,
+		0b11111110, 0b01110010, 0b10111000,
+		0b10000010, 0b11111000, 0b01011000,
+		0b10111010, 0b11110100, 0b10101000,
+		0b10111010, 0b01101011, 0b01010000,
+		0b10111010, 0b10110001, 0b00101000,
+		0b10000010, 0b01100101, 0b11000000,
+		0b11111110, 0b01001101, 0b00101000,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)
