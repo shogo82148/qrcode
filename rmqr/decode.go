@@ -102,6 +102,12 @@ LOOP:
 				return nil, err
 			}
 			segments = append(segments, seg)
+		case ModeKanji:
+			seg, err := decodeKanji(bitLength, stream)
+			if err != nil {
+				return nil, err
+			}
+			segments = append(segments, seg)
 		case ModeTerminated:
 			break LOOP
 		default:
@@ -259,6 +265,23 @@ func decodeBytes(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
 
 	return Segment{
 		Mode: ModeBytes,
+		Data: data,
+	}, nil
+}
+
+func decodeKanji(bitLength [5]int, buf *bitstream.Buffer) (Segment, error) {
+	n := bitLength[ModeKanji]
+	length, err := buf.ReadBits(n)
+	if err != nil {
+		return Segment{}, err
+	}
+	data, err := bitstream.DecodeKanji(buf, int(length))
+	if err != nil {
+		return Segment{}, err
+	}
+
+	return Segment{
+		Mode: ModeKanji,
 		Data: data,
 	}, nil
 }

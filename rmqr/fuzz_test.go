@@ -43,3 +43,39 @@ func FuzzNew(f *testing.F) {
 		}
 	})
 }
+
+func FuzzNewFromKanji(f *testing.F) {
+	f.Add(int(LevelM), []byte("01234567"))
+	f.Add(int(LevelH), []byte("01234567"))
+	f.Add(int(LevelM), []byte("123456789012"))
+	f.Add(int(LevelM), []byte("点"))
+	f.Fuzz(func(t *testing.T, level int, data []byte) {
+		lv := Level(level)
+		if lv != LevelM && lv != LevelH {
+			return
+		}
+		qr0, err := NewFromKanji(lv, data)
+		if err != nil {
+			return
+		}
+
+		// check the result
+		got := make([]byte, 0, len(data))
+		for _, s := range qr0.Segments {
+			got = append(got, s.Data...)
+		}
+		if !bytes.Equal(data, got) {
+			t.Errorf("result not match: in %q, out %q", data, got)
+		}
+
+		// encode and decode
+		img, err := qr0.EncodeToBitmap()
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = DecodeBitmap(img)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+}
