@@ -115,6 +115,8 @@ func encodeKanji(r rune) (uint64, bool) {
 		code = encode3[r-encode3Low]
 	case encode4Low <= r && r <= encode4High:
 		code = encode4[r-encode4Low]
+	default:
+		return 0, false
 	}
 	if code < 0 {
 		return 0, false

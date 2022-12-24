@@ -112,3 +112,56 @@ func TestDecodeAlphanumeric(t *testing.T) {
 		}
 	}
 }
+
+func TestDecodeKanji(t *testing.T) {
+	tests := []struct {
+		in    []byte
+		count int
+		want  []byte
+	}{
+		{
+			in:    []byte{0b01101100, 0b11111000},
+			count: 1,
+			want:  []byte("点"),
+		},
+		{
+			in:    []byte{0b11010101, 0b01010000},
+			count: 1,
+			want:  []byte("茗"),
+		},
+	}
+
+	for i, tt := range tests {
+		buf := NewBuffer(tt.in)
+		got, err := DecodeKanji(buf, tt.count)
+		if err != nil {
+			t.Errorf("%d: error %v", i, err)
+			continue
+		}
+		if !bytes.Equal(tt.want, got) {
+			t.Errorf("%d: got %q, want %q", i, got, tt.want)
+		}
+	}
+}
+
+func TestDecodeKanji_Error(t *testing.T) {
+	tests := []struct {
+		in    []byte
+		count int
+		want  []byte
+	}{
+		{
+			in:    []byte{0b11111111, 0b11111000},
+			count: 1,
+		},
+	}
+
+	for i, tt := range tests {
+		buf := NewBuffer(tt.in)
+		_, err := DecodeKanji(buf, tt.count)
+		if err == nil {
+			t.Errorf("%d: want error, but not", i)
+			continue
+		}
+	}
+}

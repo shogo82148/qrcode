@@ -49,6 +49,25 @@ func TestNew2(t *testing.T) {
 	}
 }
 
+func TestNew3(t *testing.T) {
+	qr, err := NewFromKanji(LevelM, []byte("点"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Version != R7x43 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, R7x43)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeKanji {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeNumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("点")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "点")
+	}
+}
+
 func TestEncodeToBitmap1(t *testing.T) {
 	qr := &QRCode{
 		Version: R15x59,
