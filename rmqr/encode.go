@@ -23,144 +23,115 @@ func New(level Level, data []byte) (*QRCode, error) {
 
 	const inf = math.MaxInt - 1<<18 // 1<<18 is for avoiding overflow
 	const (
-		modeNumeric byte = iota
+		modeInit = iota
+		modeNumeric
 		modeAlphanumeric
 		modeBytes
-		modeInit
+		modeMax
 	)
 	type state struct {
 		cost     int // = bit length * 6
-		lastMode byte
+		lastMode int
 	}
-	states := make([][3]state, len(data))
-	if bitstream.IsNumeric(data[0]) {
-		states[0][modeNumeric] = state{
-			cost:     (3+9)*6 + 20,
-			lastMode: modeInit,
-		}
-	} else {
-		states[0][modeNumeric] = state{
-			cost:     inf,
-			lastMode: modeInit,
-		}
-	}
-	if bitstream.IsAlphanumeric(data[0]) {
-		states[0][modeAlphanumeric] = state{
-			cost:     (3+8)*6 + 33,
-			lastMode: modeInit,
-		}
-	} else {
-		states[0][modeAlphanumeric] = state{
-			cost:     inf,
-			lastMode: modeInit,
-		}
-	}
-	states[0][modeBytes] = state{
-		cost:     (3 + 8 + 8) * 6,
-		lastMode: modeInit,
-	}
+	states := make([][4]state, len(data)+1)
+	states[0][modeNumeric].cost = inf
+	states[0][modeAlphanumeric].cost = inf
+	states[0][modeBytes].cost = inf
 
-	for i := 1; i < len(data); i++ {
+	for i := 0; i < len(data); i++ {
+		if i != 0 {
+			states[i][modeInit].cost = inf
+		}
+		// numeric
 		if bitstream.IsNumeric(data[i]) {
-			// numeric -> numeric
-			minCost := states[i-1][modeNumeric].cost + 20
-			lastMode := modeNumeric
-
-			// alphanumeric -> numeric
-			cost := states[i-1][modeAlphanumeric].cost + (3+9)*6 + 20
-			if cost < minCost {
-				minCost = cost
-				lastMode = modeAlphanumeric
+			minCost := states[i][modeInit].cost + (3+9)*6 + 20
+			lastMode := modeInit
+			for mode := modeInit + 1; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 20
+				if mode != modeNumeric {
+					cost += (3 + 9) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
 			}
 
-			// bytes -> numeric
-			cost = states[i-1][modeBytes].cost + (3+9)*6 + 20
-			if cost < minCost {
-				minCost = cost
-				lastMode = modeBytes
-			}
-
-			states[i][modeNumeric] = state{
+			states[i+1][modeNumeric] = state{
 				cost:     minCost,
 				lastMode: lastMode,
 			}
 		} else {
-			states[i][modeNumeric] = state{
+			states[i+1][modeNumeric] = state{
 				cost:     inf,
 				lastMode: modeInit,
 			}
 		}
 
+		// alphanumeric
 		if bitstream.IsAlphanumeric(data[i]) {
-			// numeric -> alphanumeric
-			minCost := states[i-1][modeNumeric].cost + (3+8)*6 + 33
-			lastMode := modeNumeric
-
-			// alphanumeric -> numeric
-			cost := states[i-1][modeAlphanumeric].cost + 33
-			if cost < minCost {
-				minCost = cost
-				lastMode = modeAlphanumeric
+			minCost := inf
+			lastMode := modeInit
+			for mode := modeInit; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 33
+				if mode != modeAlphanumeric {
+					cost += (3 + 8) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
 			}
 
-			// bytes -> numeric
-			cost = states[i-1][modeBytes].cost + (3+8)*6 + 33
-			if cost < minCost {
-				minCost = cost
-				lastMode = modeBytes
-			}
-
-			states[i][modeAlphanumeric] = state{
+			states[i+1][modeAlphanumeric] = state{
 				cost:     minCost,
 				lastMode: lastMode,
 			}
 		} else {
-			states[i][modeAlphanumeric] = state{
+			states[i+1][modeAlphanumeric] = state{
 				cost:     inf,
 				lastMode: modeInit,
 			}
 		}
 
-		// numeric -> bytes
-		minCost := states[i-1][modeNumeric].cost + (3+8+8)*6
-		lastMode := modeNumeric
-
-		// alphanumeric -> bytes
-		cost := states[i-1][modeAlphanumeric].cost + (3+8+8)*6
-		if cost < minCost {
-			minCost = cost
-			lastMode = modeAlphanumeric
-		}
-
-		// bytes -> bytes
-		cost = states[i-1][modeBytes].cost + 8*6
-		if cost < minCost {
-			minCost = cost
-			lastMode = modeBytes
-		}
-		states[i][modeBytes] = state{
-			cost:     minCost,
-			lastMode: lastMode,
+		// bytes
+		{
+			minCost := inf
+			lastMode := modeInit
+			for mode := modeInit; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 8*6
+				if mode != modeBytes {
+					cost += (3 + 8) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
+			}
+			states[i+1][modeBytes] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+			}
 		}
 	}
 
-	best := make([]byte, len(data))
-	minCost := states[len(data)-1][modeNumeric].cost
+	best := make([]int, len(data))
+	minCost := states[len(data)][modeNumeric].cost
 	bestMode := modeNumeric
-	if cost := states[len(data)-1][modeAlphanumeric].cost; cost < minCost {
+	if cost := states[len(data)][modeAlphanumeric].cost; cost < minCost {
 		minCost = cost
 		bestMode = modeAlphanumeric
 	}
-	if cost := states[len(data)-1][modeBytes].cost; cost < minCost {
+	if cost := states[len(data)][modeBytes].cost; cost < minCost {
 		bestMode = modeBytes
 	}
 	best[len(data)-1] = bestMode
 	for i := len(data) - 1; i > 0; i-- {
-		bestMode = states[i][bestMode].lastMode
+		bestMode = states[i+1][bestMode].lastMode
 		best[i-1] = bestMode
 	}
 
-	modeList := [...]Mode{ModeNumeric, ModeAlphanumeric, ModeBytes}
+	modeList := [...]Mode{0, ModeNumeric, ModeAlphanumeric, ModeBytes}
 	segments := []Segment{
 		{
 			Mode: modeList[best[0]],
