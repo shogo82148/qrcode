@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"unicode/utf8"
 
 	bitmap "github.com/shogo82148/qrcode/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
@@ -184,6 +185,212 @@ func New(level Level, data []byte) (*QRCode, error) {
 	version := calcVersion(level, segments)
 	if version == 0 {
 		return nil, errors.New("microqr: data too large")
+	}
+
+	return &QRCode{
+		Version:  version,
+		Level:    level,
+		Mask:     MaskAuto,
+		Segments: segments,
+	}, nil
+}
+
+func NewFromKanji(level Level, data []byte) (*QRCode, error) {
+	if len(data) == 0 {
+		version := calcVersion(level, nil)
+		return &QRCode{
+			Version: version,
+			Level:   level,
+			Mask:    MaskAuto,
+		}, nil
+	}
+
+	const inf = math.MaxInt - 1<<18 // 1<<18 is for avoiding overflow
+	const (
+		modeInit = iota
+		modeNumeric
+		modeAlphanumeric
+		modeBytes
+		modeKanji
+		modeMax
+	)
+	type state struct {
+		cost     int // = bit length * 6
+		lastMode int
+		data     []byte
+	}
+	states := make([][5]state, len(data)+1)
+	states[0][modeNumeric].cost = inf
+	states[0][modeAlphanumeric].cost = inf
+	states[0][modeBytes].cost = inf
+	states[0][modeKanji].cost = inf
+
+	for i := 0; i < len(data); i++ {
+		if i != 0 {
+			states[i][modeInit].cost = inf
+		}
+		// numeric
+		if bitstream.IsNumeric(data[i]) {
+			minCost := states[i][modeInit].cost + (4+14)*6 + 20
+			lastMode := modeInit
+			for mode := modeInit + 1; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 20
+				if mode != modeNumeric {
+					cost += (4 + 14) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
+			}
+			states[i+1][modeNumeric] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+				data:     data[i : i+1],
+			}
+		} else {
+			states[i+1][modeNumeric] = state{
+				cost:     inf,
+				lastMode: modeInit,
+				data:     []byte{},
+			}
+		}
+
+		// alphanumeric
+		if bitstream.IsAlphanumeric(data[i]) {
+			minCost := states[i][modeInit].cost + (4+13)*6 + 33
+			lastMode := modeInit
+			for mode := modeInit + 1; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 33
+				if mode != modeAlphanumeric {
+					cost += (4 + 13) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
+			}
+			states[i+1][modeAlphanumeric] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+				data:     data[i : i+1],
+			}
+		} else {
+			states[i+1][modeAlphanumeric] = state{
+				cost:     inf,
+				lastMode: modeInit,
+				data:     []byte{},
+			}
+		}
+
+		// bytes
+		{
+			minCost := states[i][modeInit].cost + (4+16+8)*6
+			lastMode := modeInit
+			for mode := modeInit + 1; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 8*6
+				if mode != modeBytes {
+					cost += (4 + 16) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
+			}
+			states[i+1][modeBytes] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+				data:     data[i : i+1],
+			}
+		}
+
+		// kanji
+		r, size := utf8.DecodeRune(data[i:])
+		if r != utf8.RuneError && bitstream.IsKanji(r) && i+size < len(states) {
+			minCost := states[i][modeInit].cost + (4+12+13)*6
+			lastMode := modeInit
+			for mode := modeInit + 1; mode < modeMax; mode++ {
+				cost := states[i][mode].cost + 13*6
+				if mode != modeKanji {
+					cost += (4 + 12) * 6
+				}
+				if cost < minCost {
+					minCost = cost
+					lastMode = mode
+				}
+			}
+
+			for j := 0; j < size; j++ {
+				states[i+j][modeKanji].cost = inf
+			}
+
+			states[i+size][modeKanji] = state{
+				cost:     minCost,
+				lastMode: lastMode,
+				data:     data[i : i+size],
+			}
+		} else if states[i+1][modeKanji].data == nil {
+			states[i+1][modeKanji] = state{
+				cost:     inf,
+				lastMode: modeInit,
+				data:     []byte{},
+			}
+		}
+	}
+
+	// find the best path
+	type elem struct {
+		mode int
+		data []byte
+	}
+	best := make([]elem, 0, len(data))
+	minCost := states[len(data)][modeNumeric].cost
+	bestMode := modeNumeric
+	for mode := modeNumeric + 1; mode < modeMax; mode++ {
+		if cost := states[len(data)][mode].cost; cost < minCost {
+			minCost = cost
+			bestMode = mode
+		}
+	}
+	best = append(best, elem{
+		mode: bestMode,
+		data: states[len(data)][bestMode].data,
+	})
+	for i := len(data); ; {
+		size := len(states[i][bestMode].data)
+		bestMode = states[i][bestMode].lastMode
+		if bestMode == modeInit {
+			break
+		}
+		i -= size
+		best = append(best, elem{
+			mode: bestMode,
+			data: states[i][bestMode].data,
+		})
+	}
+
+	modeList := [...]Mode{0, ModeNumeric, ModeAlphanumeric, ModeBytes, ModeKanji}
+	segments := []Segment{
+		{
+			Mode: modeList[best[len(best)-1].mode],
+			Data: best[len(best)-1].data,
+		},
+	}
+	for i := len(best) - 2; i >= 0; i-- {
+		mode := modeList[best[i].mode]
+		if segments[len(segments)-1].Mode == mode {
+			segments[len(segments)-1].Data = append(segments[len(segments)-1].Data, best[i].data...)
+		} else {
+			segments = append(segments, Segment{
+				Mode: mode,
+				Data: best[i].data,
+			})
+		}
+	}
+
+	version := calcVersion(level, segments)
+	if version == 0 {
+		return nil, errors.New("qrcode: data too large")
 	}
 
 	return &QRCode{
@@ -536,6 +743,17 @@ func (s *Segment) length(version Version) (int, bool) {
 		}
 		n += len(s.Data) * 8
 		return n, true
+	case ModeKanji:
+		switch version {
+		case 3:
+			n += 3
+		case 4:
+			n += 4
+		default:
+			return 0, false
+		}
+		n += utf8.RuneCount(s.Data) * 13
+		return n, true
 	default:
 		return 0, false
 	}
@@ -549,6 +767,8 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 		return s.encodeAlphanumeric(version, buf)
 	case ModeBytes:
 		return s.encodeBytes(version, buf)
+	case ModeKanji:
+		return s.encodeKanji(version, buf)
 	default:
 		return errors.New("qrcode: unknown mode")
 	}
@@ -655,4 +875,36 @@ func (s *Segment) encodeBytes(version Version, buf *bitstream.Buffer) error {
 
 	// data
 	return bitstream.EncodeBytes(buf, data)
+}
+
+func (s *Segment) encodeKanji(version Version, buf *bitstream.Buffer) error {
+	// validation
+	var n int
+	data := s.Data
+	switch version {
+	case 3:
+		n = 3
+	case 4:
+		n = 4
+	default:
+		return fmt.Errorf("qrcode: invalid version: %d", version)
+	}
+	count := utf8.RuneCount(data)
+	if count >= 1<<n {
+		return fmt.Errorf("qrcode: data is too long: %d", count)
+	}
+
+	// mode
+	switch version {
+	case 3:
+		buf.WriteBitsLSB(uint64(ModeKanji), 2)
+	case 4:
+		buf.WriteBitsLSB(uint64(ModeKanji), 3)
+	}
+
+	// data length
+	buf.WriteBitsLSB(uint64(count), n)
+
+	// data
+	return bitstream.EncodeKanji(buf, data)
 }

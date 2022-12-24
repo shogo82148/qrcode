@@ -127,6 +127,72 @@ func TestNew6(t *testing.T) {
 	}
 }
 
+func TestNewFromKanji1(t *testing.T) {
+	qr, err := NewFromKanji(LevelL, []byte("MICROQR"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 3)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeAlphanumeric {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeAlphanumeric)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("MICROQR")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "MICROQR")
+	}
+}
+
+func TestNewFromKanji2(t *testing.T) {
+	qr, err := NewFromKanji(LevelL, []byte("点"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 3)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeKanji {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeKanji)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("点")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "点")
+	}
+}
+
+func TestNewFromKanji3(t *testing.T) {
+	qr, err := NewFromKanji(LevelL, []byte("免"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Mask != MaskAuto {
+		t.Errorf("unexpected mask: got %v, want %v", qr.Mask, MaskAuto)
+	}
+	if qr.Version != 3 {
+		t.Errorf("unexpected version: got %v, want %v", qr.Version, 3)
+	}
+	if len(qr.Segments) != 1 {
+		t.Fatalf("unexpected the length of segment: got %d, want %d", len(qr.Segments), 1)
+	}
+	if qr.Segments[0].Mode != ModeKanji {
+		t.Errorf("got %v, want %v", qr.Segments[0].Mode, ModeKanji)
+	}
+	if !bytes.Equal(qr.Segments[0].Data, []byte("免")) {
+		t.Errorf("got %q, want %q", qr.Segments[0].Data, "免")
+	}
+}
+
 func TestEncode1(t *testing.T) {
 	qr := &QRCode{
 		Version: 2,
@@ -384,6 +450,46 @@ func TestEncodeToBitmap6(t *testing.T) {
 		0b11001110, 0b01100000,
 		0b01011101, 0b00100000,
 		0b10100111, 0b11100000,
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("got %08b, want %08b", got, want)
+	}
+}
+
+func TestEncodeToBitmap7(t *testing.T) {
+	qr := &QRCode{
+		Version: 3,
+		Level:   LevelM,
+		Mask:    Mask2,
+		Segments: []Segment{
+			{
+				Mode: ModeKanji,
+				Data: []byte("点"),
+			},
+		},
+	}
+	img, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := img.Pix
+
+	want := []byte{
+		0b11111110, 0b10101010,
+		0b10000010, 0b01101110,
+		0b10111010, 0b00001100,
+		0b10111010, 0b00010010,
+		0b10111010, 0b00010010,
+		0b10000010, 0b10000000,
+		0b11111110, 0b10011000,
+		0b00000000, 0b01001000,
+		0b10001100, 0b10011000,
+		0b01000010, 0b10001000,
+		0b11011010, 0b10101110,
+		0b01000110, 0b01100110,
+		0b10111110, 0b11110100,
+		0b00010011, 0b01010110,
+		0b11010101, 0b11101010,
 	}
 	if !bytes.Equal(got, want) {
 		t.Errorf("got %08b, want %08b", got, want)

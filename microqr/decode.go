@@ -258,6 +258,18 @@ LOOP:
 			if err := bitstream.DecodeBytes(buf, data); err != nil {
 				return nil, err
 			}
+		case ModeKanji:
+			length, err := buf.ReadBits(3)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data, err = bitstream.DecodeKanji(buf, int(length))
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, errors.New("qrcode: unknown mode: " + strconv.Itoa(int(mode)))
 		}
@@ -326,6 +338,18 @@ LOOP:
 			}
 			data = make([]byte, length)
 			if err := bitstream.DecodeBytes(buf, data); err != nil {
+				return nil, err
+			}
+		case ModeKanji:
+			length, err := buf.ReadBits(4)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break LOOP
+				}
+				return nil, err
+			}
+			data, err = bitstream.DecodeKanji(buf, int(length))
+			if err != nil {
 				return nil, err
 			}
 		default:
