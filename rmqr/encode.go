@@ -44,9 +44,9 @@ func New(level Level, data []byte) (*QRCode, error) {
 		}
 		// numeric
 		if bitstream.IsNumeric(data[i]) {
-			minCost := states[i][modeInit].cost + (3+9)*6 + 20
+			minCost := inf
 			lastMode := modeInit
-			for mode := modeInit + 1; mode < modeMax; mode++ {
+			for mode := modeInit; mode < modeMax; mode++ {
 				cost := states[i][mode].cost + 20
 				if mode != modeNumeric {
 					cost += (3 + 9) * 6
