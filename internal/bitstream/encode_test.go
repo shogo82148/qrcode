@@ -3,6 +3,7 @@ package bitstream
 import (
 	"bytes"
 	"testing"
+	"unicode/utf8"
 )
 
 func TestEncodeNumeric(t *testing.T) {
@@ -137,6 +138,28 @@ func TestEncodeKanji(t *testing.T) {
 		got := buf.Bytes()
 		if !bytes.Equal(tt.want, got) {
 			t.Errorf("%d: got %08b, want %08b", i, got, tt.want)
+		}
+	}
+}
+
+func TestEncodeKanji_Error(t *testing.T) {
+	tests := []struct {
+		in   []byte
+		want []byte
+	}{
+		{
+			in: []byte("😎"),
+		},
+		{
+			in: []byte(string(utf8.RuneError)),
+		},
+	}
+
+	for i, tt := range tests {
+		var buf Buffer
+		if err := EncodeKanji(&buf, tt.in); err == nil {
+			t.Errorf("%d: want error, but not", i)
+			continue
 		}
 	}
 }

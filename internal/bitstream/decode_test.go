@@ -143,3 +143,25 @@ func TestDecodeKanji(t *testing.T) {
 		}
 	}
 }
+
+func TestDecodeKanji_Error(t *testing.T) {
+	tests := []struct {
+		in    []byte
+		count int
+		want  []byte
+	}{
+		{
+			in:    []byte{0b11111111, 0b11111000},
+			count: 1,
+		},
+	}
+
+	for i, tt := range tests {
+		buf := NewBuffer(tt.in)
+		_, err := DecodeKanji(buf, tt.count)
+		if err == nil {
+			t.Errorf("%d: want error, but not", i)
+			continue
+		}
+	}
+}

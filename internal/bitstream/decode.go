@@ -3,6 +3,7 @@ package bitstream
 import (
 	"bytes"
 	"errors"
+	"fmt"
 )
 
 func DecodeNumeric(buf *Buffer, data []byte) error {
@@ -95,6 +96,9 @@ func DecodeKanji(buf *Buffer, length int) ([]byte, error) {
 		bits, err := buf.ReadBits(13)
 		if err != nil {
 			return nil, err
+		}
+		if bits >= uint64(len(decode)) {
+			return nil, fmt.Errorf("bitstream: invalid kanji code: %d", bits)
 		}
 		ret.WriteRune(rune(decode[bits]))
 	}
