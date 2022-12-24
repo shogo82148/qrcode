@@ -37,7 +37,7 @@ func New(level Level, data []byte) (*QRCode, error) {
 		cost     int // = bit length * 6
 		lastMode int
 	}
-	states := make([][5]state, len(data)+1)
+	states := make([][4]state, len(data)+1)
 	states[0][modeNumeric].cost = inf
 	states[0][modeAlphanumeric].cost = inf
 	states[0][modeBytes].cost = inf
@@ -48,9 +48,9 @@ func New(level Level, data []byte) (*QRCode, error) {
 		}
 		// numeric
 		if bitstream.IsNumeric(data[i]) {
-			minCost := states[i][modeInit].cost + (4+14)*6 + 20
+			minCost := inf
 			lastMode := modeInit
-			for mode := modeInit + 1; mode < modeMax; mode++ {
+			for mode := modeInit; mode < modeMax; mode++ {
 				cost := states[i][mode].cost + 20
 				if mode != modeNumeric {
 					cost += (4 + 14) * 6
@@ -74,9 +74,9 @@ func New(level Level, data []byte) (*QRCode, error) {
 
 		// alphanumeric
 		if bitstream.IsAlphanumeric(data[i]) {
-			minCost := states[i][modeInit].cost + (4+13)*6 + 33
+			minCost := inf
 			lastMode := modeInit
-			for mode := modeInit + 1; mode < modeMax; mode++ {
+			for mode := modeInit; mode < modeMax; mode++ {
 				cost := states[i][mode].cost + 33
 				if mode != modeAlphanumeric {
 					cost += (4 + 13) * 6
@@ -100,9 +100,9 @@ func New(level Level, data []byte) (*QRCode, error) {
 
 		// bytes
 		{
-			minCost := states[i][modeInit].cost + (4+16+8)*6
+			minCost := inf
 			lastMode := modeInit
-			for mode := modeInit + 1; mode < modeMax; mode++ {
+			for mode := modeInit; mode < modeMax; mode++ {
 				cost := states[i][mode].cost + 8*6
 				if mode != modeBytes {
 					cost += (4 + 16) * 6
