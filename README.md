@@ -1,5 +1,7 @@
 # qrcode
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/shogo82148/qrcode.svg)](https://pkg.go.dev/github.com/shogo82148/qrcode)
+
 QR code, Micro QR code and Rectangular Micro QR Code (rMQR) encoder.
 
 ## REFERENCE
