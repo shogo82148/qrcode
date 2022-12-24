@@ -15,8 +15,9 @@ import (
 
 func New(level Level, data []byte) (*QRCode, error) {
 	if len(data) == 0 {
+		version := calcVersion(level, nil)
 		return &QRCode{
-			Version: 1,
+			Version: version,
 			Level:   level,
 			Mask:    MaskAuto,
 		}, nil
@@ -196,6 +197,9 @@ func New(level Level, data []byte) (*QRCode, error) {
 func calcVersion(level Level, segments []Segment) Version {
 LOOP:
 	for version := Version(1); version <= 4; version++ {
+		if formatTable[version][level] < 0 {
+			continue
+		}
 		capacity := capacityTable[version][level].DataBits
 		length := 0
 		for _, s := range segments {
