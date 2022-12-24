@@ -40,7 +40,7 @@ func FuzzNew(f *testing.F) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(qr0.Segments) != 0 || len(qr1.Segments) != 0 || !reflect.DeepEqual(qr0.Segments, qr1.Segments) {
+		if (len(qr0.Segments) != 0 || len(qr1.Segments) != 0) && !reflect.DeepEqual(qr0.Segments, qr1.Segments) {
 			t.Errorf("decoded result not match: input %#v, output %#v", qr0.Segments, qr1.Segments)
 		}
 	})
@@ -78,12 +78,9 @@ func FuzzNewFromKanji(f *testing.F) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		qr1, err := DecodeBitmap(img)
+		_, err = DecodeBitmap(img)
 		if err != nil {
 			t.Fatal(err)
-		}
-		if len(qr0.Segments) != 0 && len(qr1.Segments) != 0 && !reflect.DeepEqual(qr0.Segments, qr1.Segments) {
-			t.Errorf("decoded result not match: input %#v, output %#v", qr0.Segments, qr1.Segments)
 		}
 	})
 }
