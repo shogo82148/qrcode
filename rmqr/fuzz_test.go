@@ -12,10 +12,7 @@ func FuzzNew(f *testing.F) {
 	f.Add(int(LevelM), []byte("123456789012"))
 	f.Fuzz(func(t *testing.T, level int, data []byte) {
 		lv := Level(level)
-		if lv != LevelM && lv != LevelH {
-			return
-		}
-		qr0, err := New(lv, data)
+		qr0, err := New(data, WithLevel(lv))
 		if err != nil {
 			return
 		}
@@ -51,10 +48,7 @@ func FuzzNewFromKanji(f *testing.F) {
 	f.Add(int(LevelM), []byte("点"))
 	f.Fuzz(func(t *testing.T, level int, data []byte) {
 		lv := Level(level)
-		if lv != LevelM && lv != LevelH {
-			return
-		}
-		qr0, err := NewFromKanji(lv, data)
+		qr0, err := New(data, WithLevel(lv), WithKanji(true))
 		if err != nil {
 			return
 		}

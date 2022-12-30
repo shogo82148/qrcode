@@ -16,22 +16,24 @@ import (
 func main() {
 	var micro, rmqr bool
 	var level string
+	var kanji bool
 	flag.BoolVar(&micro, "micro", false, "generates Micro QR Code")
 	flag.BoolVar(&rmqr, "rmqr", false, "generates rMQR Code")
 	flag.StringVar(&level, "level", "", "error correction level")
+	flag.BoolVar(&kanji, "kanji", false, "use kanji mode")
 	flag.Parse()
 	filename := flag.Arg(0)
 
 	if !micro && !rmqr {
-		encodeQR(level, filename)
+		encodeQR(level, kanji, filename)
 	} else if micro {
-		encodeMicroQR(level, filename)
+		encodeMicroQR(level, kanji, filename)
 	} else if rmqr {
-		encodeRMQR(level, filename)
+		encodeRMQR(level, kanji, filename)
 	}
 }
 
-func encodeQR(level, filename string) {
+func encodeQR(level string, kanji bool, filename string) {
 	var lv qrcode.Level
 	switch level {
 	case "l", "L":
@@ -48,7 +50,7 @@ func encodeQR(level, filename string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	img, err := qrcode.Encode(data, qrcode.WithLevel(lv))
+	img, err := qrcode.Encode(data, qrcode.WithLevel(lv), qrcode.WithKanji(kanji))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +63,7 @@ func encodeQR(level, filename string) {
 	}
 }
 
-func encodeMicroQR(level, filename string) {
+func encodeMicroQR(level string, kanji bool, filename string) {
 	var lv microqr.Level
 	switch level {
 	case "":
@@ -78,7 +80,7 @@ func encodeMicroQR(level, filename string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	img, err := microqr.Encode(data, microqr.WithLevel(lv))
+	img, err := microqr.Encode(data, microqr.WithLevel(lv), microqr.WithKanji(kanji))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,7 +93,7 @@ func encodeMicroQR(level, filename string) {
 	}
 }
 
-func encodeRMQR(level, filename string) {
+func encodeRMQR(level string, kanji bool, filename string) {
 	var lv rmqr.Level
 	switch level {
 	case "m", "M":
@@ -104,7 +106,7 @@ func encodeRMQR(level, filename string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	img, err := rmqr.Encode(data, rmqr.WithLevel(lv))
+	img, err := rmqr.Encode(data, rmqr.WithLevel(lv), rmqr.WithKanji(kanji))
 	if err != nil {
 		log.Fatal(err)
 	}

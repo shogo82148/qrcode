@@ -13,7 +13,20 @@ import (
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
-func New(level Level, data []byte) (*QRCode, error) {
+func New(data []byte, opts ...EncodeOptions) (*QRCode, error) {
+	myopts := newEncodeOptions(opts...)
+	lv := myopts.Level
+	if lv < 0 || lv >= 4 {
+		return nil, fmt.Errorf("qrcode: invalid level: %d", lv)
+	}
+	if myopts.Kanji {
+		return newFromKanji(lv, data)
+	} else {
+		return newQR(lv, data)
+	}
+}
+
+func newQR(level Level, data []byte) (*QRCode, error) {
 	if len(data) == 0 {
 		return &QRCode{
 			Version: R7x43,
@@ -162,7 +175,7 @@ func New(level Level, data []byte) (*QRCode, error) {
 	}, nil
 }
 
-func NewFromKanji(level Level, data []byte) (*QRCode, error) {
+func newFromKanji(level Level, data []byte) (*QRCode, error) {
 	if len(data) == 0 {
 		return &QRCode{
 			Version: R7x43,
@@ -395,6 +408,7 @@ type encodeOptions struct {
 	QuiteZone  int
 	ModuleSize float64
 	Level      Level
+	Kanji      bool
 }
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
@@ -439,10 +453,18 @@ func WithLevel(lv Level) EncodeOptions {
 	return withLevel(lv)
 }
 
-func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
-	myopts := newEncodeOptions(opts...)
+type withKanji bool
 
-	qr, err := New(myopts.Level, data)
+func (opt withKanji) apply(opts *encodeOptions) {
+	opts.Kanji = bool(opt)
+}
+
+func WithKanji(use bool) EncodeOptions {
+	return withKanji(use)
+}
+
+func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
+	qr, err := New(data, opts...)
 	if err != nil {
 		return nil, err
 	}

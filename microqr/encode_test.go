@@ -7,7 +7,7 @@ import (
 )
 
 func TestNew1(t *testing.T) {
-	qr, err := New(LevelL, []byte("MICROQR"))
+	qr, err := New([]byte("MICROQR"), WithLevel(LevelL))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestNew1(t *testing.T) {
 
 func TestNew2(t *testing.T) {
 	// Maximum size for Version M4
-	qr, err := New(LevelL, []byte("12345678901234567890123456789012345"))
+	qr, err := New([]byte("12345678901234567890123456789012345"), WithLevel(LevelL))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestNew2(t *testing.T) {
 }
 
 func TestNew3(t *testing.T) {
-	qr, err := New(LevelL, []byte("123456789012345678901234"))
+	qr, err := New([]byte("123456789012345678901234"), WithLevel(LevelL))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func TestNew3(t *testing.T) {
 
 func TestNew4(t *testing.T) {
 	// maximum size for Version M3
-	qr, err := New(LevelL, []byte("12345678901234567890123"))
+	qr, err := New([]byte("12345678901234567890123"), WithLevel(LevelL))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestNew4(t *testing.T) {
 }
 
 func TestNew5(t *testing.T) {
-	_, err := New(LevelL, []byte("123456789012345678901234567890123456"))
+	_, err := New([]byte("123456789012345678901234567890123456"), WithLevel(LevelL))
 	if err == nil {
 		t.Fatal("want error, but not")
 	}
@@ -106,7 +106,7 @@ func TestNew5(t *testing.T) {
 
 func TestNew6(t *testing.T) {
 	// maximum size for Version M1
-	qr, err := New(LevelCheck, []byte("12345"))
+	qr, err := New([]byte("12345"), WithLevel(LevelCheck))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func TestNew6(t *testing.T) {
 }
 
 func TestNewFromKanji1(t *testing.T) {
-	qr, err := NewFromKanji(LevelL, []byte("MICROQR"))
+	qr, err := New([]byte("MICROQR"), WithLevel(LevelL), WithKanji(true))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,7 +150,7 @@ func TestNewFromKanji1(t *testing.T) {
 }
 
 func TestNewFromKanji2(t *testing.T) {
-	qr, err := NewFromKanji(LevelL, []byte("点"))
+	qr, err := New([]byte("点"), WithLevel(LevelL), WithKanji(true))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestNewFromKanji2(t *testing.T) {
 }
 
 func TestNewFromKanji3(t *testing.T) {
-	qr, err := NewFromKanji(LevelL, []byte("免"))
+	qr, err := New([]byte("免"), WithLevel(LevelL), WithKanji(true))
 	if err != nil {
 		t.Fatal(err)
 	}

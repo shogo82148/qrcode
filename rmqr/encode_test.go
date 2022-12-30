@@ -6,7 +6,7 @@ import (
 )
 
 func TestNew1(t *testing.T) {
-	qr, err := New(LevelM, []byte("123456789012"))
+	qr, err := New([]byte("123456789012"), WithLevel(LevelM))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,7 +25,7 @@ func TestNew1(t *testing.T) {
 }
 
 func TestNew2(t *testing.T) {
-	qr, err := New(LevelM, []byte("000A0a0000Aa"))
+	qr, err := New([]byte("000A0a0000Aa"), WithLevel(LevelM))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestNew2(t *testing.T) {
 }
 
 func TestNew3(t *testing.T) {
-	qr, err := NewFromKanji(LevelM, []byte("点"))
+	qr, err := New([]byte("点"), WithLevel(LevelM), WithKanji(true))
 	if err != nil {
 		t.Fatal(err)
 	}
