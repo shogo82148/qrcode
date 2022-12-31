@@ -20,7 +20,7 @@ func main() {
 	flag.BoolVar(&micro, "micro", false, "generates Micro QR Code")
 	flag.BoolVar(&rmqr, "rmqr", false, "generates rMQR Code")
 	flag.StringVar(&level, "level", "", "error correction level")
-	flag.BoolVar(&kanji, "kanji", false, "use kanji mode")
+	flag.BoolVar(&kanji, "kanji", true, "use kanji mode")
 	flag.Parse()
 	filename := flag.Arg(0)
 
