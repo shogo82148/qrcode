@@ -20,13 +20,13 @@ func New(data []byte, opts ...EncodeOptions) (*QRCode, error) {
 		return nil, fmt.Errorf("qrcode: invalid level: %d", lv)
 	}
 	if myopts.Kanji {
-		return newFromKanji(lv, data)
+		return newFromKanji(lv, myopts.Priority, data)
 	} else {
-		return newQR(lv, data)
+		return newQR(lv, myopts.Priority, data)
 	}
 }
 
-func newQR(level Level, data []byte) (*QRCode, error) {
+func newQR(level Level, priority Priority, data []byte) (*QRCode, error) {
 	if len(data) == 0 {
 		return &QRCode{
 			Version: R7x43,
@@ -163,7 +163,7 @@ func newQR(level Level, data []byte) (*QRCode, error) {
 		}
 	}
 
-	version, ok := calcVersion(level, segments)
+	version, ok := calcVersion(level, priority, segments)
 	if !ok {
 		return nil, errors.New("qrcode: data too large")
 	}
@@ -175,7 +175,7 @@ func newQR(level Level, data []byte) (*QRCode, error) {
 	}, nil
 }
 
-func newFromKanji(level Level, data []byte) (*QRCode, error) {
+func newFromKanji(level Level, priority Priority, data []byte) (*QRCode, error) {
 	if len(data) == 0 {
 		return &QRCode{
 			Version: R7x43,
@@ -366,7 +366,7 @@ func newFromKanji(level Level, data []byte) (*QRCode, error) {
 		}
 	}
 
-	version, ok := calcVersion(level, segments)
+	version, ok := calcVersion(level, priority, segments)
 	if !ok {
 		return nil, errors.New("qrcode: data too large")
 	}
@@ -378,9 +378,21 @@ func newFromKanji(level Level, data []byte) (*QRCode, error) {
 	}, nil
 }
 
-func calcVersion(level Level, segments []Segment) (Version, bool) {
+func calcVersion(level Level, priority Priority, segments []Segment) (Version, bool) {
+	var order []Version
+	switch priority {
+	case PriorityArea:
+		order = capacityOrderArea
+	case PriorityHeight:
+		order = capacityOrderHeight
+	case PriorityWidth:
+		order = capacityOrderWidth
+	default:
+		return 0, false
+	}
+
 LOOP:
-	for _, version := range capacityOrder {
+	for _, version := range order {
 		capacity := capacityTable[version][level].Data * 8
 		length := 0
 		for _, s := range segments {
@@ -409,6 +421,7 @@ type encodeOptions struct {
 	ModuleSize float64
 	Level      Level
 	Kanji      bool
+	Priority   Priority
 }
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
@@ -417,6 +430,7 @@ func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 		ModuleSize: 1,
 		Level:      LevelM,
 		Kanji:      true,
+		Priority:   PriorityArea,
 	}
 	for _, o := range opts {
 		o.apply(&myopts)
@@ -462,6 +476,24 @@ func (opt withKanji) apply(opts *encodeOptions) {
 
 func WithKanji(use bool) EncodeOptions {
 	return withKanji(use)
+}
+
+type Priority int
+
+const (
+	PriorityArea Priority = iota
+	PriorityHeight
+	PriorityWidth
+)
+
+type withPriority Priority
+
+func (opt withPriority) apply(opts *encodeOptions) {
+	opts.Priority = Priority(opt)
+}
+
+func WithPriority(priority Priority) EncodeOptions {
+	return withPriority(priority)
 }
 
 func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
