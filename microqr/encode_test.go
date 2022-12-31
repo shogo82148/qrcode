@@ -7,7 +7,7 @@ import (
 )
 
 func TestNew1(t *testing.T) {
-	qr, err := New([]byte("MICROQR"), WithLevel(LevelL))
+	qr, err := New([]byte("MICROQR"), WithLevel(LevelL), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestNew1(t *testing.T) {
 
 func TestNew2(t *testing.T) {
 	// Maximum size for Version M4
-	qr, err := New([]byte("12345678901234567890123456789012345"), WithLevel(LevelL))
+	qr, err := New([]byte("12345678901234567890123456789012345"), WithLevel(LevelL), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestNew2(t *testing.T) {
 }
 
 func TestNew3(t *testing.T) {
-	qr, err := New([]byte("123456789012345678901234"), WithLevel(LevelL))
+	qr, err := New([]byte("123456789012345678901234"), WithLevel(LevelL), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func TestNew3(t *testing.T) {
 
 func TestNew4(t *testing.T) {
 	// maximum size for Version M3
-	qr, err := New([]byte("12345678901234567890123"), WithLevel(LevelL))
+	qr, err := New([]byte("12345678901234567890123"), WithLevel(LevelL), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestNew4(t *testing.T) {
 }
 
 func TestNew5(t *testing.T) {
-	_, err := New([]byte("123456789012345678901234567890123456"), WithLevel(LevelL))
+	_, err := New([]byte("123456789012345678901234567890123456"), WithLevel(LevelL), WithKanji(false))
 	if err == nil {
 		t.Fatal("want error, but not")
 	}
@@ -106,7 +106,7 @@ func TestNew5(t *testing.T) {
 
 func TestNew6(t *testing.T) {
 	// maximum size for Version M1
-	qr, err := New([]byte("12345"), WithLevel(LevelCheck))
+	qr, err := New([]byte("12345"), WithLevel(LevelCheck), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}

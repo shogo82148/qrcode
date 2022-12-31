@@ -429,6 +429,7 @@ func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 		QuiteZone:  2,
 		ModuleSize: 1,
 		Level:      LevelM,
+		Kanji:      true,
 		Priority:   PriorityArea,
 	}
 	for _, o := range opts {
