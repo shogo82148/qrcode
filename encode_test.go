@@ -8,7 +8,7 @@ import (
 )
 
 func TestNew1(t *testing.T) {
-	qr, err := New([]byte("01234567"), WithLevel(LevelH))
+	qr, err := New([]byte("01234567"), WithLevel(LevelH), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestNew1(t *testing.T) {
 }
 
 func TestNew2(t *testing.T) {
-	qr, err := New([]byte("Ver1"), WithLevel(LevelH))
+	qr, err := New([]byte("Ver1"), WithLevel(LevelH), WithKanji(false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,11 @@ func TestNew2(t *testing.T) {
 }
 
 func TestNew3(t *testing.T) {
-	qr, err := New([]byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"), WithLevel(LevelH))
+	qr, err := New(
+		[]byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"),
+		WithLevel(LevelH),
+		WithKanji(false),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
