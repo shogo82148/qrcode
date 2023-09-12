@@ -20,10 +20,11 @@ type Version int
 type Level int
 
 const (
-	LevelL Level = 0b01
-	LevelM Level = 0b00
-	LevelQ Level = 0b11
-	LevelH Level = 0b10
+	LevelL   Level = 0b01
+	LevelM   Level = 0b00
+	LevelQ   Level = 0b11
+	LevelH   Level = 0b10
+	levelMax Level = LevelH + 1
 )
 
 func (lv Level) String() string {

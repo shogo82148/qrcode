@@ -379,7 +379,7 @@ func newFromKanji(level Level, priority Priority, data []byte) (*QRCode, error) 
 }
 
 func calcVersion(level Level, priority Priority, segments []Segment) (Version, bool) {
-	if level < 0 || level >= 2 {
+	if level < 0 || level >= levelMax {
 		return 0, false
 	}
 

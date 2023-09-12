@@ -386,6 +386,10 @@ func newFromKanji(level Level, data []byte) (*QRCode, error) {
 }
 
 func calcVersion(level Level, segments []Segment) Version {
+	if level < 0 || level >= levelMax {
+		return 0
+	}
+
 LOOP:
 	for version := Version(1); version <= 40; version++ {
 		capacity := capacityTable[version][level].Data * 8
