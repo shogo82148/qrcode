@@ -379,6 +379,10 @@ func newFromKanji(level Level, priority Priority, data []byte) (*QRCode, error) 
 }
 
 func calcVersion(level Level, priority Priority, segments []Segment) (Version, bool) {
+	if level < 0 || level >= 2 {
+		return 0, false
+	}
+
 	var order []Version
 	switch priority {
 	case PriorityArea:
