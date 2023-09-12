@@ -72,8 +72,9 @@ func (version Version) Height() int {
 type Level int
 
 const (
-	LevelM Level = 0b0
-	LevelH Level = 0b1
+	LevelM   Level = 0b0
+	LevelH   Level = 0b1
+	levelMax Level = LevelH + 1
 )
 
 func (lv Level) String() string {
