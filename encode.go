@@ -19,7 +19,7 @@ import (
 func New(data []byte, opts ...EncodeOptions) (*QRCode, error) {
 	myopts := newEncodeOptions(opts...)
 	lv := myopts.Level
-	if lv < 0 || lv >= 4 {
+	if !lv.IsValid() {
 		return nil, fmt.Errorf("qrcode: invalid level: %d", lv)
 	}
 	if myopts.Kanji {
@@ -386,7 +386,7 @@ func newFromKanji(level Level, data []byte) (*QRCode, error) {
 }
 
 func calcVersion(level Level, segments []Segment) Version {
-	if level < 0 || level >= levelMax {
+	if !level.IsValid() {
 		return 0
 	}
 
@@ -490,6 +490,13 @@ func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
 }
 
 func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
+	if !qr.Version.IsValid() {
+		return nil, errors.New("qrcode: invalid version")
+	}
+	if !qr.Level.IsValid() {
+		return nil, errors.New("qrcode: invalid level")
+	}
+
 	myopts := newEncodeOptions(opts...)
 
 	binimg, err := qr.EncodeToBitmap()
@@ -530,6 +537,13 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 
 // EncodeToBitmap encodes QR Code into bitmap image.
 func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
+	if !qr.Version.IsValid() {
+		return nil, errors.New("qrcode: invalid version")
+	}
+	if !qr.Level.IsValid() {
+		return nil, errors.New("qrcode: invalid level")
+	}
+
 	var buf bitstream.Buffer
 	if err := qr.encodeToBits(&buf); err != nil {
 		return nil, err
