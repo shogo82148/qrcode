@@ -15,17 +15,32 @@ type QRCode struct {
 	Segments []Segment
 }
 
+// Version is a version of QR code.
 type Version int
 
+const versionMin = 0 // 0 is special case for auto version
+const versionMax = 40
+
+func (v Version) IsValid() bool {
+	return versionMin <= v && v < versionMax
+}
+
+// Level is a error correction level.
 type Level int
 
 const (
+	levelMin Level = 0
 	LevelL   Level = 0b01
 	LevelM   Level = 0b00
 	LevelQ   Level = 0b11
 	LevelH   Level = 0b10
-	levelMax Level = LevelH + 1
+	levelMax Level = 4
 )
+
+// IsValid returns true if the level is valid.
+func (lv Level) IsValid() bool {
+	return levelMin <= lv && lv < levelMax
+}
 
 func (lv Level) String() string {
 	switch lv {
@@ -41,21 +56,28 @@ func (lv Level) String() string {
 	return "invalid(" + strconv.Itoa(int(lv)) + ")"
 }
 
+// Mask is a mask pattern.
 type Mask int
 
 const (
-	Mask0 Mask = iota
-	Mask1
-	Mask2
-	Mask3
-	Mask4
-	Mask5
-	Mask6
-	Mask7
-	maskMax
+	maskMin Mask = 0b000
+	Mask0   Mask = 0b000
+	Mask1   Mask = 0b001
+	Mask2   Mask = 0b010
+	Mask3   Mask = 0b011
+	Mask4   Mask = 0b100
+	Mask5   Mask = 0b101
+	Mask6   Mask = 0b110
+	Mask7   Mask = 0b111
+	maskMax Mask = 0b111 + 1
 
 	MaskAuto Mask = -1
 )
+
+// IsValid returns true if the mask is valid.
+func (m Mask) IsValid() bool {
+	return m == MaskAuto || maskMin <= m && m < maskMax
+}
 
 type Mode uint8
 
