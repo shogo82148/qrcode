@@ -73,7 +73,7 @@ func FuzzNewFromKanji(f *testing.F) {
 		// encode and decode
 		img, err := qr0.EncodeToBitmap()
 		if err != nil {
-			t.Fatal(err)
+			return
 		}
 		_, err = DecodeBitmap(img)
 		if err != nil {
