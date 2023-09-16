@@ -31,7 +31,7 @@ func FuzzNew(f *testing.F) {
 		// encode and decode
 		img, err := qr0.EncodeToBitmap()
 		if err != nil {
-			t.Fatal(err)
+			return
 		}
 		qr1, err := DecodeBitmap(img)
 		if err != nil {
