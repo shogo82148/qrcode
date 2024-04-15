@@ -18,8 +18,8 @@ type QRCode struct {
 // Version is a version of QR code.
 type Version int
 
-const versionMin = 0 // 0 is special case for auto version
-const versionMax = 40
+const versionMin Version = 0 // 0 is special case for auto version
+const versionMax Version = 41
 
 func (v Version) IsValid() bool {
 	return versionMin <= v && v < versionMax
