@@ -6,7 +6,7 @@ import (
 	"io"
 	"math/bits"
 
-	"github.com/shogo82148/qrcode/bitmap"
+	"github.com/shogo82148/go-imaging/bitmap"
 )
 
 type Color = bitmap.Color

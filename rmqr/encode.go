@@ -8,7 +8,7 @@ import (
 	"math"
 	"unicode/utf8"
 
-	"github.com/shogo82148/qrcode/bitmap"
+	"github.com/shogo82148/go-imaging/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
