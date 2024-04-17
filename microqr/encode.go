@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"math"
 	"unicode/utf8"
 
 	"github.com/shogo82148/go-imaging/bitmap"
+	"github.com/shogo82148/go-imaging/fp16"
+	"github.com/shogo82148/go-imaging/fp16/fp16color"
+	"github.com/shogo82148/go-imaging/resize"
+	"github.com/shogo82148/go-imaging/srgb"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
@@ -491,34 +494,28 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	}
 
 	w := binimg.Bounds().Dx() + myopts.QuiteZone*2
-	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
-	scale := myopts.ModuleSize
-	dX := float64(myopts.QuiteZone) * scale
-	dY := float64(myopts.QuiteZone) * scale
-
-	// create new paletted image
-	palette := color.Palette{
-		color.White, color.Black,
-	}
-	white := uint8(0)
-	black := uint8(1)
-	bounds := image.Rect(0, 0, W, W)
-	img := image.NewPaletted(bounds, palette)
 
 	// convert bitmap to image
-	for Y := bounds.Min.Y; Y < bounds.Max.Y; Y++ {
-		y := int(math.Floor((float64(Y) - dY) / scale))
-		for X := bounds.Min.X; X < bounds.Max.X; X++ {
-			x := int(math.Floor((float64(X) - dX) / scale))
-			c := binimg.BinaryAt(x, y)
+	src := fp16.NewNRGBAh(image.Rect(0, 0, w, w))
+	black := fp16color.NewNRGBAh(0, 0, 0, 1)
+	white := fp16color.NewNRGBAh(1, 1, 1, 1)
+	for y := 0; y < w; y++ {
+		for x := 0; x < w; x++ {
+			c := binimg.BinaryAt(x-myopts.QuiteZone, y-myopts.QuiteZone)
 			if c {
-				img.SetColorIndex(X, Y, black)
+				src.SetNRGBAh(x, y, black)
 			} else {
-				img.SetColorIndex(X, Y, white)
+				src.SetNRGBAh(x, y, white)
 			}
 		}
 	}
-	return img, nil
+
+	// resize
+	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
+	dst := fp16.NewNRGBAh(image.Rect(0, 0, W, W))
+	resize.AreaAverage(dst, src)
+
+	return srgb.EncodeTone(dst), nil
 }
 
 // EncodeToBitmap encodes QR Code into bitmap image.
