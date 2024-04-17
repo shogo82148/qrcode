@@ -422,7 +422,7 @@ type EncodeOptions interface {
 }
 
 type encodeOptions struct {
-	QuiteZone  int
+	QuietZone  int
 	ModuleSize float64
 	Level      Level
 	Kanji      bool
@@ -430,7 +430,7 @@ type encodeOptions struct {
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 	myopts := encodeOptions{
-		QuiteZone:  4,
+		QuietZone:  4,
 		ModuleSize: 1,
 		Level:      LevelQ,
 		Kanji:      true,
@@ -451,14 +451,14 @@ func WithModuleSize(size float64) EncodeOptions {
 	return withModuleSize(size)
 }
 
-type withQuiteZone int
+type withQuietZone int
 
-func (opt withQuiteZone) apply(opts *encodeOptions) {
-	opts.QuiteZone = int(opt)
+func (opt withQuietZone) apply(opts *encodeOptions) {
+	opts.QuietZone = int(opt)
 }
 
-func WithQuiteZone(n int) EncodeOptions {
-	return withQuiteZone(n)
+func WithQuietZone(n int) EncodeOptions {
+	return withQuietZone(n)
 }
 
 type withLevel Level
@@ -504,11 +504,11 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 		return nil, err
 	}
 
-	w := binimg.Bounds().Dx() + myopts.QuiteZone*2
+	w := binimg.Bounds().Dx() + myopts.QuietZone*2
 	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
 	scale := myopts.ModuleSize
-	dX := float64(myopts.QuiteZone) * scale
-	dY := float64(myopts.QuiteZone) * scale
+	dX := float64(myopts.QuietZone) * scale
+	dY := float64(myopts.QuietZone) * scale
 
 	// create new paletted image
 	palette := color.Palette{
