@@ -531,7 +531,10 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	}
 
 	// resize
-	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
+	W := max(
+		int(math.Ceil(float64(w)*myopts.ModuleSize)),
+		myopts.Width,
+	)
 	dst := fp16.NewNRGBAh(image.Rect(0, 0, W, W))
 	resize.AreaAverage(dst, src)
 
