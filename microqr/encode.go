@@ -413,15 +413,14 @@ LOOP:
 	return 0
 }
 
-type EncodeOptions interface {
-	apply(opts *encodeOptions)
-}
+type EncodeOptions func(opts *encodeOptions)
 
 type encodeOptions struct {
 	QuietZone  int
 	ModuleSize float64
 	Level      Level
 	Kanji      bool
+	Width      int
 }
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
@@ -430,51 +429,52 @@ func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 		ModuleSize: 1,
 		Level:      LevelQ,
 		Kanji:      true,
+		Width:      0,
 	}
 	for _, o := range opts {
-		o.apply(&myopts)
+		o(&myopts)
 	}
 	return myopts
 }
 
-type withModuleSize float64
-
-func (opt withModuleSize) apply(opts *encodeOptions) {
-	opts.ModuleSize = float64(opt)
-}
-
+// WithModuleSize sets the module size.
+// The default size is 1.
 func WithModuleSize(size float64) EncodeOptions {
-	return withModuleSize(size)
+	return func(opts *encodeOptions) {
+		opts.ModuleSize = size
+	}
 }
 
-type withQuietZone int
-
-func (opt withQuietZone) apply(opts *encodeOptions) {
-	opts.QuietZone = int(opt)
-}
-
+// WithQuietZone sets the quiet zone size.
+// The default size is 4.
 func WithQuietZone(n int) EncodeOptions {
-	return withQuietZone(n)
+	return func(opts *encodeOptions) {
+		opts.QuietZone = n
+	}
 }
 
-type withLevel Level
-
-func (opt withLevel) apply(opts *encodeOptions) {
-	opts.Level = Level(opt)
-}
-
+// WithLevel sets the error correction level.
+// The default level is LevelM.
+// If the level is invalid, it panics.
 func WithLevel(lv Level) EncodeOptions {
-	return withLevel(lv)
-}
-
-type withKanji bool
-
-func (opt withKanji) apply(opts *encodeOptions) {
-	opts.Kanji = bool(opt)
+	if !lv.IsValid() {
+		panic(fmt.Sprintf("qrcode: invalid level: %d", lv))
+	}
+	return func(opts *encodeOptions) {
+		opts.Level = lv
+	}
 }
 
 func WithKanji(use bool) EncodeOptions {
-	return withKanji(use)
+	return func(opts *encodeOptions) {
+		opts.Kanji = use
+	}
+}
+
+func WithWidth(width int) EncodeOptions {
+	return func(opts *encodeOptions) {
+		opts.Width = width
+	}
 }
 
 func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
@@ -511,7 +511,10 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	}
 
 	// resize
-	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
+	W := max(
+		int(math.Ceil(float64(w)*myopts.ModuleSize)),
+		myopts.Width,
+	)
 	dst := fp16.NewNRGBAh(image.Rect(0, 0, W, W))
 	resize.AreaAverage(dst, src)
 

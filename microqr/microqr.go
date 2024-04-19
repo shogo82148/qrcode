@@ -11,16 +11,25 @@ type QRCode struct {
 	Segments []Segment
 }
 
+// Version is a version of microQR code.
 type Version int
 
+// Level is a error correction level.
 type Level int
 
 const (
+	levelMin   Level = 0
 	LevelCheck Level = 0b10
 	LevelL     Level = 0b01
 	LevelM     Level = 0b00
 	LevelQ     Level = 0b11
+	levelMax   Level = 4
 )
+
+// IsValid returns true if the level is valid.
+func (lv Level) IsValid() bool {
+	return levelMin <= lv && lv < levelMax
+}
 
 func (lv Level) String() string {
 	switch lv {
@@ -36,6 +45,7 @@ func (lv Level) String() string {
 	return "invalid(" + strconv.Itoa(int(lv)) + ")"
 }
 
+// Mask is a mask pattern.
 type Mask int
 
 const (

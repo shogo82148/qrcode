@@ -419,9 +419,7 @@ LOOP:
 	return 0, false
 }
 
-type EncodeOptions interface {
-	apply(opts *encodeOptions)
-}
+type EncodeOptions func(opts *encodeOptions)
 
 type encodeOptions struct {
 	QuietZone  int
@@ -429,6 +427,7 @@ type encodeOptions struct {
 	Level      Level
 	Kanji      bool
 	Priority   Priority
+	Width      int
 }
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
@@ -438,69 +437,76 @@ func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 		Level:      LevelM,
 		Kanji:      true,
 		Priority:   PriorityArea,
+		Width:      0,
 	}
 	for _, o := range opts {
-		o.apply(&myopts)
+		o(&myopts)
 	}
 	return myopts
 }
 
-type withModuleSize float64
-
-func (opt withModuleSize) apply(opts *encodeOptions) {
-	opts.ModuleSize = float64(opt)
-}
-
+// WithModuleSize sets the module size.
+// The default value is 1.
 func WithModuleSize(size float64) EncodeOptions {
-	return withModuleSize(size)
+	return func(opts *encodeOptions) {
+		opts.ModuleSize = size
+	}
 }
 
-type withQuietZone int
-
-func (opt withQuietZone) apply(opts *encodeOptions) {
-	opts.QuietZone = int(opt)
-}
-
+// WithQuietZone sets the quiet zone size.
+// The default value is 2.
 func WithQuietZone(n int) EncodeOptions {
-	return withQuietZone(n)
+	return func(opts *encodeOptions) {
+		opts.QuietZone = n
+	}
 }
 
-type withLevel Level
-
-func (opt withLevel) apply(opts *encodeOptions) {
-	opts.Level = Level(opt)
-}
-
+// WithLevel sets the error correction level.
+// The default value is LevelM.
 func WithLevel(lv Level) EncodeOptions {
-	return withLevel(lv)
+	return func(opts *encodeOptions) {
+		opts.Level = lv
+	}
 }
 
-type withKanji bool
-
-func (opt withKanji) apply(opts *encodeOptions) {
-	opts.Kanji = bool(opt)
-}
-
+// WithKanji enables the kanji mode.
+// The default mode is true.
+// If it's enabled, Shift-JIS encoding is used for kanji mode.
 func WithKanji(use bool) EncodeOptions {
-	return withKanji(use)
+	return func(opts *encodeOptions) {
+		opts.Kanji = use
+	}
 }
 
+// WithWidth sets the width of the image.
+// The larger of the image width calculated from [WithModuleSize]
+// and the image width specified with WithWidth is used.
+// The image height is calculated from the image width.
+func WithWidth(width int) EncodeOptions {
+	return func(opts *encodeOptions) {
+		opts.Width = width
+	}
+}
+
+// Priority is a priority for selecting the version.
 type Priority int
 
 const (
+	// PriorityArea selects the version that minimizes the area.
 	PriorityArea Priority = iota
+
+	// PriorityHeight selects the version that minimizes the height.
 	PriorityHeight
+
+	// PriorityWidth selects the version that minimizes the width.
 	PriorityWidth
 )
 
-type withPriority Priority
-
-func (opt withPriority) apply(opts *encodeOptions) {
-	opts.Priority = Priority(opt)
-}
-
+// WithPriority sets the priority for selecting the version.
 func WithPriority(priority Priority) EncodeOptions {
-	return withPriority(priority)
+	return func(opts *encodeOptions) {
+		opts.Priority = priority
+	}
 }
 
 func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
@@ -545,8 +551,11 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	}
 
 	// resize
-	W := int(math.Ceil(float64(w) * myopts.ModuleSize))
-	H := int(math.Ceil(float64(h) * myopts.ModuleSize))
+	W := max(
+		int(math.Ceil(float64(w)*myopts.ModuleSize)),
+		myopts.Width,
+	)
+	H := int(math.Ceil(float64(h) * float64(W) / float64(w)))
 	dst := fp16.NewNRGBAh(image.Rect(0, 0, W, H))
 	resize.AreaAverage(dst, src)
 
