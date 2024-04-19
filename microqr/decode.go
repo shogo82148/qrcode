@@ -6,17 +6,14 @@ import (
 	"math/bits"
 	"strconv"
 
-	"github.com/shogo82148/qrcode/bitmap"
+	"github.com/shogo82148/go-imaging/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"
 )
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
-	bounds := img.Bounds()
-	version := Version((bounds.Dx() - 9) / 2)
 	binimg := internalbitmap.Import(img)
-	w := 8 + 2*int(version)
 
 	// decode format
 	var rawFormat uint
@@ -33,7 +30,7 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 		return nil, errors.New("qr code not found")
 	}
 
-	w = 8 + 2*int(version)
+	w := 8 + 2*int(version)
 	used := usedList[version]
 
 	// mask

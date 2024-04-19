@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	bitmap "github.com/shogo82148/qrcode/bitmap"
+	"github.com/shogo82148/go-imaging/bitmap"
 )
 
 func TestDecodeBitmap1(t *testing.T) {

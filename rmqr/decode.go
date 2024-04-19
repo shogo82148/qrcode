@@ -7,7 +7,7 @@ import (
 	"io"
 	"math/bits"
 
-	"github.com/shogo82148/qrcode/bitmap"
+	"github.com/shogo82148/go-imaging/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 	"github.com/shogo82148/qrcode/internal/bitstream"
 	"github.com/shogo82148/qrcode/internal/reedsolomon"

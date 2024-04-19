@@ -1,0 +1,6 @@
+github.com/shogo82148/float16 v0.5.0 h1:FJt2r0KceCCsqThYOyeQBktEy5Bk9FoC7QkP8f2nbh8=
+github.com/shogo82148/float16 v0.5.0/go.mod h1:Bz4H+vIST9oMy+hC2XUANvBHWY1NFOU4+sJVoj59w70=
+github.com/shogo82148/go-imaging v0.2.0 h1:34cEF2MYb0FpsO4eLYbc8WstSGkZ8mOnZUnKNiI4RI0=
+github.com/shogo82148/go-imaging v0.2.0/go.mod h1:vpwisI0VvJabipg04vw78lxFqHeyx4JOKsSwLSiGmrc=
+github.com/shogo82148/int128 v0.2.0 h1:LDkFxWdBOCkzGfvFbCeFixc9fgL5mkOPW8eqCWQr5qE=
+github.com/shogo82148/int128 v0.2.0/go.mod h1:piOmnBaUvAz9m7x71/YcU8HgDQTw81u8brBwWzOxtI4=
