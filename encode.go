@@ -417,68 +417,74 @@ func skipTimingPattern(n int) int {
 	return n + 1
 }
 
-type EncodeOptions interface {
-	apply(opts *encodeOptions)
-}
+type EncodeOptions func(opts *encodeOptions)
 
 type encodeOptions struct {
 	QuietZone  int
 	ModuleSize float64
 	Level      Level
 	Kanji      bool
+	Width      int
 }
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 	myopts := encodeOptions{
 		QuietZone:  4,
 		ModuleSize: 1,
-		Level:      LevelQ,
+		Level:      LevelM,
 		Kanji:      true,
+		Width:      0,
 	}
 	for _, o := range opts {
-		o.apply(&myopts)
+		o(&myopts)
 	}
 	return myopts
 }
 
-type withModuleSize float64
-
-func (opt withModuleSize) apply(opts *encodeOptions) {
-	opts.ModuleSize = float64(opt)
-}
-
+// WithModuleSize sets the module size.
+// The default size is 1.
 func WithModuleSize(size float64) EncodeOptions {
-	return withModuleSize(size)
+	return func(opts *encodeOptions) {
+		opts.ModuleSize = size
+	}
 }
 
-type withQuietZone int
-
-func (opt withQuietZone) apply(opts *encodeOptions) {
-	opts.QuietZone = int(opt)
-}
-
+// WithQuietZone sets the quiet zone size.
+// The default size is 4.
 func WithQuietZone(n int) EncodeOptions {
-	return withQuietZone(n)
+	return func(opts *encodeOptions) {
+		opts.QuietZone = n
+	}
 }
 
-type withLevel Level
-
-func (opt withLevel) apply(opts *encodeOptions) {
-	opts.Level = Level(opt)
-}
-
+// WithLevel sets the error correction level.
+// The default level is LevelM.
+// If the level is invalid, it panics.
 func WithLevel(lv Level) EncodeOptions {
-	return withLevel(lv)
+	if !lv.IsValid() {
+		panic(fmt.Sprintf("qrcode: invalid level: %d", lv))
+	}
+	return func(opts *encodeOptions) {
+		opts.Level = lv
+	}
 }
 
-type withKanji bool
-
-func (opt withKanji) apply(opts *encodeOptions) {
-	opts.Kanji = bool(opt)
-}
-
+// WithKanji sets the kanji mode.
+// The default mode is true.
+// If it's enabled, Shift-JIS encoding is used for kanji mode.
 func WithKanji(use bool) EncodeOptions {
-	return withKanji(use)
+	return func(opts *encodeOptions) {
+		opts.Kanji = use
+	}
+}
+
+// WithWidth sets the width of the image.
+// The larger of the image width calculated from [WithModuleSize]
+// and the image width specified with WithWidth is used.
+func WithWidth(width int) EncodeOptions {
+	return func(opts *encodeOptions) {
+		opts.Width = width
+	}
 }
 
 func Encode(data []byte, opts ...EncodeOptions) (image.Image, error) {
