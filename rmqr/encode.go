@@ -424,7 +424,7 @@ type EncodeOptions interface {
 }
 
 type encodeOptions struct {
-	QuiteZone  int
+	QuietZone  int
 	ModuleSize float64
 	Level      Level
 	Kanji      bool
@@ -433,7 +433,7 @@ type encodeOptions struct {
 
 func newEncodeOptions(opts ...EncodeOptions) encodeOptions {
 	myopts := encodeOptions{
-		QuiteZone:  2,
+		QuietZone:  2,
 		ModuleSize: 1,
 		Level:      LevelM,
 		Kanji:      true,
@@ -455,14 +455,14 @@ func WithModuleSize(size float64) EncodeOptions {
 	return withModuleSize(size)
 }
 
-type withQuiteZone int
+type withQuietZone int
 
-func (opt withQuiteZone) apply(opts *encodeOptions) {
-	opts.QuiteZone = int(opt)
+func (opt withQuietZone) apply(opts *encodeOptions) {
+	opts.QuietZone = int(opt)
 }
 
-func WithQuiteZone(n int) EncodeOptions {
-	return withQuiteZone(n)
+func WithQuietZone(n int) EncodeOptions {
+	return withQuietZone(n)
 }
 
 type withLevel Level
@@ -526,8 +526,8 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 		return nil, err
 	}
 
-	w := binimg.Bounds().Dx() + myopts.QuiteZone*2
-	h := binimg.Bounds().Dy() + myopts.QuiteZone*2
+	w := binimg.Bounds().Dx() + myopts.QuietZone*2
+	h := binimg.Bounds().Dy() + myopts.QuietZone*2
 
 	// convert bitmap to image
 	src := fp16.NewNRGBAh(image.Rect(0, 0, w, h))
@@ -535,7 +535,7 @@ func (qr *QRCode) Encode(opts ...EncodeOptions) (image.Image, error) {
 	white := fp16color.NewNRGBAh(1, 1, 1, 1)
 	for y := 0; y < w; y++ {
 		for x := 0; x < w; x++ {
-			c := binimg.BinaryAt(x-myopts.QuiteZone, y-myopts.QuiteZone)
+			c := binimg.BinaryAt(x-myopts.QuietZone, y-myopts.QuietZone)
 			if c {
 				src.SetNRGBAh(x, y, black)
 			} else {

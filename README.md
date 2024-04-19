@@ -12,5 +12,5 @@ QR code, Micro QR code and Rectangular Micro QR Code (rMQR) encoder.
 - [rMQR Code | QRcode.com | DENSO WAVE](https://www.qrcode.com/en/codes/rmqr.html)
 
 ## RELATED WORKS
-- [skip2/go-qrcode](github.com/skip2/go-qrcode)
+- [skip2/go-qrcode](https://github.com/skip2/go-qrcode)
 - [OUDON/rmqrcode-python](https://github.com/OUDON/rmqrcode-python)
