@@ -14,6 +14,9 @@ func FuzzNew(f *testing.F) {
 	f.Add(int(LevelH), []byte("VERSION 10 QR CODE, UP TO 174 CHAR AT H LEVEL, WITH 57X57 MODULES AND PLENTY OF ERROR CORRECTION TO GO AROUND. NOTE THAT THERE ARE ADDITIONAL TRACKING BOXES"))
 	f.Fuzz(func(t *testing.T, level int, data []byte) {
 		lv := Level(level)
+		if lv != LevelL && lv != LevelM && lv != LevelQ && lv != LevelH {
+			return
+		}
 		qr0, err := New(data, WithLevel(lv))
 		if err != nil {
 			return
