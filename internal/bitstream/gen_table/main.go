@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 )
 
@@ -51,7 +51,7 @@ func main() {
 	for code := range decodeQR {
 		codes = append(codes, code)
 	}
-	sort.Slice(codes, func(i, j int) bool { return codes[i] < codes[j] })
+	slices.Sort(codes)
 
 	fmt.Fprintf(w, "var decode = [...]uint16{\n")
 	for _, code := range codes {
@@ -185,9 +185,7 @@ func optimizeEncodeTable(encode map[rune]uint16) []encodeTable {
 	for key := range encode {
 		keys = append(keys, key)
 	}
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
+	slices.Sort(keys)
 
 	tables := []encodeTable{
 		{
