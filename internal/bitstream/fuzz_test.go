@@ -50,12 +50,8 @@ func FuzzWriteBits(f *testing.F) {
 			return
 		}
 		var buf Buffer
-		if err := buf.WriteBitsLSB(bits1, n1); err != nil {
-			t.Fatal(err)
-		}
-		if err := buf.WriteBitsLSB(bits2, n2); err != nil {
-			t.Fatal(err)
-		}
+		buf.WriteBitsLSB(bits1, n1)
+		buf.WriteBitsLSB(bits2, n2)
 
 		want1 := bits1 & (1<<n1 - 1)
 		want2 := bits2 & (1<<n2 - 1)

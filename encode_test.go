@@ -674,7 +674,9 @@ func TestQRCode_encodeToBits1(t *testing.T) {
 	}
 
 	var buf bitstream.Buffer
-	qr.encodeToBits(&buf)
+	if err := qr.encodeToBits(&buf); err != nil {
+		t.Fatal(err)
+	}
 	got := buf.Bytes()
 
 	// JIS X 0510 : 2018
@@ -733,7 +735,9 @@ func TestQRCode_encodeToBits2(t *testing.T) {
 	}
 
 	var buf bitstream.Buffer
-	qr.encodeToBits(&buf)
+	if err := qr.encodeToBits(&buf); err != nil {
+		t.Fatal(err)
+	}
 	got := buf.Bytes()
 
 	want := []byte{
@@ -819,7 +823,9 @@ func TestQRCode_encodeSegments(t *testing.T) {
 	}
 
 	var buf bitstream.Buffer
-	qr.encodeSegments(&buf)
+	if err := qr.encodeSegments(&buf); err != nil {
+		t.Fatal(err)
+	}
 	got := buf.Bytes()
 	want := []byte{
 		// data

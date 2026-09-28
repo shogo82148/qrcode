@@ -754,7 +754,7 @@ func (s *Segment) encode(version Version, buf *bitstream.Buffer) error {
 
 // length returns the length of s in bits.
 func (s *Segment) length(version Version) int {
-	var n int = 4 // mode indicator
+	var n = 4 // mode indicator
 	switch s.Mode {
 	case ModeNumeric:
 		switch {

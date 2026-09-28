@@ -155,7 +155,9 @@ func (img *Image) EncodePBM(w io.Writer) error {
 	for y := 0; y < dy; y++ {
 		for x := 0; x < dx; x++ {
 			if x != 0 {
-				fmt.Fprint(w, " ")
+				if _, err := fmt.Fprint(w, " "); err != nil {
+					return err
+				}
 			}
 			v := 0
 			if img.BinaryAt(x+img.Rect.Min.X, y+img.Rect.Min.Y) {
@@ -165,7 +167,9 @@ func (img *Image) EncodePBM(w io.Writer) error {
 				return err
 			}
 		}
-		fmt.Fprintln(w)
+		if _, err := fmt.Fprintln(w); err != nil {
+			return err
+		}
 	}
 	return nil
 }

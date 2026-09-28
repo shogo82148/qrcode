@@ -220,16 +220,16 @@ func (qr *QRCode) EncodeToBitmap(opts ...EncodeOptions) (*bitmap.Image, error) {
 	// add parity bits
 	var buf2 bitstream.Buffer
 	for _, b := range buf.Bytes() {
-		_ = buf2.WriteBitsLSB(uint64(b), 8)
+		buf2.WriteBitsLSB(uint64(b), 8)
 		p := 1 + bits.OnesCount8(b)
-		_ = buf2.WriteBitsLSB(uint64(p%2), 1)
-		_ = buf2.WriteBitsLSB(uint64(p/2), 1)
+		buf2.WriteBitsLSB(uint64(p%2), 1)
+		buf2.WriteBitsLSB(uint64(p/2), 1)
 	}
 	for _, b := range correction {
-		_ = buf2.WriteBitsLSB(uint64(b), 8)
+		buf2.WriteBitsLSB(uint64(b), 8)
 		p := 1 + bits.OnesCount8(b)
-		_ = buf2.WriteBitsLSB(uint64(p%2), 1)
-		_ = buf2.WriteBitsLSB(uint64(p/2), 1)
+		buf2.WriteBitsLSB(uint64(p%2), 1)
+		buf2.WriteBitsLSB(uint64(p/2), 1)
 	}
 
 	// fill the QR code matrix

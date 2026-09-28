@@ -73,7 +73,7 @@ func loadJIS0208() (map[int]rune, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // clean up
 
 	jis0208 := make(map[int]rune)
 	scanner := bufio.NewScanner(f)
