@@ -41,9 +41,7 @@ func TestWriteBit(t *testing.T) {
 	}
 	var buf Buffer
 	for _, b := range in {
-		if err := buf.WriteBit(b); err != nil {
-			t.Fatal(err)
-		}
+		buf.WriteBit(b)
 	}
 	got := buf.Bytes()
 	want := []byte{
@@ -153,9 +151,7 @@ func TestWriteBits(t *testing.T) {
 	for i, tt := range tests {
 		var buf Buffer
 		for _, in := range tt.in {
-			if err := buf.WriteBitsLSB(in.bits, in.n); err != nil {
-				t.Fatal(err)
-			}
+			buf.WriteBitsLSB(in.bits, in.n)
 		}
 		got := buf.Bytes()
 		if !bytes.Equal(got, tt.want) {

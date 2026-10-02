@@ -66,21 +66,20 @@ func (b *Buffer) ReadBits(n int) (uint64, error) {
 }
 
 // WriteBit writes one bit to b.
-func (b *Buffer) WriteBit(bit uint8) error {
+func (b *Buffer) WriteBit(bit uint8) {
 	bit &= 1
 	if b.wrote == 0 {
 		b.buf = append(b.buf, bit<<7)
 		b.wrote = 1
-		return nil
+		return
 	}
 	b.buf[len(b.buf)-1] |= bit << (7 - b.wrote)
 	b.wrote = (b.wrote + 1) % 8
-	return nil
 }
 
 // WriteBitsLSB writes n bits of LSB to b.
 // if n > 64, it panics.
-func (b *Buffer) WriteBitsLSB(bits uint64, n int) error {
+func (b *Buffer) WriteBitsLSB(bits uint64, n int) {
 	switch {
 	case n > 64:
 		panic("too long bit length: " + strconv.Itoa(n))
@@ -141,7 +140,6 @@ func (b *Buffer) WriteBitsLSB(bits uint64, n int) error {
 	default:
 		panic("negative bit length")
 	}
-	return nil
 }
 
 func (b *Buffer) writeBitsLSB(bits uint8, n int) {

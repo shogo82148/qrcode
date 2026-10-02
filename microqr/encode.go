@@ -580,7 +580,9 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 		if readBits == capacity.DataBits {
 			for readBits%8 != 0 {
 				readBits++
-				buf.ReadBit()
+				if _, err := buf.ReadBit(); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
