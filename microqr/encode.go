@@ -590,13 +590,14 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	mask := qr.Mask
 	if mask == MaskAuto {
 		var tmp internalbitmap.Image
-		var minPoint int
+		// the higher score is better in Micro QR code.
+		maxPoint := -1
 		mask = Mask0
 		for i := Mask0; i < maskMax; i++ {
 			tmp.Mask(img, used, maskList[i])
-			point := tmp.Point()
-			if point < minPoint {
-				minPoint = point
+			point := tmp.PointMicro()
+			if point > maxPoint {
+				maxPoint = point
 				mask = i
 			}
 		}
