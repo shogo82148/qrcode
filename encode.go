@@ -609,7 +609,7 @@ func (qr *QRCode) EncodeToBitmap() (*bitmap.Image, error) {
 	mask := qr.Mask
 	if mask == MaskAuto {
 		var tmp internalbitmap.Image
-		var minPoint int
+		minPoint := math.MaxInt
 		mask = Mask0
 		for i := Mask0; i < maskMax; i++ {
 			tmp.Mask(img, used, maskList[i])

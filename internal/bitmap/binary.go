@@ -174,16 +174,18 @@ func (img *Image) EncodePBM(w io.Writer) error {
 	return nil
 }
 
+// Point returns the penalty score of the QR code.
+// The lower score is better.
+// See ISO/IEC 18004:2015 7.8.3 Evaluation of data masking results.
 func (img *Image) Point() int {
 	g := newGrid(img)
-	return g.finderPattern() + g.longRunLengthCount() + g.blockCount() + img.pointOnesCount()
+	return g.longRunLengthCount() + g.blockCount() + g.finderPattern() + img.pointOnesCount()
 }
 
 // grid is an unpacked copy of Image for fast random access.
 // It is used for calculating the penalty score.
 type grid struct {
 	pix  []uint8 // 1 is black, 0 is white
-	rect image.Rectangle
 	w, h int
 }
 
@@ -198,23 +200,25 @@ func newGrid(img *Image) *grid {
 		}
 	}
 	return &grid{
-		pix:  pix,
-		rect: img.Rect,
-		w:    w,
-		h:    h,
+		pix: pix,
+		w:   w,
+		h:   h,
 	}
 }
 
-// at is same as BinaryAt, but faster.
-func (g *grid) at(x, y int) Color {
-	x -= g.rect.Min.X
-	y -= g.rect.Min.Y
+// at returns the color of the pixel at (x, y).
+// (x, y) is the relative position from the top-left corner.
+// The pixels outside of the image are white (light modules of the quiet zone).
+func (g *grid) at(x, y int) uint8 {
 	if uint(x) >= uint(g.w) || uint(y) >= uint(g.h) {
-		return White
+		return 0
 	}
-	return g.pix[y*g.w+x] != 0
+	return g.pix[y*g.w+x]
 }
 
+// PointMicro returns the evaluation score of the Micro QR code.
+// The higher score is better.
+// See ISO/IEC 18004:2015 7.8.3.2 Evaluation of Micro QR Code symbols.
 func (img *Image) PointMicro() int {
 	var sum1, sum2 int
 	for x := img.Rect.Min.X + 1; x < img.Rect.Max.X; x++ {
@@ -233,82 +237,38 @@ func (img *Image) PointMicro() int {
 	return sum1*16 + sum2
 }
 
-// isSquare reports whether the transposed coordinates used by the penalty rules
-// point to the same pixels as the normal coordinates.
-func (g *grid) isSquare() bool {
-	return g.w == g.h && g.rect.Min.X == g.rect.Min.Y
-}
-
+// longRunLengthCount calculates the penalty of
+// adjacent modules in row/column in same color.
+// The penalty is 3 + i points for each run of 5 + i modules.
 func (g *grid) longRunLengthCount() int {
-	if g.isSquare() {
-		return g.longRunLengthCountSquare()
-	}
-
 	var cnt int
-	for y := g.rect.Min.Y; y < g.rect.Max.Y; y++ {
-		var length int
-		c0 := g.at(g.rect.Min.X, y)
-		for x := g.rect.Min.X; x < g.rect.Max.X; x++ {
-			c := g.at(x, y)
-			if c == c0 {
-				length++
-			} else {
-				if length >= 5 {
-					cnt += length - 5 + 3
-				}
-				c0 = c
-				length = 0
-			}
-		}
-	}
-
-	for x := g.rect.Min.Y; x < g.rect.Max.Y; x++ {
-		var length int
-		c0 := g.at(x, g.rect.Min.X)
-		for y := g.rect.Min.X; y < g.rect.Max.X; y++ {
-			c := g.at(x, y)
-			if c == c0 {
-				length++
-			} else {
-				if length >= 5 {
-					cnt += length - 5 + 3
-				}
-				c0 = c
-				length = 0
-			}
-		}
-	}
-
-	return cnt
-}
-
-func (g *grid) longRunLengthCountSquare() int {
-	var cnt int
-	w := g.w
-	if w == 0 {
+	w, h := g.w, g.h
+	if w == 0 || h == 0 {
 		return 0
 	}
 
 	// horizontal
-	for y := 0; y < w; y++ {
+	for y := 0; y < h; y++ {
 		line := g.pix[y*w : (y+1)*w]
-		var length int
+		length := 0
 		c0 := line[0]
 		for _, c := range line {
 			length, cnt = runLength(length, cnt, c^c0)
 			c0 = c
 		}
+		cnt += runLengthPoint(length)
 	}
 
 	// vertical
 	for x := 0; x < w; x++ {
-		var length int
+		length := 0
 		c0 := g.pix[x]
 		for i := x; i < len(g.pix); i += w {
 			c := g.pix[i]
 			length, cnt = runLength(length, cnt, c^c0)
 			c0 = c
 		}
+		cnt += runLengthPoint(length)
 	}
 
 	return cnt
@@ -316,46 +276,32 @@ func (g *grid) longRunLengthCountSquare() int {
 
 // runLength is a branch-less version of the following code:
 //
-//	if diff == 0 {
-//		length++
-//	} else {
-//		if length >= 5 {
-//			cnt += length - 5 + 3
-//		}
+//	if diff != 0 {
+//		cnt += runLengthPoint(length)
 //		length = 0
 //	}
+//	length++
 func runLength(length, cnt int, diff uint8) (int, int) {
 	d := int(diff)                                    // 1 if the color changes, otherwise 0
 	ge5 := int(uint(4-length) >> (bits.UintSize - 1)) // 1 if length >= 5, otherwise 0
 	cnt += (length - 2) & -(d & ge5)
-	length = (length + 1) & (d - 1)
+	length = (length & (d - 1)) + 1
 	return length, cnt
 }
 
-func (g *grid) blockCount() int {
-	if g.isSquare() {
-		return g.blockCountSquare()
+func runLengthPoint(length int) int {
+	if length >= 5 {
+		return length - 5 + 3
 	}
-
-	var cnt int
-	for y := g.rect.Min.Y; y < g.rect.Max.Y-1; y++ {
-		for x := g.rect.Min.X; x < g.rect.Max.X-1; x++ {
-			c1 := g.at(y, x)
-			c2 := g.at(y, x+1)
-			c3 := g.at(y+1, x)
-			c4 := g.at(y+1, x+1)
-			if c1 == c2 && c1 == c3 && c1 == c4 {
-				cnt++
-			}
-		}
-	}
-	return cnt * 3
+	return 0
 }
 
-func (g *grid) blockCountSquare() int {
+// blockCount calculates the penalty of blocks of modules in same color.
+// The penalty is 3 points for each 2x2 block.
+func (g *grid) blockCount() int {
 	var cnt int
-	w := g.w
-	for y := 0; y < w-1; y++ {
+	w, h := g.w, g.h
+	for y := 0; y < h-1; y++ {
 		line0 := g.pix[y*w : (y+1)*w]
 		line1 := g.pix[(y+1)*w : (y+2)*w]
 		for x := 0; x < w-1; x++ {
@@ -367,43 +313,44 @@ func (g *grid) blockCountSquare() int {
 	return cnt * 3
 }
 
+// finderPattern calculates the penalty of finder-like patterns.
+// The penalty is 40 points for each 1:1:3:1:1 (dark:light:dark:light:dark) pattern
+// in row/column, preceded or followed by light area 4 modules wide.
 func (g *grid) finderPattern() int {
+	const pattern = 0b1011101
 	var cnt int
 
-	// vertical: 1:1:3:1:1 pattern
-	for x := g.rect.Min.X; x < g.rect.Max.X; x++ {
+	// vertical
+	for x := 0; x < g.w; x++ {
 		// window holds the pixels from (x, y-3) to (x, y+3).
 		// the pixel (x, y-3) is the most significant bit.
 		var window uint
-		for yy := g.rect.Min.Y - 3; yy < g.rect.Max.Y+3; yy++ {
-			window = (window<<1 | b2u(g.at(x, yy))) & 0x7f
+		for yy := -3; yy < g.h+3; yy++ {
+			window = (window<<1 | uint(g.at(x, yy))) & 0x7f
 			y := yy - 3
-			if y < g.rect.Min.Y || window != 0b1011101 {
+			if window != pattern {
 				continue
 			}
-			c := !g.at(x, y-4) && !g.at(x, y-5) && !g.at(x, y-6) && !g.at(x, y-7)
-			c = c || !g.at(x, y+4) && !g.at(x, y+5) && !g.at(x, y+6) && !g.at(x, y+7)
-			if c {
+			if g.at(x, y-4)|g.at(x, y-5)|g.at(x, y-6)|g.at(x, y-7) == 0 ||
+				g.at(x, y+4)|g.at(x, y+5)|g.at(x, y+6)|g.at(x, y+7) == 0 {
 				cnt++
 			}
 		}
 	}
 
 	// horizontal
-	// NOTE: it checks only the pixels from (x-3, y) to (x, y),
-	// because the pixels (x-1, y), (x-2, y) and (x-3, y) are checked twice.
-	for y := g.rect.Min.Y; y < g.rect.Max.Y; y++ {
-		// window holds the pixels from (x-3, y) to (x, y).
+	for y := 0; y < g.h; y++ {
+		// window holds the pixels from (x-3, y) to (x+3, y).
 		// the pixel (x-3, y) is the most significant bit.
 		var window uint
-		for x := g.rect.Min.X - 3; x < g.rect.Max.X; x++ {
-			window = (window<<1 | b2u(g.at(x, y))) & 0xf
-			if x < g.rect.Min.X || window != 0b1011 {
+		for xx := -3; xx < g.w+3; xx++ {
+			window = (window<<1 | uint(g.at(xx, y))) & 0x7f
+			x := xx - 3
+			if window != pattern {
 				continue
 			}
-			c := !g.at(x-4, y) && !g.at(x-5, y) && !g.at(x-6, y) && !g.at(x-7, y-7)
-			c = c || !g.at(x+4, y) && !g.at(x-5, y) && !g.at(x+6, y) && !g.at(x, y+7)
-			if c {
+			if g.at(x-4, y)|g.at(x-5, y)|g.at(x-6, y)|g.at(x-7, y) == 0 ||
+				g.at(x+4, y)|g.at(x+5, y)|g.at(x+6, y)|g.at(x+7, y) == 0 {
 				cnt++
 			}
 		}
@@ -411,19 +358,20 @@ func (g *grid) finderPattern() int {
 	return cnt * 40
 }
 
-func b2u(c Color) uint {
-	if c {
-		return 1
-	}
-	return 0
-}
-
+// pointOnesCount calculates the penalty of the proportion of dark modules.
+// The penalty is 10 * k points, where k is the rating of
+// the deviation of the proportion of dark modules from 50% in steps of 5%.
 func (img *Image) pointOnesCount() int {
 	total := img.Rect.Dx() * img.Rect.Dy()
-	cnt := img.OnesCount()
-	p := float64(cnt)/float64(total) - 0.5
-	if p < 0 {
-		p = -p
+	if total == 0 {
+		return 0
 	}
-	return int(p*20) * 10
+	cnt := img.OnesCount()
+
+	// k = floor(|cnt / total * 100 - 50| / 5) = floor(|20 * cnt - 10 * total| / total)
+	d := 20*cnt - 10*total
+	if d < 0 {
+		d = -d
+	}
+	return d / total * 10
 }
