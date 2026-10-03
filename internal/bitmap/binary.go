@@ -175,7 +175,44 @@ func (img *Image) EncodePBM(w io.Writer) error {
 }
 
 func (img *Image) Point() int {
-	return img.finderPattern() + img.longRunLengthCount() + img.blockCount() + img.pointOnesCount()
+	g := newGrid(img)
+	return g.finderPattern() + g.longRunLengthCount() + g.blockCount() + img.pointOnesCount()
+}
+
+// grid is an unpacked copy of Image for fast random access.
+// It is used for calculating the penalty score.
+type grid struct {
+	pix  []uint8 // 1 is black, 0 is white
+	rect image.Rectangle
+	w, h int
+}
+
+func newGrid(img *Image) *grid {
+	w, h := img.Rect.Dx(), img.Rect.Dy()
+	pix := make([]uint8, w*h)
+	for y := 0; y < h; y++ {
+		row := img.Pix[y*img.Stride:]
+		line := pix[y*w : (y+1)*w]
+		for x := range line {
+			line[x] = (row[x/8] >> (7 - x%8)) & 0x01
+		}
+	}
+	return &grid{
+		pix:  pix,
+		rect: img.Rect,
+		w:    w,
+		h:    h,
+	}
+}
+
+// at is same as BinaryAt, but faster.
+func (g *grid) at(x, y int) Color {
+	x -= g.rect.Min.X
+	y -= g.rect.Min.Y
+	if uint(x) >= uint(g.w) || uint(y) >= uint(g.h) {
+		return White
+	}
+	return g.pix[y*g.w+x] != 0
 }
 
 func (img *Image) PointMicro() int {
@@ -196,13 +233,23 @@ func (img *Image) PointMicro() int {
 	return sum1*16 + sum2
 }
 
-func (img *Image) longRunLengthCount() int {
+// isSquare reports whether the transposed coordinates used by the penalty rules
+// point to the same pixels as the normal coordinates.
+func (g *grid) isSquare() bool {
+	return g.w == g.h && g.rect.Min.X == g.rect.Min.Y
+}
+
+func (g *grid) longRunLengthCount() int {
+	if g.isSquare() {
+		return g.longRunLengthCountSquare()
+	}
+
 	var cnt int
-	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
+	for y := g.rect.Min.Y; y < g.rect.Max.Y; y++ {
 		var length int
-		c0 := img.BinaryAt(img.Rect.Min.X, y)
-		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
-			c := img.BinaryAt(x, y)
+		c0 := g.at(g.rect.Min.X, y)
+		for x := g.rect.Min.X; x < g.rect.Max.X; x++ {
+			c := g.at(x, y)
 			if c == c0 {
 				length++
 			} else {
@@ -215,11 +262,11 @@ func (img *Image) longRunLengthCount() int {
 		}
 	}
 
-	for x := img.Rect.Min.Y; x < img.Rect.Max.Y; x++ {
+	for x := g.rect.Min.Y; x < g.rect.Max.Y; x++ {
 		var length int
-		c0 := img.BinaryAt(x, img.Rect.Min.X)
-		for y := img.Rect.Min.X; y < img.Rect.Max.X; y++ {
-			c := img.BinaryAt(x, y)
+		c0 := g.at(x, g.rect.Min.X)
+		for y := g.rect.Min.X; y < g.rect.Max.X; y++ {
+			c := g.at(x, y)
 			if c == c0 {
 				length++
 			} else {
@@ -235,14 +282,68 @@ func (img *Image) longRunLengthCount() int {
 	return cnt
 }
 
-func (img *Image) blockCount() int {
+func (g *grid) longRunLengthCountSquare() int {
 	var cnt int
-	for y := img.Rect.Min.Y; y < img.Rect.Max.Y-1; y++ {
-		for x := img.Rect.Min.X; x < img.Rect.Max.X-1; x++ {
-			c1 := img.BinaryAt(y, x)
-			c2 := img.BinaryAt(y, x+1)
-			c3 := img.BinaryAt(y+1, x)
-			c4 := img.BinaryAt(y+1, x+1)
+	w := g.w
+	if w == 0 {
+		return 0
+	}
+
+	// horizontal
+	for y := 0; y < w; y++ {
+		line := g.pix[y*w : (y+1)*w]
+		var length int
+		c0 := line[0]
+		for _, c := range line {
+			length, cnt = runLength(length, cnt, c^c0)
+			c0 = c
+		}
+	}
+
+	// vertical
+	for x := 0; x < w; x++ {
+		var length int
+		c0 := g.pix[x]
+		for i := x; i < len(g.pix); i += w {
+			c := g.pix[i]
+			length, cnt = runLength(length, cnt, c^c0)
+			c0 = c
+		}
+	}
+
+	return cnt
+}
+
+// runLength is a branch-less version of the following code:
+//
+//	if diff == 0 {
+//		length++
+//	} else {
+//		if length >= 5 {
+//			cnt += length - 5 + 3
+//		}
+//		length = 0
+//	}
+func runLength(length, cnt int, diff uint8) (int, int) {
+	d := int(diff)                                    // 1 if the color changes, otherwise 0
+	ge5 := int(uint(4-length) >> (bits.UintSize - 1)) // 1 if length >= 5, otherwise 0
+	cnt += (length - 2) & -(d & ge5)
+	length = (length + 1) & (d - 1)
+	return length, cnt
+}
+
+func (g *grid) blockCount() int {
+	if g.isSquare() {
+		return g.blockCountSquare()
+	}
+
+	var cnt int
+	for y := g.rect.Min.Y; y < g.rect.Max.Y-1; y++ {
+		for x := g.rect.Min.X; x < g.rect.Max.X-1; x++ {
+			c1 := g.at(y, x)
+			c2 := g.at(y, x+1)
+			c3 := g.at(y+1, x)
+			c4 := g.at(y+1, x+1)
 			if c1 == c2 && c1 == c3 && c1 == c4 {
 				cnt++
 			}
@@ -251,43 +352,70 @@ func (img *Image) blockCount() int {
 	return cnt * 3
 }
 
-func (img *Image) finderPattern() int {
+func (g *grid) blockCountSquare() int {
 	var cnt int
-	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
-		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
-			var c1, c2, c3, c4, c5, c6, c7 Color
-			c1 = img.BinaryAt(x, y-3)
-			c2 = img.BinaryAt(x, y-2)
-			c3 = img.BinaryAt(x, y-1)
-			c4 = img.BinaryAt(x, y)
-			c5 = img.BinaryAt(x, y+1)
-			c6 = img.BinaryAt(x, y+2)
-			c7 = img.BinaryAt(x, y+3)
-			if c1 && !c2 && c3 && c4 && c5 && !c6 && c7 {
-				c := !img.BinaryAt(x, y-4) && !img.BinaryAt(x, y-5) && !img.BinaryAt(x, y-6) && !img.BinaryAt(x, y-7)
-				c = c || !img.BinaryAt(x, y+4) && !img.BinaryAt(x, y+5) && !img.BinaryAt(x, y+6) && !img.BinaryAt(x, y+7)
-				if c {
-					cnt++
-				}
-			}
+	w := g.w
+	for y := 0; y < w-1; y++ {
+		line0 := g.pix[y*w : (y+1)*w]
+		line1 := g.pix[(y+1)*w : (y+2)*w]
+		for x := 0; x < w-1; x++ {
+			// all pixels have the same color if the sum is 0 or 4.
+			s := line0[x] + line0[x+1] + line1[x] + line1[x+1]
+			cnt += int(((s&3)+3)>>2) ^ 1
+		}
+	}
+	return cnt * 3
+}
 
-			c1 = img.BinaryAt(x-3, y)
-			c2 = img.BinaryAt(x-2, y)
-			c3 = img.BinaryAt(x-1, y)
-			c4 = img.BinaryAt(x, y)
-			c5 = img.BinaryAt(x-1, y)
-			c6 = img.BinaryAt(x-2, y)
-			c7 = img.BinaryAt(x-3, y)
-			if c1 && !c2 && c3 && c4 && c5 && !c6 && c7 {
-				c := !img.BinaryAt(x-4, y) && !img.BinaryAt(x-5, y) && !img.BinaryAt(x-6, y) && !img.BinaryAt(x-7, y-7)
-				c = c || !img.BinaryAt(x+4, y) && !img.BinaryAt(x-5, y) && !img.BinaryAt(x+6, y) && !img.BinaryAt(x, y+7)
-				if c {
-					cnt++
-				}
+func (g *grid) finderPattern() int {
+	var cnt int
+
+	// vertical: 1:1:3:1:1 pattern
+	for x := g.rect.Min.X; x < g.rect.Max.X; x++ {
+		// window holds the pixels from (x, y-3) to (x, y+3).
+		// the pixel (x, y-3) is the most significant bit.
+		var window uint
+		for yy := g.rect.Min.Y - 3; yy < g.rect.Max.Y+3; yy++ {
+			window = (window<<1 | b2u(g.at(x, yy))) & 0x7f
+			y := yy - 3
+			if y < g.rect.Min.Y || window != 0b1011101 {
+				continue
+			}
+			c := !g.at(x, y-4) && !g.at(x, y-5) && !g.at(x, y-6) && !g.at(x, y-7)
+			c = c || !g.at(x, y+4) && !g.at(x, y+5) && !g.at(x, y+6) && !g.at(x, y+7)
+			if c {
+				cnt++
+			}
+		}
+	}
+
+	// horizontal
+	// NOTE: it checks only the pixels from (x-3, y) to (x, y),
+	// because the pixels (x-1, y), (x-2, y) and (x-3, y) are checked twice.
+	for y := g.rect.Min.Y; y < g.rect.Max.Y; y++ {
+		// window holds the pixels from (x-3, y) to (x, y).
+		// the pixel (x-3, y) is the most significant bit.
+		var window uint
+		for x := g.rect.Min.X - 3; x < g.rect.Max.X; x++ {
+			window = (window<<1 | b2u(g.at(x, y))) & 0xf
+			if x < g.rect.Min.X || window != 0b1011 {
+				continue
+			}
+			c := !g.at(x-4, y) && !g.at(x-5, y) && !g.at(x-6, y) && !g.at(x-7, y-7)
+			c = c || !g.at(x+4, y) && !g.at(x-5, y) && !g.at(x+6, y) && !g.at(x, y+7)
+			if c {
+				cnt++
 			}
 		}
 	}
 	return cnt * 40
+}
+
+func b2u(c Color) uint {
+	if c {
+		return 1
+	}
+	return 0
 }
 
 func (img *Image) pointOnesCount() int {

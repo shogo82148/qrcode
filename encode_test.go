@@ -955,3 +955,24 @@ func BenchmarkEncode(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkEncodeMaskAuto(b *testing.B) {
+	qr := &QRCode{
+		Version: 40,
+		Level:   LevelM,
+		Mask:    MaskAuto,
+		Segments: []Segment{
+			{
+				Mode: ModeNumeric,
+				Data: bytes.Repeat([]byte("9"), 3057),
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, err := qr.EncodeToBitmap()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
