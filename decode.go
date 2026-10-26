@@ -14,7 +14,16 @@ import (
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	bounds := img.Bounds()
+	if bounds.Min.X != 0 || bounds.Min.Y != 0 {
+		return nil, fmt.Errorf("qrcode: invalid image origin: %v", bounds.Min)
+	}
+	if bounds.Dx() != bounds.Dy() || bounds.Dx() < 17 || (bounds.Dx()-17)%4 != 0 {
+		return nil, fmt.Errorf("qrcode: invalid image size: %dx%d", bounds.Dx(), bounds.Dy())
+	}
 	version := Version((bounds.Dx() - 17) / 4)
+	if version < 1 || version > 40 {
+		return nil, fmt.Errorf("qrcode: invalid version: %d", version)
+	}
 	binimg := internalbitmap.Import(img)
 
 	level, mask, err := decodeFormat(binimg)
