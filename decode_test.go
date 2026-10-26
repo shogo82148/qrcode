@@ -213,3 +213,36 @@ func TestDecode1(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDecodeInvalidSize(t *testing.T) {
+	// a valid version 1 symbol, used to put correct format information into malformed bitmaps.
+	qr, err := New([]byte("hello"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []image.Rectangle{
+		image.Rect(0, 0, 0, 0),
+		image.Rect(0, 0, 12, 12),   // negative version
+		image.Rect(0, 0, 17, 17),   // version 0
+		image.Rect(0, 0, 22, 22),   // not 17+4v
+		image.Rect(0, 0, 21, 25),   // not square
+		image.Rect(0, 0, 181, 181), // version 41
+		image.Rect(1, 1, 22, 22),   // non-zero origin
+	}
+	for _, rect := range tests {
+		img := bitmap.New(rect)
+		for y := rect.Min.Y; y < rect.Max.Y; y++ {
+			for x := rect.Min.X; x < rect.Max.X; x++ {
+				img.SetBinary(x, y, src.BinaryAt(x, y))
+			}
+		}
+		if _, err := DecodeBitmap(img); err == nil {
+			t.Errorf("%v: want error, got nil", rect)
+		}
+	}
+}
