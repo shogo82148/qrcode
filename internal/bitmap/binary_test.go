@@ -140,7 +140,9 @@ func TestImportInvalid(t *testing.T) {
 	}
 
 	allocs := testing.AllocsPerRun(1, func() {
-		Import(&bitmap.Image{Rect: image.Rect(0, 0, 65536, 65536), Stride: 8192})
+		if _, err := Import(&bitmap.Image{Rect: image.Rect(0, 0, 65536, 65536), Stride: 8192}); err == nil {
+			t.Error("want error, got nil")
+		}
 	})
 	if allocs > 1 {
 		t.Errorf("Import allocated %v times for an invalid image", allocs)
