@@ -2,6 +2,7 @@ package microqr
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"math/bits"
 	"strconv"
@@ -13,7 +14,10 @@ import (
 )
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
-	binimg := internalbitmap.Import(img)
+	binimg, err := internalbitmap.Import(img)
+	if err != nil {
+		return nil, err
+	}
 
 	// decode format
 	var rawFormat uint
@@ -32,6 +36,9 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 
 	w := 8 + 2*int(version)
 	used := usedList[version]
+	if !binimg.Rect.Eq(used.Rect) {
+		return nil, fmt.Errorf("microqr: image size %v does not match version M%d", binimg.Rect, version)
+	}
 
 	// mask
 	binimg.Mask(binimg, used, maskList[mask])

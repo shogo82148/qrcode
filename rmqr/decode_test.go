@@ -450,3 +450,41 @@ func TestDecode12(t *testing.T) {
 		t.Errorf("unexpected data: got %q, want %q", string(seg.Data), want)
 	}
 }
+
+// copyBitmap returns a bitmap with the bounds rect that has the same pixels as src.
+func copyBitmap(src *bitmap.Image, rect image.Rectangle) *bitmap.Image {
+	img := bitmap.New(rect)
+	for y := rect.Min.Y; y < rect.Max.Y; y++ {
+		for x := rect.Min.X; x < rect.Max.X; x++ {
+			img.SetBinary(x, y, src.BinaryAt(x, y))
+		}
+	}
+	return img
+}
+
+func TestDecodeInvalidSize(t *testing.T) {
+	// a valid R17x139 symbol, used to put correct format information into malformed bitmaps.
+	qr, err := New([]byte("123456789012"), WithLevel(LevelM), WithKanji(false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	qr.Version = R17x139
+	src, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []image.Rectangle{
+		image.Rect(0, 0, 0, 0),
+		image.Rect(0, 0, 43, 7), // R7x43 size
+		image.Rect(0, 0, 140, 17),
+		image.Rect(0, 0, 139, 18),
+		image.Rect(1, 1, 140, 18), // non-zero origin
+	}
+	for _, rect := range tests {
+		img := copyBitmap(src, rect)
+		if _, err := DecodeBitmap(img); err == nil {
+			t.Errorf("%v: want error, got nil", rect)
+		}
+	}
+}

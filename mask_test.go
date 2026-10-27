@@ -3,6 +3,7 @@ package qrcode
 import (
 	"testing"
 
+	"github.com/shogo82148/go-imaging/bitmap"
 	internalbitmap "github.com/shogo82148/qrcode/internal/bitmap"
 )
 
@@ -30,7 +31,7 @@ func TestEncodeToBitmap_MaskAuto(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				point := internalbitmap.Import(img).Point()
+				point := mustImport(t, img).Point()
 				if minPoint < 0 || point < minPoint {
 					minPoint = point
 					want = mask
@@ -51,4 +52,13 @@ func TestEncodeToBitmap_MaskAuto(t *testing.T) {
 			}
 		}
 	}
+}
+
+func mustImport(t *testing.T, img *bitmap.Image) *internalbitmap.Image {
+	t.Helper()
+	binimg, err := internalbitmap.Import(img)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return binimg
 }
