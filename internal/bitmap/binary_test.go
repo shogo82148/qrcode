@@ -128,7 +128,7 @@ func TestImportInvalid(t *testing.T) {
 		{
 			// (Dy-1)*Stride overflows int.
 			name: "huge stride",
-			img:  &bitmap.Image{Rect: image.Rect(0, 0, 11, 11), Stride: 1 << 62, Pix: make([]byte, 22)},
+			img:  &bitmap.Image{Rect: image.Rect(0, 0, 11, 11), Stride: math.MaxInt / 2, Pix: make([]byte, 22)},
 		},
 	}
 	for _, tt := range tests {
