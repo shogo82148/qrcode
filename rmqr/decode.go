@@ -14,7 +14,10 @@ import (
 )
 
 func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
-	binimg := internalbitmap.Import(img)
+	binimg, err := internalbitmap.Import(img)
+	if err != nil {
+		return nil, err
+	}
 	bounds := img.Bounds()
 	w := bounds.Dx() - 1
 	h := bounds.Dy() - 1
@@ -24,6 +27,9 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 		return nil, err
 	}
 	used := usedList[version]
+	if !binimg.Rect.Eq(used.Rect) {
+		return nil, fmt.Errorf("rmqr: image size %v does not match version %d", binimg.Rect, version)
+	}
 	binimg.Mask(binimg, used, precomputedMask)
 
 	var buf bitstream.Buffer

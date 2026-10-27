@@ -24,7 +24,10 @@ func DecodeBitmap(img *bitmap.Image) (*QRCode, error) {
 	if version < 1 || version > 40 {
 		return nil, fmt.Errorf("qrcode: invalid version: %d", version)
 	}
-	binimg := internalbitmap.Import(img)
+	binimg, err := internalbitmap.Import(img)
+	if err != nil {
+		return nil, err
+	}
 
 	level, mask, err := decodeFormat(binimg)
 	if err != nil {

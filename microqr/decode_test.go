@@ -210,3 +210,82 @@ func TestDecodeBitmap6(t *testing.T) {
 func round(x float64) int {
 	return int(math.Round(x))
 }
+
+// copyBitmap returns a bitmap with the bounds rect that has the same pixels as src.
+func copyBitmap(src *bitmap.Image, rect image.Rectangle) *bitmap.Image {
+	img := bitmap.New(rect)
+	for y := rect.Min.Y; y < rect.Max.Y; y++ {
+		for x := rect.Min.X; x < rect.Max.X; x++ {
+			img.SetBinary(x, y, src.BinaryAt(x, y))
+		}
+	}
+	return img
+}
+
+// padStride returns a copy of src whose Stride is larger than necessary.
+func padStride(src *bitmap.Image) *bitmap.Image {
+	stride := src.Stride + 3
+	pix := make([]byte, stride*src.Rect.Dy())
+	for y := 0; y < src.Rect.Dy(); y++ {
+		copy(pix[y*stride:], src.Pix[y*src.Stride:(y+1)*src.Stride])
+	}
+	return &bitmap.Image{Pix: pix, Stride: stride, Rect: src.Rect}
+}
+
+func TestDecodeInvalidSize(t *testing.T) {
+	// a valid M4 symbol, used to put correct format information into malformed bitmaps.
+	qr, err := New([]byte("12345"), WithLevel(LevelL), WithKanji(false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	qr.Version = 4
+	src, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []image.Rectangle{
+		image.Rect(0, 0, 0, 0),
+		image.Rect(0, 0, 11, 11), // M1 size
+		image.Rect(0, 0, 13, 13), // M2 size
+		image.Rect(0, 0, 30, 30),
+		image.Rect(0, 0, 17, 18), // not square
+		image.Rect(1, 1, 18, 18), // non-zero origin
+	}
+	for _, rect := range tests {
+		img := copyBitmap(src, rect)
+		if _, err := DecodeBitmap(img); err == nil {
+			t.Errorf("%v: want error, got nil", rect)
+		}
+	}
+}
+
+func TestDecodeBitmapStride(t *testing.T) {
+	qr, err := New([]byte("12345"), WithLevel(LevelL), WithKanji(false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+	img := padStride(src)
+	orig := bytes.Clone(img.Pix)
+
+	got, err := DecodeBitmap(img)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got.Segments[0].Data) != "12345" {
+		t.Errorf("unexpected data: got %q, want %q", got.Segments[0].Data, "12345")
+	}
+	if !bytes.Equal(img.Pix, orig) {
+		t.Error("DecodeBitmap modified the input image")
+	}
+
+	// the pixel buffer is too small for the bounds.
+	img.Pix = img.Pix[:len(img.Pix)-img.Stride]
+	if _, err := DecodeBitmap(img); err == nil {
+		t.Error("want error, got nil")
+	}
+}

@@ -1,6 +1,7 @@
 package bitmap
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -30,12 +31,21 @@ func New(r image.Rectangle) *Image {
 	}
 }
 
-func Import(img *bitmap.Image) *Image {
-	return &Image{
-		Pix:    img.Pix,
-		Stride: img.Stride,
-		Rect:   img.Rect,
+// Import returns a copy of img with the canonical stride.
+// It returns an error if img is empty or its pixel buffer is too small for its bounds.
+func Import(img *bitmap.Image) (*Image, error) {
+	r := img.Rect
+	if r.Empty() {
+		return nil, errors.New("binimage: empty image")
 	}
+	dst := New(r)
+	if img.Stride < dst.Stride || len(img.Pix) < (r.Dy()-1)*img.Stride+dst.Stride {
+		return nil, errors.New("binimage: pixel buffer is too small")
+	}
+	for y := 0; y < r.Dy(); y++ {
+		copy(dst.Pix[y*dst.Stride:(y+1)*dst.Stride], img.Pix[y*img.Stride:])
+	}
+	return dst, nil
 }
 
 func (img *Image) Export() *bitmap.Image {
@@ -82,7 +92,8 @@ func (img *Image) XorBinary(x, y int, c Color) {
 }
 
 func (img *Image) Mask(in, mask, pattern *Image) *Image {
-	if !in.Rect.Eq(mask.Rect) {
+	// callers must validate the bounds of untrusted images before calling Mask.
+	if !in.Rect.Eq(mask.Rect) || in.Stride != mask.Stride {
 		panic("binimage: in and mask must have same bounds")
 	}
 

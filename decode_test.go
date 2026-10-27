@@ -1,6 +1,7 @@
 package qrcode
 
 import (
+	"bytes"
 	"image"
 	"image/png"
 	"os"
@@ -244,5 +245,42 @@ func TestDecodeInvalidSize(t *testing.T) {
 		if _, err := DecodeBitmap(img); err == nil {
 			t.Errorf("%v: want error, got nil", rect)
 		}
+	}
+}
+
+func TestDecodeBitmapStride(t *testing.T) {
+	qr, err := New([]byte("hello"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, err := qr.EncodeToBitmap()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// copy src into a bitmap whose Stride is larger than necessary.
+	stride := src.Stride + 3
+	pix := make([]byte, stride*src.Rect.Dy())
+	for y := 0; y < src.Rect.Dy(); y++ {
+		copy(pix[y*stride:], src.Pix[y*src.Stride:(y+1)*src.Stride])
+	}
+	img := &bitmap.Image{Pix: pix, Stride: stride, Rect: src.Rect}
+	orig := bytes.Clone(img.Pix)
+
+	got, err := DecodeBitmap(img)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got.Segments[0].Data) != "hello" {
+		t.Errorf("unexpected data: got %q, want %q", got.Segments[0].Data, "hello")
+	}
+	if !bytes.Equal(img.Pix, orig) {
+		t.Error("DecodeBitmap modified the input image")
+	}
+
+	// the pixel buffer is too small for the bounds.
+	img.Pix = img.Pix[:len(img.Pix)-img.Stride]
+	if _, err := DecodeBitmap(img); err == nil {
+		t.Error("want error, got nil")
 	}
 }
