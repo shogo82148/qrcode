@@ -35,14 +35,21 @@ func New(r image.Rectangle) *Image {
 // It returns an error if img is empty or its pixel buffer is too small for its bounds.
 func Import(img *bitmap.Image) (*Image, error) {
 	r := img.Rect
-	if r.Empty() {
+	dx, dy := r.Dx(), r.Dy()
+	if dx <= 0 || dy <= 0 {
+		// it also rejects the case where Dx or Dy overflows.
 		return nil, errors.New("binimage: empty image")
 	}
-	dst := New(r)
-	if img.Stride < dst.Stride || len(img.Pix) < (r.Dy()-1)*img.Stride+dst.Stride {
+
+	// validate the pixel buffer before allocating the destination.
+	// (len(Pix) - stride) / Stride >= dy - 1 is equivalent to len(Pix) >= (dy-1)*Stride + stride without overflow.
+	stride := (dx + 7) / 8
+	if img.Stride < stride || len(img.Pix) < stride || (len(img.Pix)-stride)/img.Stride < dy-1 {
 		return nil, errors.New("binimage: pixel buffer is too small")
 	}
-	for y := 0; y < r.Dy(); y++ {
+
+	dst := New(r)
+	for y := 0; y < dy; y++ {
 		copy(dst.Pix[y*dst.Stride:(y+1)*dst.Stride], img.Pix[y*img.Stride:])
 	}
 	return dst, nil
