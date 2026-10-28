@@ -23,11 +23,26 @@ func New(data []byte, opts ...EncodeOptions) (*QRCode, error) {
 	if lv < 0 || lv >= 4 {
 		return nil, fmt.Errorf("qrcode: invalid level: %d", lv)
 	}
+	if len(data) > maxDataLength(lv) {
+		// reject early to avoid allocating memory proportional to len(data).
+		return nil, errors.New("microqr: data too large")
+	}
 	if myopts.Kanji {
 		return newFromKanji(lv, data)
 	} else {
 		return newQR(lv, data)
 	}
+}
+
+// maxDataLength returns an upper bound of the length of data that can be encoded with lv.
+// Numeric mode is the densest mode (10 bits per 3 characters),
+// so data longer than this never fits in any version.
+func maxDataLength(lv Level) int {
+	bits := 0
+	for _, c := range capacityTable {
+		bits = max(bits, c[lv].Data*8)
+	}
+	return bits * 3 / 10
 }
 
 func newQR(level Level, data []byte) (*QRCode, error) {
